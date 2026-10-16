@@ -170,6 +170,8 @@ Agents can be organised into **groups** (for example Desk, Factory, Growth) with
 
 **Slack:** a Socket Mode bot (no public URL) takes DMs from one owner, routes `desk:` / `factory:` goals to groups, and posts review items with Approve / Reject buttons. See [docs/slack.md](docs/slack.md).
 
+**Factory tools:** agents can get a sandboxed project folder (files, shell in bubblewrap, git) and approval-gated publishing to GitHub and Gumroad. See [docs/factory-tools.md](docs/factory-tools.md).
+
 ## Share links and live apps
 
 **Share links (server mode).** Every link an agent shares is a real page served by this server under `/p/…`: lead form (`/p/f/`), qualify page (`/p/q/`), rating page (`/p/r/`), quote view (`/p/v/`), part status (`/p/t/`) and change slip (`/p/c/`). Customer answers are queued in `as_pub:<email>` and the owner's page applies them to the records every 20 seconds: new leads, qualified leads with an AI summary (intent, urgency, Hot/Warm/Cold, next step), ratings, quote opens, slip accept/decline. On Vercel, `vercel.json` rewrites `/p/*` to the API function. In the claude.ai preview there is no server, so links are placeholders and “Customer page” previews the customer side.
