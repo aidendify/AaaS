@@ -1,0 +1,87 @@
+// AgentSphere server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
+// Needs Node 20+. `npm install` only matters when DATABASE_URL is set (it adds the Neon driver).
+import http from 'node:http';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const dir = path.dirname(fileURLToPath(import.meta.url));
+
+// Load .env without any package
+try {
+  const txt = await fs.readFile(path.join(dir, '.env'), 'utf8');
+  for (const line of txt.replace(/^\uFEFF/, '').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*?)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/(^|\s+)#.*$/, '').replace(/^["']|["']$/g, ''); // drop inline # comments
+  }
+} catch { /* no .env file: fine */ }
+
+// Local defaults. Do not force the rate limit off: a public server should keep it on.
+// Set RATE_LIMIT=off in .env only for a private demo on this computer.
+const { handle, HttpError, store, runDueRoutines, DATA_DIR } = await import('./lib/backend.js');
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '127.0.0.1';
+
+function send(res, code, body, type = 'application/json') {
+  res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+  res.end(Buffer.isBuffer(body) || typeof body === 'string' ? body : JSON.stringify(body));
+}
+async function readBody(req, max = 4 * 1024 * 1024) {
+  let size = 0; const chunks = [];
+  for await (const c of req) { size += c.length; if (size > max) throw new HttpError(413, 'too_large'); chunks.push(c); }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const ip = req.socket.remoteAddress || 'local';
+  try {
+    if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
+      return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
+    }
+    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/api/')) {
+      const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
+      if (url.pathname === '/api/health') {
+        const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });
+        return send(res, 200, { ...out, ai: Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY) });
+      }
+      const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
+      if (out && out.__redirect) { res.writeHead(302, { Location: out.__redirect, 'Cache-Control': 'no-store' }); return res.end(); }
+      if (out && out.__bytes) return send(res, 200, out.__bytes, out.__type || 'application/octet-stream');
+      if (out && out.__html) return send(res, 200, out.__html, 'text/html; charset=utf-8');
+      return send(res, 200, out);
+    }
+    send(res, 404, { error: 'not_found' });
+  } catch (e) {
+    if (e instanceof HttpError) return send(res, e.status, { error: e.code, message: e.message, ...(e.extra || {}) });
+    console.error(e);
+    // local server: say what broke (e.g. data folder not writable) instead of a blank "Something went wrong"
+    const disk = e && ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'EINVAL', 'EBUSY', 'ENOSPC', 'EEXIST', 'ENOTDIR'].includes(e.code);
+    send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AgentSphere folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
+  }
+});
+
+server.listen(PORT, HOST, async () => {
+  console.log(`AgentSphere running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  try { const st = await store(); console.log(st.kind === 'neon' ? 'Database: Neon Postgres (DATABASE_URL)' : 'Database: local file ' + path.join(DATA_DIR, 'kv.json'));
+    if (st.kind === 'file') { try { await fs.mkdir(DATA_DIR, { recursive: true }); await fs.writeFile(path.join(DATA_DIR, '.write-test'), 'ok'); await fs.rm(path.join(DATA_DIR, '.write-test'), { force: true }); }
+      catch (e) { console.error('\n*** Cannot write to ' + DATA_DIR + ' (' + e.code + '). Sign-in will fail.\n*** Move the folder somewhere you own (e.g. Desktop or Documents, not inside the zip / OneDrive / Program Files) and run npm start again.\n'); } } }
+  catch (e) { console.error('Database error:', e.message); }
+  { const on = [['ANTHROPIC_API_KEY', 'Anthropic'], ['OPENROUTER_API_KEY', 'OpenRouter'], ['XAI_API_KEY', 'xAI']].filter(([k]) => process.env[k]).map(([, n]) => n);
+    console.log(on.length ? 'AI agents: ON (' + on.join(' + ') + ')' : 'AI agents: OFF (add OPENROUTER_API_KEY or ANTHROPIC_API_KEY to .env)'); }
+  // agents' scheduled routines run here every minute (on Vercel, call /api/cron/tick instead — see README)
+  setInterval(() => runDueRoutines().then((r) => { if (r.ran) console.log('Routines run:', r.ran); }).catch((e) => console.error('Routines:', e.message)), 60000);
+  // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
+  if (process.env.DEMO_MODE === '1') {
+    const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';
+    const demoPass = process.env.DEMO_USER_PASSWORD || 'demo12345';
+    try { await handle({ method: 'POST', pathname: '/api/auth/signup', body: JSON.stringify({ email: demoEmail, name: 'Demo User', password: demoPass }), headers: {}, ip: 'seed' }); }
+    catch (e) { if (!(e instanceof HttpError && e.status === 409)) console.error('Demo login:', e.message); }
+    console.log('Demo sign-in is on (DEMO_MODE=1) for ' + demoEmail + '. The password is the one in .env and is not printed here.');
+  }
+  if ((process.env.ADMIN_PASSWORD || 'admin1234') === 'admin1234') console.warn('Admin is still using the default password. Set ADMIN_PASSWORD before this is public.');
+  console.log(process.env.COMPOSIO_API_KEY ? 'Connectors: Composio managed sign-in ON' : 'Connectors: own OAuth apps only (add COMPOSIO_API_KEY for managed sign-in)');
+});

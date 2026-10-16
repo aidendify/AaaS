@@ -1,0 +1,25 @@
+node_modules
+.env
+.DS_Store
+data/
+
+# machine-local Android SDK path and build caches
+clients/android/local.properties
+clients/android/.gradle/
+clients/android/.kotlin/
+clients/android/**/build/
+
+# Electron output. The Windows setup is over GitHub's 100 MB file limit,
+# so it is attached to the GitHub Release instead of committed.
+clients/desktop/dist/
+
+# added for repo hygiene
+releases/
+*.apk
+*.aab
+*.exe
+*.keystore
+*.jks
+*.log
+.env.*
+!.env.example

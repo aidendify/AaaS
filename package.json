@@ -1,0 +1,19 @@
+{
+  "name": "agentsphere",
+  "version": "1.1.0",
+  "private": true,
+  "description": "AgentSphere: AI agent workspace with sign-in, requests, quotes and payments. Data in Neon Postgres.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "nodemailer": "^6.9.16",
+    "imapflow": "2.0.6",
+    "playwright": "^1.55.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
