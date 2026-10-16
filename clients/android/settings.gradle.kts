@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "AgentSphere"
+rootProject.name = "AIdentify"
 include(":app")

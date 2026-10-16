@@ -1,6 +1,6 @@
 # Slack bot
 
-AgentSphere can run a Slack bot in **Socket Mode**, so it works from a laptop or a private server with no public URL.
+AIdentify can run a Slack bot in **Socket Mode**, so it works from a laptop or a private server with no public URL.
 
 What it does:
 
@@ -18,8 +18,8 @@ What it does:
 3. **Install App** → install to the workspace. Copy the **Bot User OAuth Token** (`xoxb-…`) → `SLACK_BOT_TOKEN`.
 4. Optional: **Basic Information → Signing Secret** → `SLACK_SIGNING_SECRET` (not needed for Socket Mode).
 5. Your member ID: in Slack, click your profile → ⋯ → **Copy member ID** → `SLACK_OWNER_USER_ID`.
-6. `SLACK_ACCOUNT_EMAIL`: the AgentSphere account whose agents and boards the bot uses.
-7. Restart AgentSphere. The log says `Slack bot: on (Socket Mode)`. DM the bot.
+6. `SLACK_ACCOUNT_EMAIL`: the AIdentify account whose agents and boards the bot uses.
+7. Restart AIdentify. The log says `Slack bot: on (Socket Mode)`. DM the bot.
 
 ```env
 SLACK_BOT_TOKEN=xoxb-...
@@ -36,8 +36,8 @@ Values in the shell environment win over `.env`. Make sure no old Slack tokens a
 
 ```yaml
 display_information:
-  name: AgentSphere
-  description: Your AgentSphere agents in Slack
+  name: AIdentify
+  description: Your AIdentify agents in Slack
   background_color: "#1d2433"
 features:
   app_home:
@@ -45,7 +45,7 @@ features:
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
   bot_user:
-    display_name: AgentSphere
+    display_name: AIdentify
     always_online: true
 oauth_config:
   scopes:

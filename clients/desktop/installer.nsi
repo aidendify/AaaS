@@ -1,8 +1,8 @@
 Unicode true
 !include "MUI2.nsh"
-Name "AgentSphere"
-OutFile "dist/AgentSphere-Setup-1.1.0.exe"
-InstallDir "$LOCALAPPDATA\AgentSphere"
+Name "AIdentify"
+OutFile "dist/AIdentify-Setup-1.1.0.exe"
+InstallDir "$LOCALAPPDATA\AIdentify"
 RequestExecutionLevel user
 !define MUI_ABORTWARNING
 !insertmacro MUI_PAGE_WELCOME
@@ -13,16 +13,16 @@ RequestExecutionLevel user
 Section "Install"
   SetOutPath "$INSTDIR"
   File /r "dist/win-unpacked/*.*"
-  CreateShortcut "$DESKTOP\AgentSphere.lnk" "$INSTDIR\AgentSphere.exe"
-  CreateDirectory "$SMPROGRAMS\AgentSphere"
-  CreateShortcut "$SMPROGRAMS\AgentSphere\AgentSphere.lnk" "$INSTDIR\AgentSphere.exe"
-  CreateShortcut "$SMPROGRAMS\AgentSphere\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
+  CreateShortcut "$DESKTOP\AIdentify.lnk" "$INSTDIR\AIdentify.exe"
+  CreateDirectory "$SMPROGRAMS\AIdentify"
+  CreateShortcut "$SMPROGRAMS\AIdentify\AIdentify.lnk" "$INSTDIR\AIdentify.exe"
+  CreateShortcut "$SMPROGRAMS\AIdentify\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 SectionEnd
 Section "Uninstall"
-  Delete "$DESKTOP\AgentSphere.lnk"
-  Delete "$SMPROGRAMS\AgentSphere\AgentSphere.lnk"
-  Delete "$SMPROGRAMS\AgentSphere\Uninstall.lnk"
-  RMDir "$SMPROGRAMS\AgentSphere"
+  Delete "$DESKTOP\AIdentify.lnk"
+  Delete "$SMPROGRAMS\AIdentify\AIdentify.lnk"
+  Delete "$SMPROGRAMS\AIdentify\Uninstall.lnk"
+  RMDir "$SMPROGRAMS\AIdentify"
   RMDir /r "$INSTDIR"
 SectionEnd

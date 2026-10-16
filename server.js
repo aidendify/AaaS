@@ -1,4 +1,4 @@
-// AgentSphere server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
+// AIdentify server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
 // Needs Node 20+. `npm install` only matters when DATABASE_URL is set (it adds the Neon driver).
 import http from 'node:http';
 import fs from 'node:fs/promises';
@@ -63,7 +63,7 @@ const server = http.createServer(async (req, res) => {
     console.error(e);
     // local server: say what broke (e.g. data folder not writable) instead of a blank "Something went wrong"
     const disk = e && ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'EINVAL', 'EBUSY', 'ENOSPC', 'EEXIST', 'ENOTDIR'].includes(e.code);
-    send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AgentSphere folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
+    send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AIdentify folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
   }
 });
 
@@ -88,7 +88,7 @@ async function shutdown(sig) {
 for (const sig of ['SIGTERM', 'SIGINT']) process.prependListener(sig, () => { shutdown(sig); });
 
 server.listen(PORT, HOST, async () => {
-  console.log(`AgentSphere running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  console.log(`AIdentify running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
   try { const st = await store(); console.log(st.kind === 'neon' ? 'Database: Neon Postgres (DATABASE_URL)' : 'Database: local file ' + path.join(DATA_DIR, 'kv.json'));
     if (st.kind === 'file') { try { await fs.mkdir(DATA_DIR, { recursive: true }); await fs.writeFile(path.join(DATA_DIR, '.write-test'), 'ok'); await fs.rm(path.join(DATA_DIR, '.write-test'), { force: true }); }
       catch (e) { console.error('\n*** Cannot write to ' + DATA_DIR + ' (' + e.code + '). Sign-in will fail.\n*** Move the folder somewhere you own (e.g. Desktop or Documents, not inside the zip / OneDrive / Program Files) and run npm start again.\n'); } } }

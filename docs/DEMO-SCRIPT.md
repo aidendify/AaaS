@@ -3,7 +3,7 @@
 Use two browser windows (or one normal and one private window) so you can switch between customer and admin quickly.
 
 ## 1. The customer's view (2 min)
-1. Open the site → **Create one!** → make a customer account. A full-screen AgentSphere intro plays (click to skip).
+1. Open the site → **Create one!** → make a customer account. A full-screen AIdentify intro plays (click to skip).
 2. On the dashboard, type **"Create change slip for Jordan Lee: add a surge protector $250"** and press Enter. The ChangeSlip form opens already filled in. Create the slip, then **Open customer page** → **Accept** to show the receipt and timeline.
 3. Run **FormFirst** or **Nudge** from their cards: show the generated emails and the **Copy** buttons.
 4. Run **OpenPing**: attach any small HTML/PDF file, then press **Customer opens link** to show the alert and the single follow-up draft. Click the bell to show the notification.

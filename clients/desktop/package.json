@@ -1,10 +1,10 @@
 {
-  "name": "agentsphere-desktop",
+  "name": "aidentify-desktop",
   "version": "1.1.0",
   "private": true,
-  "description": "Windows window onto a hosted AgentSphere. The server address is changeable.",
+  "description": "Windows window onto a hosted AIdentify. The server address is changeable.",
   "main": "main.js",
-  "author": "AgentSphere",
+  "author": "AIdentify",
   "scripts": {
     "start": "electron .",
     "pack:dir": "electron-builder --win dir --x64",
@@ -17,11 +17,25 @@
   },
   "build": {
     "appId": "app.agentsphere.desktop",
-    "productName": "AgentSphere",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "preload.js", "package.json", "icon.png"],
+    "productName": "AIdentify",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "icon.png"
+    ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "icon.png",
       "signAndEditExecutable": false
     },
@@ -30,8 +44,8 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "AgentSphere",
-      "artifactName": "AgentSphere-Setup-${version}.exe"
+      "shortcutName": "AIdentify",
+      "artifactName": "AIdentify-Setup-${version}.exe"
     }
   }
 }

@@ -1,6 +1,6 @@
 # Agents' browser and sign-ins
 
-AgentSphere agents can use a real Chromium (`lib/browser.js`). By default every session is a fresh headless browser with no cookies. To let agents use sites you are signed in to (Gumroad dashboard, marketplaces, Gmail web), give them **one persistent profile** and sign in to it yourself.
+AIdentify agents can use a real Chromium (`lib/browser.js`). By default every session is a fresh headless browser with no cookies. To let agents use sites you are signed in to (Gumroad dashboard, marketplaces, Gmail web), give them **one persistent profile** and sign in to it yourself.
 
 ## Set up
 
