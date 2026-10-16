@@ -23,3 +23,5 @@ releases/
 *.log
 .env.*
 !.env.example
+CREDENTIALS.local
+data.bak-*/

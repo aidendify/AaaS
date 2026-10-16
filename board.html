@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentSphere · Groups</title>
+<!-- Groups, task boards and routines. Talks to /api/groups, /api/board/* and /api/routines/* with the signed-in session. -->
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --mute:#6b7385; --line:#e3e6ee; --acc:#4b5bdc; --ok:#1f9d6b; --warn:#c77d12; --bad:#c43d4b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  header { display:flex; gap:8px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); background:var(--card); flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0 12px 0 0; }
+  button, select, input, textarea { font:inherit; }
+  button { border:1px solid var(--line); background:var(--card); border-radius:8px; padding:5px 10px; cursor:pointer; }
+  button.pri { background:var(--acc); color:#fff; border-color:var(--acc); }
+  button.ok { background:var(--ok); color:#fff; border-color:var(--ok); }
+  button.bad { color:var(--bad); }
+  button.tab.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  main { padding:16px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  .goal { flex:1; min-width:260px; padding:7px 10px; border:1px solid var(--line); border-radius:8px; }
+  .board { display:grid; grid-template-columns:repeat(5, minmax(180px, 1fr)); gap:10px; overflow-x:auto; }
+  .col { background:#eceef5; border-radius:10px; padding:8px; min-height:120px; }
+  .col h3 { margin:2px 4px 8px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--mute); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px; margin-bottom:8px; cursor:pointer; }
+  .card b { display:block; font-weight:600; }
+  .card small, .mute { color:var(--mute); font-size:12px; }
+  .pill { display:inline-block; font-size:11px; padding:1px 6px; border-radius:99px; background:#eef0fb; color:var(--acc); margin-right:4px; }
+  .pill.out { background:#fff3e0; color:var(--warn); }
+  .pill.gate { background:#fdecee; color:var(--bad); }
+  section.panel { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:16px; }
+  section.panel h2 { font-size:14px; margin:0 0 8px; }
+  table { width:100%; border-collapse:collapse; }
+  td, th { text-align:left; padding:6px; border-top:1px solid var(--line); vertical-align:top; }
+  dialog { border:none; border-radius:12px; padding:16px; width:min(720px, 94vw); box-shadow:0 10px 40px rgba(0,0,0,.25); }
+  dialog pre { white-space:pre-wrap; background:var(--bg); padding:8px; border-radius:8px; max-height:45vh; overflow:auto; }
+  label { display:block; margin:6px 0; } label input, label select, label textarea { width:100%; padding:6px; border:1px solid var(--line); border-radius:6px; }
+  #msg { color:var(--bad); }
+</style>
+</head>
+<body>
+<header><h1>Groups</h1><span id="tabs"></span><button id="newGroup">+ Group</button><span id="msg"></span></header>
+<main>
+  <div id="groupHead"></div>
+  <div class="board" id="board"></div>
+  <section class="panel"><h2>Routines (scheduled jobs)</h2><div id="routines"></div></section>
+  <section class="panel"><h2>Agents: group, model and tools</h2><div id="agents"></div></section>
+</main>
+<dialog id="dlg"></dialog>
+<script>
+const COLS = ['todo', 'running', 'review', 'done', 'blocked'];
+const tok = localStorage.getItem('as_tok') || sessionStorage.getItem('as_tok');
+let S = { groups: [], board: [], routines: [], agents: [], approvals: [] }, cur = null;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const agentName = (id) => (S.agents.find((a) => a.id === id) || {}).name || (id == null ? 'Chief of Staff' : 'agent ' + id);
+async function api(path, body) {
+  const r = await fetch(path, { method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.message || j.error || 'Request failed');
+  return j;
+}
+const say = (m) => { $('#msg').textContent = m || ''; if (m) setTimeout(() => { if ($('#msg').textContent === m) $('#msg').textContent = ''; }, 6000); };
+async function load() {
+  if (!tok) { document.body.innerHTML = '<main>Sign in to AgentSphere first.</main>'; return; }
+  try { S = await api('/api/groups'); } catch (e) { say(e.message); return; }
+  if (!cur || !S.groups.some((g) => g.id === cur)) cur = (S.groups[0] || {}).id;
+  render();
+}
+function render() {
+  $('#tabs').innerHTML = S.groups.map((g) => `<button class="tab ${g.id === cur ? 'on' : ''}" data-g="${g.id}">${esc(g.name)} <small>${S.board.filter((t) => t.gid === g.id && t.status === 'review').length || ''}</small></button>`).join(' ');
+  const g = S.groups.find((x) => x.id === cur);
+  if (!g) { $('#groupHead').innerHTML = '<p class="mute">No groups yet. Add one, or give agents a group below.</p>'; $('#board').innerHTML = ''; }
+  else {
+    const over = (g.over || []).map((id) => (S.groups.find((x) => x.id === id) || {}).name).filter(Boolean);
+    $('#groupHead').innerHTML = `<div class="row"><b>${esc(g.name)}</b><span class="mute">Lead: ${esc(agentName(g.lead))} · ${g.members.length} agents · runs ${g.limit} at a time${over.length ? ' · orchestrates ' + esc(over.join(', ')) : ''}</span>
+      <button id="editGroup">Edit group</button><button id="newTask">+ Task</button></div>
+      <div class="row"><input class="goal" id="goal" placeholder="Give ${esc(g.name)} a goal, e.g. shortlist 3 self-hosted replacement ideas for agency owners"><button class="pri" id="sendGoal">Send goal</button></div>`;
+    $('#board').innerHTML = COLS.map((c) => `<div class="col"><h3>${c} (${S.board.filter((t) => t.gid === g.id && t.status === c).length})</h3>${S.board.filter((t) => t.gid === g.id && t.status === c).sort((a, b) => b.updated - a.updated).map(card).join('')}</div>`).join('');
+  }
+  $('#routines').innerHTML = S.routines.length ? `<table><tr><th>Job</th><th>Agent</th><th>Next run</th><th></th></tr>${S.routines.map((r) => `<tr><td><b>${esc(r.title)}</b><br><small class="mute">${esc(r.prompt).slice(0, 160)}</small></td><td>${esc(agentName(r.aid))}</td><td>${r.paused ? '<span class="pill gate">paused</span>' : new Date(r.next).toLocaleString()}${r.every ? `<br><small class="mute">every ${r.every} day(s)</small>` : ''}</td><td><button data-rt="${r.id}" data-p="${r.paused ? 0 : 1}">${r.paused ? 'Resume' : 'Pause'}</button></td></tr>`).join('')}</table>` : '<p class="mute">No routines.</p>';
+  $('#agents').innerHTML = `<table><tr><th>Agent</th><th>Group</th><th>Model</th><th>Tools</th><th></th></tr>${S.agents.map((a) => `<tr><td>${esc(a.name)}</td><td><input data-ag="${a.id}" data-f="group" value="${esc(a.group)}" size="10"></td><td><input data-ag="${a.id}" data-f="model" value="${esc(a.model)}" placeholder="${esc(S.defaultModel || 'default')}" size="26"></td>
+    <td><label style="display:inline"><input type="checkbox" data-ag="${a.id}" data-tool="sandbox" ${a.tools.includes('sandbox') ? 'checked' : ''}> sandbox</label> <label style="display:inline"><input type="checkbox" data-ag="${a.id}" data-tool="publish" ${a.tools.includes('publish') ? 'checked' : ''}> publish</label></td><td><button data-save="${a.id}">Save</button></td></tr>`).join('')}</table>`;
+}
+function card(t) {
+  const kids = S.board.filter((x) => x.parent === t.id).length;
+  return `<div class="card" data-t="${t.id}"><b>${esc(t.title)}</b><small>${esc(agentName(t.aid))}</small><div>${kids ? `<span class="pill">goal · ${kids} tasks</span>` : ''}${t.after ? '<span class="pill">after</span>' : ''}${t.gate ? '<span class="pill gate">needs approval</span>' : ''}${t.outbound ? '<span class="pill out">outbound</span>' : ''}</div>${t.err ? `<small style="color:var(--bad)">${esc(t.err)}</small>` : ''}</div>`;
+}
+function openTask(id) {
+  const t = S.board.find((x) => x.id === id); if (!t) return;
+  const appr = (t.approvals || []).map((aid) => S.approvals.find((a) => a.id === aid)).filter(Boolean);
+  const g = S.groups.find((x) => x.id === t.gid) || { members: [] };
+  $('#dlg').innerHTML = `<h3>${esc(t.title)}</h3><p class="mute">${esc(t.status)} · ${esc(agentName(t.aid))} · by ${esc(t.by)}${t.note ? ' · ' + esc(t.note) : ''}</p>
+    ${t.body ? `<pre>${esc(t.body)}</pre>` : ''}${t.result ? `<h4>Result</h4><pre>${esc(t.result)}</pre>` : ''}${t.err ? `<p style="color:var(--bad)">${esc(t.err)}</p>` : ''}
+    ${appr.length ? `<h4>Waiting for approval</h4><ul>${appr.map((a) => `<li>${esc(a.summary)}</li>`).join('')}</ul>` : ''}
+    <label>Assignee <select id="tAid">${g.members.map((m) => `<option value="${m}" ${m === t.aid ? 'selected' : ''}>${esc(agentName(m))}</option>`).join('')}</select></label>
+    <div class="row">${t.status === 'review' ? `<button class="ok" data-dec="approve">Approve${appr.length ? ' and run ' + appr.length + ' action(s)' : ''}</button><button class="bad" data-dec="reject">Reject</button>` : ''}
+    ${['blocked', 'review', 'done'].includes(t.status) ? '<button data-mv="todo">Run again</button>' : ''}${t.status === 'todo' ? '<button data-mv="blocked">Hold</button>' : ''}
+    <button id="tSave">Save assignee</button><button class="bad" id="tDel">Delete</button><button id="close">Close</button></div>`;
+  $('#dlg').showModal();
+  $('#dlg').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    try {
+      if (b.id === 'close') return $('#dlg').close();
+      if (b.dataset.dec) { const note = b.dataset.dec === 'reject' ? prompt('Why? (optional)') || '' : ''; await api('/api/board/decide', { id, decision: b.dataset.dec, note }); }
+      else if (b.dataset.mv) await api('/api/board/task', { id, status: b.dataset.mv });
+      else if (b.id === 'tSave') await api('/api/board/task', { id, aid: Number($('#tAid').value) });
+      else if (b.id === 'tDel') { if (!confirm('Delete this task?')) return; await api('/api/board/delete', { id }); }
+      $('#dlg').close(); load();
+    } catch (x) { say(x.message); }
+  };
+}
+function groupForm(g) {
+  g = g || { name: '', desc: '', members: [], lead: null, limit: 1, over: [] };
+  $('#dlg').innerHTML = `<h3>${g.id ? 'Edit' : 'New'} group</h3><label>Name <input id="gName" value="${esc(g.name)}"></label><label>What it does <input id="gDesc" value="${esc(g.desc)}"></label>
+    <label>Runs at once <select id="gLim"><option ${g.limit === 1 ? 'selected' : ''}>1</option><option ${g.limit === 2 ? 'selected' : ''}>2</option></select></label>
+    <label>Lead (plans goals) <select id="gLead">${S.agents.map((a) => `<option value="${a.id}" ${a.id === g.lead ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>
+    <p>Members</p><div>${S.agents.map((a) => `<label style="display:inline-block;width:48%"><input type="checkbox" class="gm" value="${a.id}" ${g.members.includes(a.id) ? 'checked' : ''}> ${esc(a.name)}</label>`).join('')}</div>
+    <p>Orchestrates groups</p><div>${S.groups.filter((x) => x.id !== g.id).map((x) => `<label style="display:inline-block;width:48%"><input type="checkbox" class="go" value="${x.id}" ${(g.over || []).includes(x.id) ? 'checked' : ''}> ${esc(x.name)}</label>`).join('')}</div>
+    <div class="row"><button class="pri" id="gSave">Save</button>${g.id ? '<button class="bad" id="gDel">Delete group</button>' : ''}<button id="close">Close</button></div>`;
+  $('#dlg').showModal();
+  $('#dlg').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    try {
+      if (b.id === 'close') return $('#dlg').close();
+      if (b.id === 'gDel') { if (!confirm('Delete this group? Its open tasks are put on hold.')) return; await api('/api/groups/delete', { id: g.id }); }
+      if (b.id === 'gSave') { const r = await api('/api/groups', { id: g.id, name: $('#gName').value, desc: $('#gDesc').value, limit: Number($('#gLim').value), lead: Number($('#gLead').value), members: [...document.querySelectorAll('.gm:checked')].map((x) => Number(x.value)), over: [...document.querySelectorAll('.go:checked')].map((x) => x.value) }); cur = r.group.id; }
+      $('#dlg').close(); load();
+    } catch (x) { say(x.message); }
+  };
+}
+function taskForm() {
+  const g = S.groups.find((x) => x.id === cur); if (!g) return;
+  $('#dlg').innerHTML = `<h3>New task in ${esc(g.name)}</h3><label>Title <input id="nTitle"></label><label>Details <textarea id="nBody" rows="4"></textarea></label>
+    <label>Assignee <select id="nAid">${g.members.map((m) => `<option value="${m}">${esc(agentName(m))}</option>`).join('')}</select></label>
+    <label>Start as <select id="nSt"><option value="todo">todo (runs automatically)</option><option value="blocked">on hold</option></select></label>
+    <div class="row"><button class="pri" id="nSave">Add</button><button id="close">Close</button></div>`;
+  $('#dlg').showModal();
+  $('#dlg').onclick = async (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    try { if (b.id === 'nSave') await api('/api/board/task', { gid: g.id, title: $('#nTitle').value, body: $('#nBody').value, aid: Number($('#nAid').value), status: $('#nSt').value }); $('#dlg').close(); load(); } catch (x) { say(x.message); }
+  };
+}
+document.addEventListener('click', async (e) => {
+  if (e.target.closest('dialog')) return;
+  const b = e.target.closest('button,[data-t]'); if (!b) return;
+  try {
+    if (b.dataset.g) { cur = b.dataset.g; render(); }
+    else if (b.dataset.t) openTask(b.dataset.t);
+    else if (b.id === 'newGroup') groupForm();
+    else if (b.id === 'editGroup') groupForm(S.groups.find((x) => x.id === cur));
+    else if (b.id === 'newTask') taskForm();
+    else if (b.id === 'sendGoal') { const goal = $('#goal').value.trim(); if (!goal) return; b.disabled = true; say('Planning…'); const r = await api('/api/groups/goal', { gid: cur, goal }); say(r.lead + ' planned ' + r.tasks.length + ' task(s).'); load(); }
+    else if (b.dataset.rt) { await api('/api/routines/pause', { id: b.dataset.rt, paused: b.dataset.p === '1' }); load(); }
+    else if (b.dataset.save) { const id = Number(b.dataset.save), q = (f) => document.querySelector(`[data-ag="${id}"][data-f="${f}"]`).value;
+      await api('/api/groups/agent', { aid: id, group: q('group'), model: q('model'), tools: [...document.querySelectorAll(`[data-ag="${id}"][data-tool]:checked`)].map((x) => x.dataset.tool) }); say('Saved'); load(); }
+  } catch (x) { say(x.message); b.disabled = false; }
+});
+load(); setInterval(() => { if (!$('#dlg').open && document.activeElement.tagName !== 'INPUT') load(); }, 5000);
+</script>
+</body>
+</html>

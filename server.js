@@ -18,7 +18,7 @@ try {
 
 // Local defaults. Do not force the rate limit off: a public server should keep it on.
 // Set RATE_LIMIT=off in .env only for a private demo on this computer.
-const { handle, HttpError, store, runDueRoutines, DATA_DIR } = await import('./lib/backend.js');
+const { handle, HttpError, store, runDueRoutines, runBoardWorker, resetBoards, DATA_DIR } = await import('./lib/backend.js');
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 
@@ -38,6 +38,9 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
+      return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
       return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
@@ -74,6 +77,10 @@ server.listen(PORT, HOST, async () => {
     console.log(on.length ? 'AI agents: ON (' + on.join(' + ') + ')' : 'AI agents: OFF (add OPENROUTER_API_KEY or ANTHROPIC_API_KEY to .env)'); }
   // agents' scheduled routines run here every minute (on Vercel, call /api/cron/tick instead — see README)
   setInterval(() => runDueRoutines().then((r) => { if (r.ran) console.log('Routines run:', r.ran); }).catch((e) => console.error('Routines:', e.message)), 60000);
+  // task boards: interrupted tasks go back to todo, then the worker picks up todo tasks every 20 seconds
+  resetBoards().catch((e) => console.error('Boards:', e.message));
+  let working = false;
+  setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000);
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
     const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';
