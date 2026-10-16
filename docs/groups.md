@@ -44,3 +44,10 @@ Code: `lib/groups.js` (model, board, worker), routes in `lib/backend.js` (`group
 - A goal is always planned into **at least 2 chained tasks**; each task after the first waits for the result of the one before it. Factory follows its Scout → Spec chain (research and shortlist, then a sourced brief).
 - Tasks marked `research` (the default) get up to 25 tool steps; others get 12.
 - When an agent hits its step limit, any tool-call text the model wrote is stripped and one final call with **no tools** asks for the finished answer from what was already found.
+
+## Scheduled board routines, Slack briefs and lead replies
+
+- `POST /api/routines` `{aid, title, prompt, hour, minute, tz, board?, slack?}` creates a daily routine at a local time. With `board: <group id>` it queues a board task (the worker runs it, the result waits in review, Slack notifies). With `slack: true` the agent's answer is posted to the owner's Slack DM, with a live digest of what is waiting.
+- `propose_reply` (any agent) drafts a reply/DM/application for a lead; it waits for approval. Slack shows each draft with its own Approve / Reject. Approving queues a "Send approved reply" task: the agent's browser may only open that site, posts the exact text, and must answer SENT or NOT SENT (NOT SENT → blocked → Slack failure note).
+- `lead_feeds` (any agent) reads public job feeds without sign-in: n8n community Jobs, Make community, Hacker News comments.
+- Playbook used by Desk: [free-lead-finder.md](free-lead-finder.md).
