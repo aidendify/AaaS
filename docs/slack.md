@@ -70,3 +70,8 @@ settings:
 Scopes: `chat:write` (replies and notifications), `im:history` + `message.im` (read your DMs), `im:read` / `im:write` (open the DM for notifications), `reactions:write` (the 👀 "working on it"), `users:read` (optional, names). The app-level token needs `connections:write` for Socket Mode.
 
 Code: `lib/slack.js`, started from `server.js`.
+
+## Who answers and conversation memory
+
+- Unprefixed DMs are answered by the orchestrator: `SLACK_AGENT_ID` if set, otherwise the lead of the group that orchestrates other groups (for example "Chief · AIdentify CEO"). If none is set up, the bot says so instead of answering as another agent.
+- Top-level DMs are answered in the DM and form one ongoing conversation; a message inside a thread is answered in that thread, which keeps its own history. The last 20 turns per conversation are kept server-side in `as_slack:<email>`.
