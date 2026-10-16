@@ -38,3 +38,9 @@ Code: `lib/groups.js` (model, board, worker), routes in `lib/backend.js` (`group
 
 - On Vercel there is no long-running worker; call `runBoardWorker()` from a cron route if you deploy there.
 - Board state is one JSON list per customer (fine for hundreds of tasks, not for thousands).
+
+## Planning and step limits
+
+- A goal is always planned into **at least 2 chained tasks**; each task after the first waits for the result of the one before it. Factory follows its Scout → Spec chain (research and shortlist, then a sourced brief).
+- Tasks marked `research` (the default) get up to 25 tool steps; others get 12.
+- When an agent hits its step limit, any tool-call text the model wrote is stripped and one final call with **no tools** asks for the finished answer from what was already found.
