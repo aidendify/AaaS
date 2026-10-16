@@ -81,6 +81,8 @@ server.listen(PORT, HOST, async () => {
   resetBoards().catch((e) => console.error('Boards:', e.message));
   let working = false;
   setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000);
+  // Slack bot in Socket Mode (lib/slack.js); stays off without its tokens
+  import('./lib/slack.js').then((m) => m.startSlack()).catch((e) => console.error('Slack bot failed to start:', e.message));
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
     const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';

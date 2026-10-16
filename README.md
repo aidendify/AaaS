@@ -168,6 +168,8 @@ Created agents get the same actions when their skill is one of these. The Workpl
 
 Agents can be organised into **groups** (for example Desk, Factory, Growth) with a lead, a kanban board (todo / running / review / done / blocked) and a worker loop that runs todo tasks and moves them to review. Send a goal to a group and its lead breaks it into tasks. Anything outbound waits in review for your approval. Routines can be paused and resumed. See [docs/groups.md](docs/groups.md).
 
+**Slack:** a Socket Mode bot (no public URL) takes DMs from one owner, routes `desk:` / `factory:` goals to groups, and posts review items with Approve / Reject buttons. See [docs/slack.md](docs/slack.md).
+
 ## Share links and live apps
 
 **Share links (server mode).** Every link an agent shares is a real page served by this server under `/p/…`: lead form (`/p/f/`), qualify page (`/p/q/`), rating page (`/p/r/`), quote view (`/p/v/`), part status (`/p/t/`) and change slip (`/p/c/`). Customer answers are queued in `as_pub:<email>` and the owner's page applies them to the records every 20 seconds: new leads, qualified leads with an AI summary (intent, urgency, Hot/Warm/Cold, next step), ratings, quote opens, slip accept/decline. On Vercel, `vercel.json` rewrites `/p/*` to the API function. In the claude.ai preview there is no server, so links are placeholders and “Customer page” previews the customer side.
