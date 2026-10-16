@@ -79,3 +79,11 @@ Code: `lib/slack.js`, started from `server.js`.
 ## Staying connected
 
 Socket Mode reconnects by itself after drops. The bot also logs every socket state change (`Slack socket: …`), writes a heartbeat line every `SLACK_HEARTBEAT_MIN` minutes (default 15) with an `auth.test` check, notes when the process wakes after a long pause, retries startup with backoff (5 s → 5 min), and exits after the socket has been down for `SLACK_WATCHDOG_MIN` minutes (default 5) so a supervisor can restart the server. Run it under a supervisor (systemd, pm2, or a restart loop) for this last step to help.
+
+## Notifications channel
+
+Set `SLACK_NOTIFY_CHANNEL` to a channel id (Slack: open the channel → channel name → About → Channel ID, e.g. `C0123ABCD`) to send review cards, failure notes and scheduled briefs there. Conversation with the Chief stays in the DM. The bot must be a member of the channel: type `/invite @AIdentify` in it (private channels too). Leave it empty to keep everything in the DM. Approve / Reject buttons work in the channel, but only for the owner.
+
+## Chief operations tools
+
+The orchestrator agent has the `ops` tools: `list_schedules`, `set_schedule_paused`, `create_schedule` (new schedules start paused), `list_board_tasks` and `cancel_board_task`. Agents are told never to claim an action that no tool result confirms.
