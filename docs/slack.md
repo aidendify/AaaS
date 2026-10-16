@@ -75,3 +75,7 @@ Code: `lib/slack.js`, started from `server.js`.
 
 - Unprefixed DMs are answered by the orchestrator: `SLACK_AGENT_ID` if set, otherwise the lead of the group that orchestrates other groups (for example "Chief · AIdentify CEO"). If none is set up, the bot says so instead of answering as another agent.
 - Top-level DMs are answered in the DM and form one ongoing conversation; a message inside a thread is answered in that thread, which keeps its own history. The last 20 turns per conversation are kept server-side in `as_slack:<email>`.
+
+## Staying connected
+
+Socket Mode reconnects by itself after drops. The bot also logs every socket state change (`Slack socket: …`), writes a heartbeat line every `SLACK_HEARTBEAT_MIN` minutes (default 15) with an `auth.test` check, notes when the process wakes after a long pause, retries startup with backoff (5 s → 5 min), and exits after the socket has been down for `SLACK_WATCHDOG_MIN` minutes (default 5) so a supervisor can restart the server. Run it under a supervisor (systemd, pm2, or a restart loop) for this last step to help.

@@ -267,3 +267,7 @@ Logos: put official logo files in `logos/` and list them in `WP_LOGOS` (see `log
 - `zips/`: the agent downloads (ZIP files stored as base64 text)
 - `.env.example`: settings template
 - `docs/DEMO-SCRIPT.md`: presenter's walkthrough
+
+## Agents' browser and sign-ins
+
+One persistent browser profile you sign in to yourself (`npm run browser:login`); agents reuse the cookies. See [docs/browser-and-logins.md](docs/browser-and-logins.md).

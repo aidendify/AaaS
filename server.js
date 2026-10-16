@@ -67,6 +67,26 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// ---- shutdown: SIGTERM / SIGINT stop cleanly within a few seconds ----
+// (Playwright installs its own SIGTERM handler that can hang on open browsers, so ours runs first and always exits.)
+const timers = [];
+let slackMod = null, stopping = false;
+async function shutdown(sig) {
+  if (stopping) return; stopping = true;
+  console.log(`${sig}: shutting down`);
+  const force = setTimeout(() => { console.error('Shutdown took too long, exiting.'); process.exit(1); }, 8000);
+  force.unref();
+  timers.forEach(clearInterval);
+  server.close();
+  await Promise.allSettled([
+    slackMod && slackMod.stopSlack ? slackMod.stopSlack() : null,
+    import('./lib/browser.js').then((m) => m.closeBrowsers()).catch(() => {}),
+  ]);
+  try { const st = await store(); if (st.flush) await st.flush(); } catch { /* nothing to flush */ }
+  process.exit(0);
+}
+for (const sig of ['SIGTERM', 'SIGINT']) process.prependListener(sig, () => { shutdown(sig); });
+
 server.listen(PORT, HOST, async () => {
   console.log(`AgentSphere running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
   try { const st = await store(); console.log(st.kind === 'neon' ? 'Database: Neon Postgres (DATABASE_URL)' : 'Database: local file ' + path.join(DATA_DIR, 'kv.json'));
@@ -76,13 +96,13 @@ server.listen(PORT, HOST, async () => {
   { const on = [['ANTHROPIC_API_KEY', 'Anthropic'], ['OPENROUTER_API_KEY', 'OpenRouter'], ['XAI_API_KEY', 'xAI']].filter(([k]) => process.env[k]).map(([, n]) => n);
     console.log(on.length ? 'AI agents: ON (' + on.join(' + ') + ')' : 'AI agents: OFF (add OPENROUTER_API_KEY or ANTHROPIC_API_KEY to .env)'); }
   // agents' scheduled routines run here every minute (on Vercel, call /api/cron/tick instead — see README)
-  setInterval(() => runDueRoutines().then((r) => { if (r.ran) console.log('Routines run:', r.ran); }).catch((e) => console.error('Routines:', e.message)), 60000);
+  timers.push(setInterval(() => runDueRoutines().then((r) => { if (r.ran) console.log('Routines run:', r.ran); }).catch((e) => console.error('Routines:', e.message)), 60000));
   // task boards: interrupted tasks go back to todo, then the worker picks up todo tasks every 20 seconds
   resetBoards().catch((e) => console.error('Boards:', e.message));
   let working = false;
-  setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000);
+  timers.push(setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000));
   // Slack bot in Socket Mode (lib/slack.js); stays off without its tokens
-  import('./lib/slack.js').then((m) => m.startSlack()).catch((e) => console.error('Slack bot failed to start:', e.message));
+  import('./lib/slack.js').then((m) => { slackMod = m; return m.startSlack(); }).catch((e) => console.error('Slack bot failed to start:', e.message));
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
     const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';

@@ -5,7 +5,8 @@
   "description": "AgentSphere: AI agent workspace with sign-in, requests, quotes and payments. Data in Neon Postgres.",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "browser:login": "node scripts/browser-login.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
