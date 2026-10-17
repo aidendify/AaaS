@@ -5,6 +5,21 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-18
+
+Storage you can host, and an automated test suite. A self-hosted server with no database keeps working exactly as before.
+
+### Changed (please read)
+- **Hosted deploys must use Postgres.** With `HOSTED=1`, `NODE_ENV=production` or on Vercel, the server now refuses to start without `DATABASE_URL` and says why. Your own computer or a single server without `DATABASE_URL` still uses `data/kv.json` and prints a note.
+
+### Added
+- **Any Postgres, not only Neon.** Neon addresses use Neon's HTTPS driver; other addresses use a connection pool. Brief network errors are retried.
+- **No lost updates.** Account changes merge with the latest saved copy, and workspace saves take a short database lock, so two servers writing at the same moment do not overwrite each other. Before this, two sign-ups at the same moment could lose one account.
+- **Automatic database setup and upgrades.** Tables, an index for faster lookups and a record of applied upgrades are created on start. `DATABASE_SCHEMA` keeps them in their own schema.
+- **Move data between the file and Postgres.** `npm run db:migrate-from-file` (with `--dry-run`; safe to repeat; checks the count and a hash) and `npm run db:export-to-file`.
+- **Automated tests,** run on every push: sign-up and login; approval-first for social posts and email (nothing goes out while pending, reject stops it, approve sends it); the browser's pay/buy/submit steps wait for approval; Chief of Staff hands work to the right agent and a group lead turns a goal into board tasks for the right members; saved connector keys are encrypted and never shown back; both storage types. Outside services (AI, Buffer, email) are stand-ins, so tests cost nothing and send nothing.
+- **Billing groundwork.** A checker for Razorpay-style signed webhooks, ready for the payments step. Payments themselves are not built yet; that test is marked as skipped.
+
 ## [1.4.0] - 2026-10-18
 
 Security basics before launch. Existing servers keep working with no changes: if you already set `ADMIN_PASSWORD`, nothing changes for you.

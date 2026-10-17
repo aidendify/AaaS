@@ -1,7 +1,7 @@
 # AIdentify handoff
 
 A one-page status for anyone picking up AIdentify: what it does today, what is in progress, and what is known to be
-missing. Last updated for **v1.4.0** (18 Oct 2026).
+missing. Last updated for **v1.5.0** (18 Oct 2026).
 
 | | |
 |---|---|
@@ -49,6 +49,11 @@ it from the web app or from Slack.
   - **Tests:** automatic tests for all of the above.
   - **Names:** leftover "AgentSphere" names were replaced.
   - **Read-only analytics:** a social analytics snapshot command (`npm run social:snapshot`).
+- **v1.5, hostable storage and a test suite.**
+  - Hosted mode (`HOSTED=1` or `NODE_ENV=production`) requires Postgres; a single self-hosted server keeps `data/kv.json`.
+  - Neon or any Postgres, with automatic table setup and upgrades, retries, a connection pool, and protection against lost updates.
+  - `npm run db:migrate-from-file` and `npm run db:export-to-file` to move data between the file and Postgres.
+  - Automated tests for sign-up and login, approvals, agent routing, connectors and both storage types, with stand-ins for AI, Buffer and email.
 
 ## Highlights worth promoting
 
@@ -69,7 +74,12 @@ These screenshots were taken from a local test server with made-up data (no real
 
 ## In progress
 
-The launch-readiness list. Step 1 (security basics) shipped in v1.4.0; the rest is still open:
+The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4 (storage and tests) in v1.5.0. Still open:
+
+- **Step 2, hosted demo:** waiting for Phanindra's inputs. The database is ready: Neon project in the **AIdentify** org,
+  free plan, Singapore region, Postgres 18, database `aidentify` (still empty; tests use throwaway schemas and drop them).
+  The connection string is kept on the build machine only, never in the repo.
+- **Step 3, payments (Razorpay):** waiting for Phanindra's inputs. A webhook signature checker (`lib/billing.js`) and its tests exist; no payment route yet.
 
 - Deploying a public demo, and opening a signup or waitlist page.
 - More of the launch list after security, such as onboarding polish, a public site and pricing (not started).
@@ -90,4 +100,6 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0; the rest 
 - **Some Test buttons have never been tried against a real account:** Gumroad, Buffer, Composio, Gmail, OpenAI, Google and Ollama.
 - **Social analytics snapshot.** It needs the agents' browser to be signed in to the right X, LinkedIn and Facebook accounts.
   Otherwise it reports "wrong account" or "not signed in" instead of numbers.
+- **Storage.** The box's own live server still runs on `data/kv.json` on purpose. The migration tool was tried on a copy of real data against a local Postgres, not against Neon. Rate limits are still kept per server instance.
+- **Tests.** The browser "pay" check is tested as a rule (which clicks wait for approval); approving a browser step is not tested because it would start a real browser. The Chief of Staff test covers handing work to an agent; turning a goal into board tasks is done by the group lead, and that is tested too.
 - **Automatic checks.** They use the account's GitHub Actions minutes now that the repo is private, so they run once per change, and only for code.

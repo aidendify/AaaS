@@ -15,6 +15,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services: # Postgres for the storage tests (DATABASE_URL_TEST); Neon is not needed in CI
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: test, POSTGRES_PASSWORD: test, POSTGRES_DB: aidentify_test }
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 3s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,6 +28,7 @@ jobs:
       - run: npm ci --no-audit --no-fund --ignore-scripts
       - run: npm run check
       - run: npm test
+        env: { DATABASE_URL_TEST: 'postgres://test:test@127.0.0.1:5432/aidentify_test' }
       - name: Server boots and serves the app
         run: |
           cp .env.example .env

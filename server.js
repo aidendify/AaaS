@@ -19,7 +19,8 @@ try {
 
 // Local defaults. Do not force the rate limit off: a public server should keep it on.
 // Set RATE_LIMIT=off in .env only for a private demo on this computer.
-const { handle, HttpError, store, runDueRoutines, runBoardWorker, resetBoards, DATA_DIR } = await import('./lib/backend.js');
+const { handle, HttpError, store, runDueRoutines, runBoardWorker, resetBoards, DATA_DIR, storageProblem, hostedMode } = await import('./lib/backend.js');
+if (storageProblem()) { console.error('\n*** ' + storageProblem() + '\n'); process.exit(1); }
 const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 
@@ -97,7 +98,9 @@ for (const sig of ['SIGTERM', 'SIGINT']) process.prependListener(sig, () => { sh
 
 server.listen(PORT, HOST, async () => {
   console.log(`AIdentify running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
-  try { const st = await store(); console.log(st.kind === 'neon' ? 'Database: Neon Postgres (DATABASE_URL)' : 'Database: local file ' + path.join(DATA_DIR, 'kv.json'));
+  try { const st = await store();
+    if (st.kind === 'file') console.log('Database: local file ' + path.join(DATA_DIR, 'kv.json') + (hostedMode() ? '' : ' (fine for one self-hosted server; for a hosted deploy set DATABASE_URL to Postgres/Neon and HOSTED=1)'));
+    else { await st.init(); console.log(`Database: ${st.kind === 'neon' ? 'Neon Postgres' : 'Postgres'} (DATABASE_URL, schema ${st.schema}, driver ${st.driver})`); }
     if (st.kind === 'file') { try { await fs.mkdir(DATA_DIR, { recursive: true }); await fs.writeFile(path.join(DATA_DIR, '.write-test'), 'ok'); await fs.rm(path.join(DATA_DIR, '.write-test'), { force: true }); }
       catch (e) { console.error('\n*** Cannot write to ' + DATA_DIR + ' (' + e.code + '). Sign-in will fail.\n*** Move the folder somewhere you own (e.g. Desktop or Documents, not inside the zip / OneDrive / Program Files) and run npm start again.\n'); } } }
   catch (e) { console.error('Database error:', e.message); }

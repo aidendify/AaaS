@@ -170,7 +170,8 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 | `SETTINGS_OWNERS` | extra emails allowed to open `/settings` |
 | `SESSION_SECRET` | long random text that signs sessions and encrypts connector credentials |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD`, `TEAM_EMAIL` / `TEAM_PASSWORD` | optional staff accounts. There are no default passwords: a strong one (12+ characters) is required, or create the admin at `/setup` |
-| `DATABASE_URL` | Neon Postgres; empty = `data/kv.json` |
+| `DATABASE_URL` | Neon or other Postgres; empty = `data/kv.json` (see Storage) |
+| `HOSTED` | `1` for a hosted deploy: Postgres becomes required |
 | `PORT`, `HOST`, `APP_URL` | listen address (`HOST=0.0.0.0` on a VPS) and the public URL for OAuth callbacks |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | server-wide Gmail for sign-in codes and follow-ups |
 | `TAVILY_API_KEY`, `WEB_SEARCH` | better web search, or `off` |
@@ -184,6 +185,21 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 | `REMOTE_BROWSER_IDLE_MIN`, `REMOTE_BROWSER_MAX_MIN`, `REMOTE_BROWSER_OPENS_PER_HOUR`, `REMOTE_BROWSER_TUNNEL`, `NGROK_AUTHTOKEN` | remote browser idle timeout, hard session limit, open rate limit and tunnel |
 | `CRON_SECRET` | protects `/api/cron/tick` on Vercel |
 | `DEMO_MODE`, `RATE_LIMIT` | demo account / sign-in rate limit (leave unset on public servers) |
+
+
+## Storage
+
+| Where you run it | Storage | What to set |
+|---|---|---|
+| Your own computer or one server | `data/kv.json` (a file) | nothing. The server prints a note that this is the file store. |
+| Hosted (several instances, Vercel, a managed deploy) | Postgres: Neon or any Postgres | `DATABASE_URL` and `HOSTED=1` (or `NODE_ENV=production`) |
+
+- In hosted mode the server **refuses to start without `DATABASE_URL`**, so data can never end up split across instances' local files. `ALLOW_FILE_STORE=1` overrides this for a single-server test.
+- Neon URLs (`*.neon.tech`) use Neon's HTTPS driver; other URLs use a `pg` connection pool (`DB_POOL_MAX`, default 10). Brief network errors are retried.
+- Tables are created and upgraded automatically (table `agentsphere_kv`, plus `agentsphere_locks` and `agentsphere_migrations`). `DATABASE_SCHEMA` puts them in their own schema.
+- Writes that can collide (accounts, one workspace) use a version check or a short database lock, so two servers saving at the same moment do not overwrite each other.
+- **Move from the file to Postgres:** `npm run db:migrate-from-file -- --dry-run` shows the plan; run it again without `--dry-run` to copy. It is safe to repeat (identical rows are skipped, rows newer in the database are kept unless `--overwrite`) and it checks the row count and a hash at the end.
+- **Back to a file:** `npm run db:export-to-file -- --out data/kv-export.json`.
 
 ## Channels and integrations
 

@@ -10,8 +10,10 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const freePort = () => new Promise((ok) => { const s = net.createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => ok(p)); }); });
 
-export async function startServer(env = {}) {
+// seed: { key: value } rows written to data/kv.json before start (value is JSON-stringified like the app does)
+export async function startServer(env = {}, { seed = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aidentify-test-'));
+  if (seed) { fs.mkdirSync(path.join(dir, 'data')); fs.writeFileSync(path.join(dir, 'data', 'kv.json'), JSON.stringify(Object.fromEntries(Object.entries(seed).map(([k, v]) => [k, { k, v: JSON.stringify(v), at: Date.now() }])))); }
   const envFile = path.join(dir, 'test.env'); fs.writeFileSync(envFile, '');
   const port = await freePort();
   const child = spawn(process.execPath, ['server.js'], {
@@ -27,5 +29,5 @@ export async function startServer(env = {}) {
     let d = null; try { d = await r.json(); } catch { /* not json */ }
     return { status: r.status, d };
   };
-  return { base, api, dir, log: () => log, stop: async () => { child.kill('SIGTERM'); await new Promise((r) => child.once('exit', r)); fs.rmSync(dir, { recursive: true, force: true }); } };
+  return { base, api, dir, log: () => log, stop: async () => { if (child.exitCode === null && child.signalCode === null) { child.kill('SIGTERM'); await new Promise((r) => child.once('exit', r)); } fs.rmSync(dir, { recursive: true, force: true }); } };
 }

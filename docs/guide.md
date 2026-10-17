@@ -88,7 +88,7 @@ If something is missing, the sign-in screen says what (for example "DATABASE_URL
 2. `cp .env.example .env` (Windows: `copy .env.example .env`) and fill in what you need.
 3. `npm install` (adds the Neon driver), then `npm start`, then open http://localhost:3000
 
-Without `DATABASE_URL`, data is kept in `data/kv.json` on your computer. Put your Neon connection string in `DATABASE_URL` to use the same database as your Vercel site.
+Without `DATABASE_URL`, data is kept in `data/kv.json` on your computer (a hosted deploy with `HOSTED=1` refuses to start that way; see Storage in the README). To move existing data into Postgres: `npm run db:migrate-from-file -- --dry-run`, then without `--dry-run`. Put your Neon connection string in `DATABASE_URL` to use the same database as your Vercel site.
 
 ## Sign in
 
