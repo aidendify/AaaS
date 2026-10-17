@@ -1804,6 +1804,7 @@ function settingsHtml(){
   const sw=(k,l,d,on)=>`<label class="sw-row"><span><b>${l}</b><small>${d}</small></span><span class="sw"><input type="checkbox" data-pref="${k}" ${on?'checked':''}><i></i></span></label>`;
   const keys=(u.keys||[]);
   return `<div class="sec first"><h2>Settings</h2></div><div class="set">
+  <section class="card panel"><h3>Server settings</h3><p class="muted" style="margin:0 0 10px">AI providers and models, keys, usage and spending, Slack, browser, approvals, backups and updates. For the server owner.</p><div class="acts l"><a class="btn gh sm" href="/settings">Open Settings</a></div></section>
   <section class="card panel"><h3>Profile</h3><div class="u-head" style="border:0"><span class="avatar-btn big">${initials(user.name)}</span><div><b>${esc(user.name)}</b><small>${esc(user.email)}</small></div></div><div class="acts l"><button class="btn gh sm" data-act="profile">Edit profile</button></div></section>
   <section class="card panel"><h3>Password &amp; security</h3><p class="muted" style="margin:0 0 10px">Use at least 8 characters.</p><div class="acts l"><button class="btn gh sm" data-act="chpw">Change password</button><button class="btn gh sm" data-act="signout">Sign out</button></div></section>
   <section class="card panel"><h3>Appearance</h3><div class="tools" style="margin:0">${['system','light','dark'].map(v=>`<button class="fpill ${theme()===v?'on':''}" data-act="theme" data-v="${v}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div></section>

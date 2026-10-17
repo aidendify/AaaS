@@ -1,5 +1,6 @@
 // AIdentify server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
 // Needs Node 20+. `npm install` only matters when DATABASE_URL is set (it adds the Neon driver).
+import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -38,6 +39,9 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/settings' || url.pathname === '/settings.html')) { // admin settings (Hermes-style)
+      return send(res, 200, await fs.readFile(path.join(dir, 'settings.html')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
@@ -94,8 +98,23 @@ server.listen(PORT, HOST, async () => {
     if (st.kind === 'file') { try { await fs.mkdir(DATA_DIR, { recursive: true }); await fs.writeFile(path.join(DATA_DIR, '.write-test'), 'ok'); await fs.rm(path.join(DATA_DIR, '.write-test'), { force: true }); }
       catch (e) { console.error('\n*** Cannot write to ' + DATA_DIR + ' (' + e.code + '). Sign-in will fail.\n*** Move the folder somewhere you own (e.g. Desktop or Documents, not inside the zip / OneDrive / Program Files) and run npm start again.\n'); } } }
   catch (e) { console.error('Database error:', e.message); }
-  { const on = [['ANTHROPIC_API_KEY', 'Anthropic'], ['OPENROUTER_API_KEY', 'OpenRouter'], ['XAI_API_KEY', 'xAI']].filter(([k]) => process.env[k]).map(([, n]) => n);
+  { const on = [['ANTHROPIC_API_KEY', 'Anthropic'], ['OPENROUTER_API_KEY', 'OpenRouter'], ['OPENAI_API_KEY', 'OpenAI'], ['XAI_API_KEY', 'xAI'], ['GOOGLE_AI_API_KEY', 'Google'], ['OLLAMA_BASE_URL', 'Ollama/local']].filter(([k]) => process.env[k]).map(([, n]) => n);
     console.log(on.length ? 'AI agents: ON (' + on.join(' + ') + ')' : 'AI agents: OFF (add OPENROUTER_API_KEY or ANTHROPIC_API_KEY to .env)'); }
+  // Settings saved in the app (lib/settings.js) override .env; apply them before anything else starts.
+  try {
+    const st = await store(); const { secret } = (await import('./lib/backend.js')).helpers;
+    const S = await import('./lib/settings.js'); await S.initSettings(st, secret);
+    const U = await import('./lib/usage.js'); await U.initUsage(st, { onAlert: (t) => import('./lib/slack.js').then((m) => m.notifyOwner(t)).catch(() => {}) });
+    S.onSettingsChanged(async (keys) => {
+      if (keys.some((k) => k.startsWith('SLACK_')) && process.env.AIDENTIFY_WORKERS !== 'off') {
+        console.log('Settings: Slack settings changed, reconnecting the bot');
+        const m = slackMod || await import('./lib/slack.js'); slackMod = m; await m.stopSlack(); m.startSlack().catch((e) => console.error('Slack bot failed to start:', e.message));
+      }
+    });
+  } catch (e) { console.error('Settings failed to load (using .env only):', e.message); }
+  const workers = process.env.AIDENTIFY_WORKERS !== 'off'; // off = no routines, board worker or Slack (a test copy)
+  if (!workers) console.log('Workers: OFF (AIDENTIFY_WORKERS=off): routines, board worker and Slack are not started');
+  if (workers) {
   // agents' scheduled routines run here every minute (on Vercel, call /api/cron/tick instead — see README)
   timers.push(setInterval(() => runDueRoutines().then((r) => { if (r.ran) console.log('Routines run:', r.ran); }).catch((e) => console.error('Routines:', e.message)), 60000));
   // task boards: interrupted tasks go back to todo, then the worker picks up todo tasks every 20 seconds
@@ -104,6 +123,7 @@ server.listen(PORT, HOST, async () => {
   timers.push(setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000));
   // Slack bot in Socket Mode (lib/slack.js); stays off without its tokens
   import('./lib/slack.js').then((m) => { slackMod = m; return m.startSlack(); }).catch((e) => console.error('Slack bot failed to start:', e.message));
+  }
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
     const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';

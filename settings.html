@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings · AIdentify</title>
+<style>
+:root{--ink:#f5f5f5;--mute:#a1a1aa;--line:rgba(255,255,255,.09);--bg:#0a0a0a;--soft:#141414;--card:#111;--acc:#6d5efc;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24}
+:root[data-theme=light]{--ink:#0a0a0a;--mute:#52525b;--line:#e5e5e5;--bg:#fafafa;--soft:#f1f1f3;--card:#fff;--ok:#16a34a;--bad:#dc2626;--warn:#b45309}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--ink:#0a0a0a;--mute:#52525b;--line:#e5e5e5;--bg:#fafafa;--soft:#f1f1f3;--card:#fff;--ok:#16a34a;--bad:#dc2626;--warn:#b45309}}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--acc)}button,input,select,textarea{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+header h1{font-size:17px;margin:0;font-weight:600}header .sp{flex:1}
+#q{width:min(340px,45vw);padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--soft)}
+.wrap{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 57px)}
+nav{border-right:1px solid var(--line);padding:10px 8px;position:sticky;top:57px;height:calc(100vh - 57px);overflow:auto}
+nav button{display:flex;width:100%;text-align:left;gap:9px;align-items:center;padding:8px 10px;border:0;background:none;border-radius:8px;cursor:pointer;color:var(--mute)}
+nav button:hover{background:var(--soft);color:var(--ink)}nav button.on{background:var(--soft);color:var(--ink);font-weight:600}
+nav i{font-style:normal;width:18px;text-align:center}
+main{padding:20px 26px 80px;max-width:980px}
+main h2{margin:0 0 4px;font-size:20px}.desc{color:var(--mute);margin:0 0 16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}.tabs button{border:1px solid var(--line);background:none;border-radius:999px;padding:5px 12px;cursor:pointer;color:var(--mute)}.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:16px;margin:0 0 14px}
+.card h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+.f{display:grid;grid-template-columns:minmax(160px,250px) 1fr;gap:6px 14px;padding:9px 0;border-top:1px solid var(--line)}.f:first-of-type{border-top:0}
+.f label{font-weight:500}.f small{display:block;color:var(--mute);font-weight:400;margin-top:2px}
+.f input,.f select,.f textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.f textarea{min-height:70px;resize:vertical}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.src{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}.src.settings{color:var(--acc);border-color:var(--acc)}.src.env{color:var(--ok)}
+.btn{border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:6px 12px;cursor:pointer}.btn:hover{border-color:var(--mute)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}.btn.dn{color:var(--bad)}.btn:disabled{opacity:.5;cursor:default}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+.res{font-size:13px;margin-top:6px}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.mute{color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:500}
+td input,td select{padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--soft);width:100%}
+.mask{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.stat{border:1px solid var(--line);border-radius:10px;padding:10px}.stat b{display:block;font-size:18px}
+pre{background:var(--soft);border-radius:8px;padding:10px;overflow:auto;max-height:460px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:9px;display:none;z-index:20;max-width:90vw}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:15}.modal .box{background:var(--card);border:1px solid var(--line);border-radius:12px;width:min(760px,94vw);max-height:86vh;display:flex;flex-direction:column;padding:14px}
+.modal .list{overflow:auto;flex:1;margin-top:8px}.modal tr:hover{background:var(--soft);cursor:pointer}
+.hit{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;background:var(--card)}
+#gate{max-width:460px;margin:12vh auto;text-align:center}
+#menu{display:none}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}nav{display:none;position:fixed;top:57px;left:0;right:0;bottom:0;background:var(--bg);z-index:8;height:auto}nav.open{display:block}#menu{display:inline-block}.f{grid-template-columns:1fr}main{padding:16px 14px 80px}#q{width:38vw}header h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+</style>
+</head>
+<body>
+<header><button class="btn" id="menu" aria-label="Sections">☰</button><a href="/" class="btn" title="Back to the app">←</a><h1 id="brand">Settings</h1><span class="sp"></span><input id="q" type="search" placeholder="Search settings…" aria-label="Search settings"></header>
+<div id="app"><div id="gate"><p class="mute">Loading…</p></div></div>
+<div id="toast" role="status"></div>
+<script>
+'use strict';
+const SECTIONS=[
+ ['models','Models & keys','◆','AI providers and keys, which model agents use, fallbacks and generation limits.'],
+ ['usage','Usage & spending','$','Token use and estimated cost per day, agent and model, and the monthly cap.'],
+ ['agents','Agents','☺','Defaults for every agent, and each agent\'s model, tier and tools.'],
+ ['approvals','Approvals & safety','⚑','What agents must ask before doing. Nothing outside the app runs without your Approve.'],
+ ['slack','Messaging (Slack)','#','The Slack bot: tokens, owner, notification channel and connection health.'],
+ ['browser','Browser','◎','The agents\' real browser and the remote browser you open from Slack.'],
+ ['schedules','Schedules & board','◷','Timezone and the scheduled routines.'],
+ ['connectors','Connectors & tools','⚙','Server-wide keys for GitHub, Gumroad, Buffer, Composio, Gmail and OAuth apps.'],
+ ['memory','Memory & knowledge','✎','What agents remember and their knowledge bases.'],
+ ['notifications','Notifications','!','Which events reach you in Slack.'],
+ ['workspace','Workspace & brand','▣','Product name, colour, logo and the public address.'],
+ ['data','Data & backup','⇩','Download a full backup or restore one.'],
+ ['updates','Updates','↻','Your version and the latest release.'],
+ ['security','Security','⚿','Staff passwords, sessions, sign-in limits and the settings audit log.'],
+ ['logs','Logs & diagnostics','≡','Recent server log (secrets removed) and health checks.'],
+ ['about','About','i','Version, license and links.']];
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tok=(()=>{try{return localStorage.getItem('as_tok')||sessionStorage.getItem('as_tok')}catch(e){return null}})();
+try{const t=localStorage.getItem('as_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}
+async function api(p,body,raw){const r=await fetch(p,{method:body?'POST':'GET',cache:'no-store',headers:{'Content-Type':'application/json',...(tok?{Authorization:'Bearer '+tok}:{})},body:body?JSON.stringify(body):undefined});if(raw)return r;const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||d.error||('HTTP '+r.status));return d}
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3500)}
+let S=null,sec=location.hash.replace(/^#\/?/,'').split('/')[0]||'models',sub='';
+const fieldsOf=s=>S.schema.filter(f=>f.s===s);
+const groupsOf=s=>[...new Set(fieldsOf(s).map(f=>f.g))];
+function srcBadge(v){const s=v.source;return `<span class="src ${s}">${s==='settings'?'set here':s==='env'?'from .env':s==='unset'?'not set':'default'}</span>`}
+function fieldHtml(f){
+  const v=S.values[f.k]||{},id='f_'+f.k,help=f.help?`<small>${esc(f.help)}</small>`:'';
+  let ctl;
+  if(f.t==='secret'){ctl=`<div class="row"><span class="mask">${v.set?'••••••••'+esc(v.last4||''):'—'}</span>${srcBadge(v)}</div><div class="row" style="margin-top:6px"><input id="${id}" type="password" autocomplete="new-password" placeholder="${v.set?'Paste a new value to replace':'Paste the key'}" data-k="${f.k}" data-secret="1">${v.source==='settings'?`<button class="btn dn" data-clear="${f.k}" title="Remove the value saved here (falls back to .env)">Clear</button>`:''}</div>`}
+  else if(f.t==='select'){ctl=`<div class="row"><select id="${id}" data-k="${f.k}">${f.opts.map(o=>`<option value="${esc(o)}" ${String(v.value||'')===o?'selected':''}>${o===''?'(default'+(v.effective&&!v.value?': '+esc(v.effective):'')+')':esc(o)}</option>`).join('')}</select>${srcBadge(v)}</div>`}
+  else if(f.t==='textarea'){ctl=`<textarea id="${id}" data-k="${f.k}" placeholder="${esc(v.value?'':v.effective||'')}">${esc(v.value||'')}</textarea><div class="row">${srcBadge(v)}</div>`}
+  else{ctl=`<div class="row"><input id="${id}" data-k="${f.k}" ${f.t==='number'?`type="number" ${f.min!=null?'min="'+f.min+'"':''} ${f.max!=null?'max="'+f.max+'"':''} step="${f.step||'any'}"`:'type="text"'} value="${esc(v.value||'')}" placeholder="${esc(v.effective||f.def||'')}">${f.models?`<button class="btn" data-pick="${f.k}" data-prov="${f.models}">Browse</button>`:''}${srcBadge(v)}</div>`}
+  if(f.test)ctl+=`<div class="row" style="margin-top:6px"><button class="btn" data-test="${f.test}">Test</button><span class="res" id="t_${f.test}"></span></div>`;
+  return `<div class="f" data-fk="${f.k}"><label for="${id}">${esc(f.label)}${help}</label><div>${ctl}${f.live===false?'<small class="warn">Needs a server restart.</small>':f.live==='slack'?'<small class="mute">Saving reconnects the Slack bot.</small>':''}</div></div>`;
+}
+function cardHtml(s,g){return `<section class="card" data-card="${esc(g)}"><h3>${esc(g)}</h3>${fieldsOf(s).filter(f=>f.g===g).map(fieldHtml).join('')}<div class="acts"><span class="res" data-msg></span><button class="btn pri" data-save>Save</button></div></section>`}
+async function saveCard(card){
+  const patch={};card.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k,v=S.values[k]||{};if(el.dataset.secret){if(el.value.trim())patch[k]=el.value.trim()}else{const cur=String(v.value||'');if(el.value!==cur)patch[k]=el.value}});
+  const m=card.querySelector('[data-msg]');if(!Object.keys(patch).length){m.innerHTML='<span class="mute">Nothing changed.</span>';return}
+  try{const r=await api('/api/settings',{patch});S.values=r.values;m.innerHTML=`<span class="ok">Saved ${r.changed.length} setting(s).${r.restart&&r.restart.length?' Restart the server for: '+r.restart.join(', '):' Applied live.'}</span>`;setTimeout(render,900)}catch(e){m.innerHTML=`<span class="bad">${esc(e.message)}</span>`}
+}
+async function runTest(kind,out){out=out||$('#t_'+kind);if(out)out.innerHTML='<span class="mute">Testing…</span>';try{const r=await api('/api/settings/test',{kind});if(out)out.innerHTML=`<span class="${r.ok?'ok':'bad'}">${r.ok?'✓':'✗'} ${esc(r.detail||'')} <span class="mute">(${r.ms} ms)</span></span>`;return r}catch(e){if(out)out.innerHTML=`<span class="bad">${esc(e.message)}</span>`}}
+async function pickModel(k,prov){
+  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="box"><div class="row"><b>Choose a model</b><span class="sp" style="flex:1"></span><select id="mp">${['openrouter','openai','anthropic','xai','google','ollama'].map(p=>`<option ${p===(prov==='any'?'openrouter':prov)?'selected':''}>${p}</option>`).join('')}</select><input id="mq" placeholder="Filter…" style="padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--soft)"><button class="btn" id="mx">Close</button></div><small class="mute">OpenRouter prices are per million tokens, from openrouter.ai/api/v1/models. Other providers list models without prices.</small><div class="list" id="ml">Loading…</div></div>`;
+  document.body.appendChild(m);let list=[];
+  const draw=()=>{const q=$('#mq').value.toLowerCase(),p=$('#mp').value,rows=list.filter(x=>!q||x.id.toLowerCase().includes(q)||String(x.name||'').toLowerCase().includes(q)).slice(0,300);$('#ml').innerHTML=rows.length?`<table><tr><th>Model</th>${p==='openrouter'?'<th>In $/M</th><th>Out $/M</th><th>Context</th><th>Tools</th>':''}</tr>${rows.map(x=>`<tr data-id="${esc((k.startsWith('AI_')||k==='AI_FALLBACKS')&&p!=='openrouter'?p+':'+x.id:x.id)}"><td><b>${esc(x.id)}</b><br><small class="mute">${esc(x.name||'')}</small></td>${p==='openrouter'?`<td>${x.in_per_m}</td><td>${x.out_per_m}</td><td>${x.context||''}</td><td>${x.tools?'✓':'<span class="warn">no</span>'}</td>`:''}</tr>`).join('')}</table>`:'<p class="mute">No models.</p>'};
+  const load=async()=>{$('#ml').textContent='Loading…';try{list=(await api('/api/settings/models?provider='+$('#mp').value)).models;draw()}catch(e){$('#ml').innerHTML=`<p class="bad">${esc(e.message)}</p>`}};
+  m.addEventListener('click',e=>{if(e.target===m||e.target.id==='mx')m.remove();const tr=e.target.closest('tr[data-id]');if(tr){const el=document.querySelector(`[data-k="${k}"]`);if(el){if(el.tagName==='TEXTAREA')el.value=(el.value?el.value.trim()+'\n':'')+(tr.dataset.id.includes(':')?tr.dataset.id:'openrouter:'+tr.dataset.id);else el.value=tr.dataset.id}m.remove();toast('Picked '+tr.dataset.id+'. Press Save.')}});
+  $('#mp').onchange=load;$('#mq').oninput=draw;load();
+}
+const money=n=>!n?'$0':n<0.0001?'<$0.0001':'$'+n.toFixed(n>=1?2:4),num=n=>(n||0).toLocaleString();
+// ---------- custom panels ----------
+const PANELS={
+ async models(){return `<section class="card"><h3>Try it</h3><p class="mute">Sends one tiny prompt (about 20 tokens) through the same routing and fallbacks the agents use.</p><div class="row"><button class="btn" data-test="ai_ping">Test cheap model</button><button class="btn" data-test="ai_ping_strong">Test strong model</button></div><div class="res" id="t_ai_ping"></div><div class="res" id="t_ai_ping_strong"></div></section>`},
+ async usage(){const u=await api('/api/settings/usage');const by={};for(const r of u.rows){const k=r.agent+'|'+r.model;(by[k]||(by[k]={agent:r.agent,model:r.model,provider:r.provider,n:0,in:0,out:0,cost:0,unknown:0}));for(const x of['n','in','out','cost','unknown'])by[k][x]+=r[x]}
+  const rows=Object.values(by).sort((a,b)=>b.cost-a.cost||b.n-a.n);
+  return `<section class="card"><h3>This month (${esc(u.month)})</h3><div class="stats"><div class="stat"><small class="mute">Today</small><b>${money(u.today.cost)}</b><small>${num(u.today.n)} calls</small></div><div class="stat"><small class="mute">Last 7 days</small><b>${money(u.week.cost)}</b><small>${num(u.week.n)} calls</small></div><div class="stat"><small class="mute">Month</small><b>${money(u.total.cost)}</b><small>${num(u.total.in)} in / ${num(u.total.out)} out tokens</small></div><div class="stat"><small class="mute">Cap</small><b>${u.cap?money(u.cap):'none'}</b><small>${u.cap?Math.round(u.total.cost/u.cap*100)+'% used · '+esc(u.action):'set one below'}</small></div></div>
+  <p class="mute" style="margin:0 0 8px">Costs are <b>estimates</b>: OpenRouter's reported charge per call where available, otherwise OpenRouter's public price list. ${u.total.unknown?`${num(u.total.unknown)} call(s) could not be priced and count as $0.`:''} Usage is recorded from this version on.</p>
+  ${rows.length?`<table><tr><th>Agent</th><th>Model</th><th>Calls</th><th>Tokens in / out</th><th>Est. cost</th></tr>${rows.map(r=>`<tr><td>${esc(r.agent)}</td><td>${esc(r.provider)} · ${esc(r.model)}</td><td>${num(r.n)}</td><td>${num(r.in)} / ${num(r.out)}</td><td>${money(r.cost)}${r.unknown?' <span class="warn" title="some calls unpriced">*</span>':''}</td></tr>`).join('')}</table>`:'<p class="mute">No model calls recorded yet this month.</p>'}</section>`},
+ async agents(){const a=(await api('/api/settings/agents')).agents;return `<section class="card"><h3>Your agents</h3><p class="mute" style="margin:0 0 8px">Model: empty = the tier model from Models & keys. OpenRouter ids look like vendor/model; use provider:model for others.</p>${a.length?`<div style="overflow:auto"><table><tr><th>Agent</th><th>Model</th><th>Tier</th><th>Tools</th><th></th></tr>${a.map(x=>`<tr data-ag="${x.id}"><td><b>${esc(x.name)}</b><br><small class="mute">${esc(x.kind||'')} ${x.group?'· '+esc(x.group):''}</small></td><td><input data-am value="${esc(x.model)}" placeholder="(tier model)"></td><td><select data-at>${['','cheap','strong'].map(t=>`<option value="${t}" ${x.tier===t?'selected':''}>${t||'(default)'}</option>`).join('')}</select></td><td>${['sandbox','publish','ops'].map(t=>`<label style="white-space:nowrap"><input type="checkbox" data-tool="${t}" ${x.tools.includes(t)?'checked':''} style="width:auto"> ${t}</label>`).join(' ')}</td><td><button class="btn" data-agsave>Save</button></td></tr>`).join('')}</table></div>`:'<p class="mute">No agents yet.</p>'}</section>`},
+ async slack(){return `<section class="card"><h3>Check the connection</h3><div class="row"><button class="btn" data-test="slack">Test token</button><button class="btn" data-test="slack_dm">Send test DM to owner</button></div><div class="res" id="t_slack"></div><div class="res" id="t_slack_dm"></div></section>`},
+ async browser(){const s=(await api('/api/settings/status')).remoteBrowser;return `<section class="card"><h3>Remote browser now</h3><p>State: <b>${esc(s.state)}</b>${s.state==='open'?` · ${s.viewers} viewer(s) · closes about ${esc(s.expiresText)}`:''}</p><div class="row"><button class="btn" data-rb="open">Open</button><button class="btn" data-rb="close">Close</button><button class="btn" data-test="browser_tools">Check tools</button></div><div class="res" id="t_browser_tools"></div><div class="res" id="rbres"></div><small class="mute">Open sends the private link to your Slack DM when the bot is on, and shows it here.</small></section>`},
+ async schedules(){const r=(await api('/api/settings/routines')).routines;return `<section class="card"><h3>Routines</h3>${r.length?`<div class="row" style="margin-bottom:8px"><button class="btn" data-rall="1">Pause all</button><button class="btn" data-rall="0">Resume all</button></div><table><tr><th>Routine</th><th>Agent</th><th>State</th><th>Next run</th><th></th></tr>${r.map(x=>`<tr><td>${esc(x.title)}</td><td>${esc(x.aid)}</td><td>${x.paused?'<span class="warn">paused</span>':'<span class="ok">active</span>'}</td><td>${x.next?new Date(x.next).toLocaleString():'-'}</td><td><button class="btn" data-rt="${esc(x.id)}" data-p="${x.paused?0:1}">${x.paused?'Resume':'Pause'}</button></td></tr>`).join('')}</table>`:'<p class="mute">No routines.</p>'}</section>`},
+ async memory(){const m=await api('/api/settings/memory');return `<section class="card"><h3>Saved memories</h3>${m.memory.filter(x=>x.items.length).length?m.memory.filter(x=>x.items.length).map(x=>`<details><summary><b>${esc(x.name)}</b> · ${x.items.length}</summary><table>${x.items.map(i=>`<tr><td>${esc(i.text)}</td><td style="width:90px"><button class="btn dn" data-memdel="${esc(i.id)}" data-aid="${esc(x.aid)}">Delete</button></td></tr>`).join('')}</table><button class="btn dn" data-memall="${esc(x.aid)}">Forget all for ${esc(x.name)}</button></details>`).join(''):'<p class="mute">No memories saved.</p>'}<div class="acts"><button class="btn" data-memexp>Download memories (JSON)</button></div></section><section class="card"><h3>Knowledge bases</h3><table><tr><th>Agent</th><th>Documents</th></tr>${m.knowledge.map(k=>`<tr><td>${esc(k.name)}</td><td>${k.docs}</td></tr>`).join('')}</table><small class="mute">Add or edit documents in the app's Knowledge tab or an agent's settings.</small></section>`},
+ async workspace(){return `<section class="card"><h3>Server facts (from .env, read-only)</h3><table>${Object.entries(S.envOnly).map(([k,v])=>`<tr><td class="mask">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table><small class="mute">Change these in .env and restart the server.</small></section>`},
+ async data(){return `<section class="card"><h3>Backup</h3><p class="mute" style="margin:0 0 8px">Everything in the database: accounts, agents, boards, routines, settings. Keys saved in Settings and connector credentials stay encrypted and only work on a server with the same SESSION_SECRET.</p><button class="btn pri" data-backup>Download backup</button></section><section class="card"><h3>Restore</h3><p class="mute" style="margin:0 0 8px">Pick a backup file. You see what would change first; a safety copy of the current data is saved before anything is written.</p><input type="file" id="rf" accept=".json,application/json"><div class="res" id="rres"></div></section>`},
+ async updates(){const u=await api('/api/settings/update');const l=u.latest||{};return `<section class="card"><h3>Version</h3><p>Installed: <b>${esc(u.version)}</b></p>${l.error?`<p class="bad">${esc(l.error)}</p>`:l.channel==='main'?`<p>Latest on main: <b>${esc(l.sha)}</b> · ${esc(l.message)} (${esc(l.date)})</p>`:`<p>Latest release: <b>${esc(l.tag||'-')}</b> ${l.date?'· '+new Date(l.date).toLocaleDateString():''} ${l.url?`· <a href="${esc(l.url)}" target="_blank" rel="noopener">notes</a>`:''}</p>`}<p class="${u.updateAvailable?'warn':'ok'}">${u.updateAvailable?'An update is available.':'You are up to date.'}</p><p>To update, run in the AIdentify folder: <code>${esc(u.command)}</code>, then restart the server.</p><button class="btn" data-updcheck>Check now</button>${l.notes?`<details><summary>Release notes</summary><pre>${esc(l.notes)}</pre></details>`:''}</section>`},
+ async security(){const a=(await api('/api/settings/audit')).log;return `<section class="card"><h3>Staff passwords</h3>${S.defaultAdminPassword?'<p class="warn">The admin account still uses the default password. Change it now.</p>':''}<div class="row"><select id="pwacc"><option value="admin">Admin account</option><option value="team">Team account</option></select><input id="pwnew" type="password" placeholder="New password (12+ characters)" autocomplete="new-password" style="flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--soft)"><button class="btn pri" data-pw>Change</button></div><div class="res" id="pwres"></div><small class="mute">Changing it signs that account out everywhere. SESSION_SECRET is ${esc(S.sessionSecret)} (set in .env only).</small></section><section class="card"><h3>Sessions</h3><button class="btn dn" data-signout>Sign out every account except me</button><div class="res" id="sores"></div></section><section class="card"><h3>Settings audit log</h3>${a.length?`<table><tr><th>When</th><th>Who</th><th>What</th></tr>${a.slice(0,100).map(x=>`<tr><td>${new Date(x.at).toLocaleString()}</td><td>${esc(x.by)}</td><td>${esc(x.action)} ${esc((x.keys||[]).join(', '))}</td></tr>`).join('')}</table>`:'<p class="mute">No changes yet.</p>'}<small class="mute">Values are never logged, only which setting changed.</small></section>`},
+ async logs(){const [l,s]=await Promise.all([api('/api/settings/logs?n=400'),api('/api/settings/status')]);return `<section class="card"><h3>Health</h3><table><tr><td>Version</td><td>${esc(s.version)} · Node ${esc(s.node)} · up ${Math.round(s.uptimeSec/60)} min</td></tr><tr><td>Database</td><td>${esc(s.db)}</td></tr><tr><td>AI providers with a key</td><td>${esc(s.providers.join(', ')||'none')}</td></tr><tr><td>Slack</td><td>${s.slack.running?'<span class="ok">running</span>':s.slack.configured?'<span class="warn">configured, not running</span>':'off'}</td></tr><tr><td>Remote browser</td><td>${esc(s.remoteBrowser.state)}</td></tr></table><div class="acts"><button class="btn" data-diag>Download diagnostics</button></div></section><section class="card"><h3>Recent log <button class="btn" data-relog style="margin-left:auto">Refresh</button></h3><pre>${esc(l.lines.map(x=>new Date(x.at).toLocaleTimeString()+' '+(x.level!=='log'?x.level.toUpperCase()+' ':'')+x.text).join('\n'))||'(empty)'}</pre><small class="mute">Known secrets are replaced with [redacted].</small></section>`},
+ async about(){return `<section class="card"><h3>AIdentify ${esc(S.version)}</h3><p>Open-source agent-as-a-service platform. MIT License.</p><p><a href="https://github.com/aidendify/AaaS" target="_blank" rel="noopener">GitHub</a> · <a href="https://github.com/aidendify/AaaS/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a> · <a href="https://github.com/aidendify/AaaS/issues" target="_blank" rel="noopener">Report an issue</a></p><p class="mute">Settings precedence: saved here &gt; .env &gt; built-in default.</p></section>`}
+};
+async function render(){
+  const meta=SECTIONS.find(x=>x[0]===sec)||SECTIONS[0];sec=meta[0];
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.sec===sec));
+  const gs=groupsOf(sec);if(sub&&!gs.includes(sub))sub='';
+  let h=`<h2>${esc(meta[1])}</h2><p class="desc">${esc(meta[3])}</p>`;
+  if(gs.length>1)h+=`<div class="tabs">${['',...gs].map(g=>`<button data-sub="${esc(g)}" class="${sub===g?'on':''}">${g?esc(g):'All'}</button>`).join('')}</div>`;
+  let custom='';if(PANELS[sec]){try{custom=await PANELS[sec]()}catch(e){custom=`<section class="card"><p class="bad">${esc(e.message)}</p></section>`}}
+  const cards=gs.filter(g=>!sub||sub===g).map(g=>cardHtml(sec,g)).join('');
+  h+=(sec==='usage'?custom+cards:cards+custom);
+  $('main').innerHTML=h;
+}
+function search(q){q=q.trim().toLowerCase();if(!q){render();return}
+  const hits=S.schema.filter(f=>(f.label+' '+f.k+' '+(f.help||'')+' '+f.g).toLowerCase().includes(q));
+  const secHits=SECTIONS.filter(x=>(x[1]+' '+x[3]).toLowerCase().includes(q));
+  $('main').innerHTML=`<h2>Search: “${esc(q)}”</h2>${secHits.map(x=>`<a class="hit" data-go="${x[0]}"><b>${esc(x[1])}</b><br><small class="mute">${esc(x[3])}</small></a>`).join('')}${hits.map(f=>`<a class="hit" data-go="${f.s}" data-gok="${f.k}"><b>${esc(f.label)}</b> <small class="mute">${esc((SECTIONS.find(x=>x[0]===f.s)||[])[1])} › ${esc(f.g)}</small></a>`).join('')||'<p class="mute">Nothing found.</p>'}`}
+function go(s,k){sec=s;sub='';location.hash='#/'+s;$('#q').value='';$('nav').classList.remove('open');render().then(()=>{if(k){const el=document.querySelector(`[data-fk="${k}"]`);if(el){el.scrollIntoView({block:'center'});el.style.outline='2px solid var(--acc)';setTimeout(()=>el.style.outline='',2000)}}})}
+async function boot(){
+  if(!tok){$('#app').innerHTML='<div id="gate"><h2>Sign in first</h2><p class="mute">Open the app, sign in, then come back to Settings.</p><a class="btn pri" href="/">Open AIdentify</a></div>';return}
+  try{const me=await api('/api/settings/me');if(!me.admin){$('#app').innerHTML='<div id="gate"><h2>Settings are for the server owner</h2><p class="mute">Ask an admin, or the owner set in SETTINGS_OWNERS / SLACK_ACCOUNT_EMAIL.</p><a class="btn" href="/">Back to the app</a></div>';return}
+    S=await api('/api/settings')}catch(e){$('#app').innerHTML=`<div id="gate"><h2>Could not load Settings</h2><p class="bad">${esc(e.message)}</p><a class="btn" href="/">Back</a></div>`;return}
+  try{const b=await api('/api/branding');if(b.name){$('#brand').textContent=b.name+' · Settings';document.title='Settings · '+b.name}if(b.color)document.documentElement.style.setProperty('--acc',b.color)}catch(e){}
+  $('#app').innerHTML=`<div class="wrap"><nav aria-label="Settings sections">${SECTIONS.map(x=>`<button data-sec="${x[0]}"><i>${x[2]}</i>${esc(x[1])}</button>`).join('')}</nav><main></main></div>`;
+  render();
+}
+document.addEventListener('click',async e=>{const t=e.target.closest('button,a[data-go]');if(!t)return;const d=t.dataset;
+  if(d.sec)return go(d.sec);if(d.go)return go(d.go,d.gok);if(d.sub!=null&&t.closest('.tabs')){sub=d.sub;return render()}
+  if('save' in d)return saveCard(t.closest('.card'));
+  if(d.clear){if(!confirm('Remove the value saved in Settings? The .env value (if any) is used again.'))return;try{const r=await api('/api/settings',{patch:{[d.clear]:''}});S.values=r.values;toast('Cleared');render()}catch(x){toast(x.message)}return}
+  if(d.test)return runTest(d.test);
+  if(d.pick)return pickModel(d.pick,d.prov);
+  if(d.agsave!=null){const tr=t.closest('tr');try{await api('/api/settings/agents',{id:+tr.dataset.ag,model:tr.querySelector('[data-am]').value,tier:tr.querySelector('[data-at]').value,tools:[...tr.querySelectorAll('[data-tool]:checked')].map(x=>x.dataset.tool)});toast('Agent saved')}catch(x){toast(x.message)}return}
+  if(d.rb){$('#rbres').textContent=d.rb==='open'?'Starting (about 20 seconds)…':'Closing…';try{const r=await api('/api/settings/remote-browser',{action:d.rb});$('#rbres').innerHTML=r.link?`<span class="ok">Open. ${r.sentToSlack?'Link sent to your Slack DM. ':''}<a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">Open the browser</a> (private link)</span>`:'<span class="ok">Closed.</span>'}catch(x){$('#rbres').innerHTML=`<span class="bad">${esc(x.message)}</span>`}return}
+  if(d.rall!=null){try{await api('/api/settings/routines',{all:true,paused:d.rall==='1'});toast(d.rall==='1'?'All routines paused':'All routines resumed');render()}catch(x){toast(x.message)}return}
+  if(d.rt){try{await api('/api/settings/routines',{id:d.rt,paused:d.p==='1'});render()}catch(x){toast(x.message)}return}
+  if(d.memdel||d.memall){if(d.memall&&!confirm('Forget every memory of this agent?'))return;try{await api('/api/settings/memory/delete',d.memall?{aid:d.memall,all:true}:{aid:d.aid,id:d.memdel});render()}catch(x){toast(x.message)}return}
+  if('memexp' in d){const m=await api('/api/settings/memory');dl('aidentify-memories.json',JSON.stringify(m,null,2));return}
+  if('backup' in d){const r=await api('/api/settings/backup',null,true);if(!r.ok)return toast('Backup failed');const b=await r.blob();dl('aidentify-backup-'+new Date().toISOString().slice(0,10)+'.json',b);return}
+  if('updcheck' in d){await api('/api/settings/update?force=1');return render()}
+  if('pw' in d){const out=$('#pwres');try{const r=await api('/api/settings/password',{account:$('#pwacc').value,next:$('#pwnew').value});$('#pwnew').value='';out.innerHTML=`<span class="ok">Password changed for ${esc(r.account)}.</span>`;S=await api('/api/settings')}catch(x){out.innerHTML=`<span class="bad">${esc(x.message)}</span>`}return}
+  if('signout' in d){if(!confirm('Sign out every other account on this server?'))return;try{const r=await api('/api/settings/signout-all',{exceptMe:true});$('#sores').innerHTML=`<span class="ok">${r.accounts} account(s) signed out.</span>`}catch(x){toast(x.message)}return}
+  if('diag' in d){const r=await api('/api/settings/diagnostics');dl('aidentify-diagnostics.json',JSON.stringify(r,null,2));return}
+  if('relog' in d)return render();
+  if(t.id==='menu')return $('nav')&&$('nav').classList.toggle('open');
+});
+document.addEventListener('change',async e=>{if(e.target.id!=='rf')return;const f=e.target.files[0];if(!f)return;const out=$('#rres');let backup;try{backup=JSON.parse(await f.text())}catch(x){out.innerHTML='<span class="bad">Not a JSON file.</span>';return}
+  try{const r=await api('/api/settings/restore',{backup,dryRun:true});out.innerHTML=`<p>${r.diff.total} item(s): ${r.diff.add} new, ${r.diff.change} changed, ${r.diff.same} unchanged.</p><button class="btn pri" id="rgo">Restore now</button>`;
+    $('#rgo').onclick=async()=>{if(!confirm('Overwrite current data with this backup? A safety copy is saved first.'))return;try{const x=await api('/api/settings/restore',{backup,dryRun:false});out.innerHTML=`<span class="ok">Restored ${x.diff.total} item(s). Safety copy: ${esc(x.safetyCopy)}. ${esc(x.note)}</span>`}catch(y){out.innerHTML=`<span class="bad">${esc(y.message)}</span>`}}}catch(x){out.innerHTML=`<span class="bad">${esc(x.message)}</span>`}});
+function dl(name,data){const b=data instanceof Blob?data:new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+let qt;$('#q').addEventListener('input',e=>{clearTimeout(qt);qt=setTimeout(()=>S&&search(e.target.value),150)});
+window.addEventListener('hashchange',()=>{const s=location.hash.replace(/^#\/?/,'').split('/')[0];if(s&&s!==sec&&S){sec=s;render()}});
+boot();
+</script>
+</body>
+</html>
