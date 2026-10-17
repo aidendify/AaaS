@@ -25,3 +25,6 @@ releases/
 !.env.example
 CREDENTIALS.local
 data.bak-*/
+
+# install/update scratch
+.aidentify-update/

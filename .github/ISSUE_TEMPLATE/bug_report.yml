@@ -1,0 +1,25 @@
+name: Bug report
+description: Something does not work as described
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened?, description: Include what you expected instead. }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce, placeholder: "1. ...\n2. ..." }
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: AIdentify version, description: '"version" in package.json', placeholder: 1.2.0 }
+    validations: { required: true }
+  - type: dropdown
+    id: how
+    attributes: { label: How do you run it?, options: [install.sh, git clone + npm start, Docker, Vercel, Other] }
+  - type: input
+    id: env
+    attributes: { label: OS and Node version, placeholder: "Ubuntu 24.04, Node 20.19" }
+  - type: textarea
+    id: logs
+    attributes: { label: Server log, description: Remove keys, tokens, emails and customer data first., render: text }

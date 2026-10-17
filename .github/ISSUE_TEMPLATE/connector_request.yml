@@ -1,0 +1,21 @@
+name: Connector request
+description: Ask for (or offer to build) a connector to another app
+labels: [connector]
+body:
+  - type: input
+    id: app
+    attributes: { label: App or service, placeholder: e.g. Pipedrive }
+    validations: { required: true }
+  - type: dropdown
+    id: auth
+    attributes: { label: How does it authenticate?, options: [OAuth, API key / token, Not sure] }
+  - type: textarea
+    id: use
+    attributes: { label: What should agents do with it?, description: "Read (e.g. list deals) and/or actions that need approval (e.g. create a deal)." }
+    validations: { required: true }
+  - type: input
+    id: docs
+    attributes: { label: API docs link }
+  - type: checkboxes
+    id: help
+    attributes: { label: Contribution, options: [{ label: I will build it (see "Build a connector" in CONTRIBUTING.md) }] }

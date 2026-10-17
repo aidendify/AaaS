@@ -1,12 +1,14 @@
 {
   "name": "aidentify",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "AIdentify: AI agent workspace with sign-in, requests, quotes and payments. Data in Neon Postgres.",
+  "description": "AIdentify: open-source agent-as-a-service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "browser:login": "node scripts/browser-login.mjs"
+    "browser:login": "node scripts/browser-login.mjs",
+    "check": "node scripts/check.mjs",
+    "update": "bash install.sh --update"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
@@ -18,5 +20,14 @@
   "engines": {
     "node": ">=20"
   },
-  "productName": "AIdentify"
+  "productName": "AIdentify",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aidendify/AaaS.git"
+  },
+  "homepage": "https://github.com/aidendify/AaaS#readme",
+  "bugs": {
+    "url": "https://github.com/aidendify/AaaS/issues"
+  },
+  "license": "MIT"
 }
