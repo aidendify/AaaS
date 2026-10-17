@@ -14,6 +14,7 @@ Small businesses and agencies create AI agent workers, connect their tools, and 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#features">Features</a> ·
+  <a href="#use-cases">Use cases</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#upgrading">Upgrading</a> ·
   <a href="#documentation">Docs</a> ·
@@ -92,6 +93,41 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 - **Customer share links** (`/p/…`): lead forms, qualify pages, quotes and more, served by the same server.
 - **Storage** in a local file (`data/kv.json`) or Neon Postgres; deployable to a VPS, Docker or Vercel (serverless, without the browser).
 
+## Use cases
+
+Six setups agencies and digital/email marketing teams can try today. Each uses only features in this repo; anything
+that sends, posts or publishes waits for your Approve.
+
+### 1. Answer every enquiry and follow up automatically
+New website enquiries get a reply and two qualifying questions right away, then a polite Day 0 / 3 / 7 follow-up sequence.
+**Uses:** onboarding agent pack, FormFirst (customer lead form link), Nudge, Gmail connector, approvals, knowledge base.
+**Try it:** at onboarding pick *Digital marketing agency*, open **FormFirst Agent** and share its lead-form link (`/p/…`); teach it your services with *"add to FormFirst's knowledge: our SEO audit is a one-week project"*.
+
+### 2. Find automation leads without paid bidding
+Agents read fresh public job posts from the n8n and Make communities and Hacker News, qualify them and draft one reply per lead for you to approve.
+**Uses:** `lead_feeds` tool, `propose_reply`, Slack approval cards (one per draft), the agents' browser to post approved replies ([example routine](docs/free-lead-finder.md)).
+**Try it:** Slack DM to the bot: *"Use lead_feeds for the last 7 days, pick the 3 best n8n or Make requests and propose a reply for each."*
+
+### 3. Run a freelance pipeline as an agent team
+A group of agents scouts requests, qualifies them, drafts proposals and keeps client follow-ups moving on a task board, with you approving each step.
+**Uses:** Groups and task board (lead agent plans 2+ chained tasks), worker loop, review + Approve / Reject, Slack goals.
+**Try it:** in **Groups**, create a group named *Desk* with a lead (e.g. Research Agent) and members, then DM the bot: *"desk: find 5 fresh requests for email marketing help and draft a short proposal for each."*
+
+### 4. Keep a client's social calendar filled
+An agent drafts posts on a schedule and publishes them to the client's connected accounts through Buffer after you approve them.
+**Uses:** Social agent, Buffer connector, routines (schedules), Chief of Staff, approvals.
+**Try it:** connect Buffer in **Plugins → Connectors**, then ask Chief of Staff: *"Every Monday at 9:30 draft three LinkedIn posts about email deliverability for my approval."*
+
+### 5. Build and list a small digital product
+A Factory agent writes a template or tool in its sandboxed project folder, then proposes a GitHub repo and an unpublished Gumroad draft; nothing goes live without your approval.
+**Uses:** Factory tools (`sandbox`, `publish`), board review, approval-gated GitHub and Gumroad publishing ([docs](docs/factory-tools.md)).
+**Try it:** in the Groups tab's agents table give an agent the `sandbox` and `publish` tools, set `GITHUB_TOKEN` / `GUMROAD_ACCESS_TOKEN`, and send it a goal such as *"build a cold-email subject line checklist as a Markdown pack and prepare a Gumroad draft"*.
+
+### 6. Sign agents in to client dashboards from your phone
+Open the agents' real browser from Slack, sign in to a client tool yourself, close it, and the Browser and Research agents reuse that sign-in.
+**Uses:** remote browser (owner-only Slack commands), persistent browser profile, Browser agent ([docs](docs/browser-and-logins.md)).
+**Try it:** DM the bot *"open browser"*, sign in through the private link, then *"close browser"* and ask the Browser Agent to read the page you need.
+
 ## Requirements
 
 | | |
@@ -153,6 +189,7 @@ Docker: `git pull && docker compose up -d --build` (data stays in the volume).
 
 | Doc | |
 |---|---|
+| [Use cases](#use-cases) | six setups to try first, with a "Try it" step each |
 | [docs/guide.md](docs/guide.md) | full guide: sign-in options, Vercel + Neon deploy, workspace, agents, share links, connectors |
 | [docs/slack.md](docs/slack.md) | Slack bot setup, commands, notifications |
 | [docs/groups.md](docs/groups.md) | groups, task boards, planning |

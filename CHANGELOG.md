@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- README "Use cases" section: six setups for agencies and digital/email marketing teams, each with the features it uses and a "Try it" step.
+
 ## [1.2.0] - 2026-10-17
 
 First public open-source release.
