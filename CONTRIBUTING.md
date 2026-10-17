@@ -1,7 +1,11 @@
 # Contributing to AIdentify
 
-Thanks for helping! Connectors, agent tools, docs and bug fixes are all welcome. New connectors are the most useful
-contribution for agencies and small businesses.
+AIdentify is proprietary software (see [LICENSE](LICENSE)). **Contributions are by invitation only.** If you have not been
+invited, please do not open pull requests.
+
+Before an invited contribution can be merged, you will be asked to sign a written agreement with the copyright holder
+(a contributor licence agreement or a copyright assignment) that covers your contribution. Its exact terms are set in
+that document, not here.
 
 ## Development setup
 
@@ -76,5 +80,5 @@ happened without a tool result.
 3. `gh release create vX.Y.Z --title "AIdentify vX.Y.Z" --notes-file <changelog section>`.
    Installs and `npm run update` pick up the newest release automatically.
 
-By contributing you agree that your work is released under the [MIT License](LICENSE) and you follow the
-[Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are accepted only from invited contributors who have signed the written agreement described at the top
+of this guide. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).

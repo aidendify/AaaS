@@ -1,12 +1,12 @@
 <h1 align="center">AIdentify</h1>
 
-<p align="center"><b>Self-hosted agent-as-a-service platform (MIT licensed; the repository is currently private).</b><br>
+<p align="center"><b>Self-hosted agent-as-a-service platform. Proprietary: all rights reserved.</b><br>
 Small businesses and agencies create AI agent workers, connect their tools, and run them from the web or Slack.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/release-v1.4.0-6d5efc?style=flat-square" alt="Release v1.4.0">
+  <img src="https://img.shields.io/badge/release-v1.6.0-6d5efc?style=flat-square" alt="Release v1.6.0">
   <a href="https://github.com/aidendify/AaaS/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aidendify/AaaS/ci.yml?branch=main&style=flat-square&label=ci" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-lightgrey?style=flat-square" alt="Proprietary licence"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node 20+">
 </p>
 
@@ -239,11 +239,12 @@ Docker: `git pull && docker compose up -d --build` (data stays in the volume).
 
 ## Contributing
 
-Contributions are welcome, especially **new connectors**. Read [CONTRIBUTING.md](CONTRIBUTING.md) (it includes a
-step-by-step "Build a connector" guide), pick an [issue](https://github.com/aidendify/AaaS/issues) or open a
-[connector request](https://github.com/aidendify/AaaS/issues/new?template=connector_request.yml).
-Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are by invitation only. If you have been invited, read [CONTRIBUTING.md](CONTRIBUTING.md) (it includes a
+step-by-step "Build a connector" guide) and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
-[MIT](LICENSE) © AIdentify
+Copyright (c) 2026 Phanindra Malladi / AIdentify. All rights reserved. See [LICENSE](LICENSE).
+No use, copying, modification or distribution without written permission.
+
+Versions before v1.6.0 were published under the MIT License; copies obtained under MIT keep those rights for that version.

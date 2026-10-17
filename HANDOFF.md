@@ -1,14 +1,14 @@
 # AIdentify handoff
 
 A one-page status for anyone picking up AIdentify: what it does today, what is in progress, and what is known to be
-missing. Last updated for **v1.5.0** (18 Oct 2026).
+missing. Last updated for **v1.6.0** (18 Oct 2026).
 
 | | |
 |---|---|
 | Live demo | **Not deployed yet** |
 | Signup / waitlist | **Not live yet** |
 | Code | github.com/aidendify/AaaS (**private**: you need access to clone or install it) |
-| Licence | MIT (see LICENSE) |
+| Licence | Proprietary, all rights reserved, from v1.6.0 (see LICENSE). v1.5.0 and earlier were MIT. |
 
 ## What it is
 
@@ -49,6 +49,9 @@ it from the web app or from Slack.
   - **Tests:** automatic tests for all of the above.
   - **Names:** leftover "AgentSphere" names were replaced.
   - **Read-only analytics:** a social analytics snapshot command (`npm run social:snapshot`).
+- **v1.6, licence change.** AIdentify is now proprietary (all rights reserved). Contributions by invitation only, with a
+  signed contributor agreement. Copies obtained under MIT while it was public keep their MIT rights for that version.
+  Git history was not rewritten, so old commits still carry the MIT LICENSE file.
 - **v1.5, hostable storage and a test suite.**
   - Hosted mode (`HOSTED=1` or `NODE_ENV=production`) requires Postgres; a single self-hosted server keeps `data/kv.json`.
   - Neon or any Postgres, with automatic table setup and upgrades, retries, a connection pool, and protection against lost updates.

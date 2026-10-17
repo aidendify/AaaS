@@ -5,6 +5,14 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-18
+
+### Changed (please read)
+- **AIdentify is now proprietary: all rights reserved.** From this version on, nobody may use, copy, change or share the code without written permission from Phanindra Malladi / AIdentify. See LICENSE.
+- **Earlier versions are not taken back.** Versions up to v1.5.0 were published under the MIT License. If you got one of those versions under MIT, you keep the MIT rights for that version. The new terms apply to v1.6.0 and later.
+- **Contributions by invitation only.** Invited contributors sign a written agreement (a contributor licence agreement or a copyright assignment) before their work is merged.
+- The README, contribution guide, app settings (About) and app details now say "all rights reserved" instead of MIT.
+
 ## [1.5.0] - 2026-10-18
 
 Storage you can host, and an automated test suite. A self-hosted server with no database keeps working exactly as before.

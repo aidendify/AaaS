@@ -47,5 +47,6 @@
       "shortcutName": "AIdentify",
       "artifactName": "AIdentify-Setup-${version}.exe"
     }
-  }
+  },
+  "license": "UNLICENSED"
 }

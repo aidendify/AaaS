@@ -1,6 +1,6 @@
 {
   "name": "aidentify",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "description": "AIdentify: open-source agent-as-a-service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
@@ -34,5 +34,5 @@
   "bugs": {
     "url": "https://github.com/aidendify/AaaS/issues"
   },
-  "license": "MIT"
+  "license": "UNLICENSED"
 }
