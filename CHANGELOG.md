@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `npm run social:snapshot`: read-only X, LinkedIn and Facebook analytics snapshot in the agents' browser profile. It writes a dated report, a TSV row and screenshots, and reports signed-out or wrong-account sites instead of guessing.
+
 ## [1.3.0] - 2026-10-17
 
 ### Added

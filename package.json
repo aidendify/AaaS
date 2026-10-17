@@ -8,7 +8,8 @@
     "start": "node server.js",
     "browser:login": "node scripts/browser-login.mjs",
     "check": "node scripts/check.mjs",
-    "update": "bash install.sh --update"
+    "update": "bash install.sh --update",
+    "social:snapshot": "node scripts/social-snapshot.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

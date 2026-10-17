@@ -46,3 +46,12 @@ Open the agents' shared browser from anywhere to sign in to sites, watch the age
 | Google OAuth (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) | yes | yes (Gmail connector) | an OAuth client from console.cloud.google.com, authorized redirect URI `http://127.0.0.1:3000/api/connectors/callback` (and `/api/auth/google/callback` for sign-in) |
 | Composio (`COMPOSIO_API_KEY`) | yes | yes (`GMAIL_FETCH_EMAILS`) | a Composio API key; you then connect Gmail from the Connectors page |
 | Signed-in browser profile | via approval | yes, by reading the web page | sign in with `npm run browser:login` |
+
+## Read-only social analytics snapshot
+
+`npm run social:snapshot` opens the agents' browser profile and reads X, LinkedIn and Facebook analytics and profile pages. It never likes, follows, posts or changes settings. It writes `analytics-YYYY-MM-DD.md` and appends a row to `x-verified-followers.tsv` (source `aidentify-browser`) in `SOCIAL_ANALYTICS_DIR` (default `/workspace/social/analytics`). Screenshots go to `shots/`.
+
+- A site that is signed out, or signed in as a different account, is reported that way and no numbers are guessed. Public profile follower counts are still recorded and labelled.
+- If the profile is in use (sign-in window, remote browser or the server's agents), it waits `SOCIAL_RETRY_MIN` minutes (default 4) and tries once more.
+- Exit codes: `0` all read, `3` report written but some sites need a sign-in, `2` browser busy, `1` error.
+- Accounts can be changed with `SOCIAL_X_USER`, `SOCIAL_FB_USER` and `SOCIAL_LI_NAME`. Options: `--out DIR`, `--date YYYY-MM-DD`, `--no-retry`.
