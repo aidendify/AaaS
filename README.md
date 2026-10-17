@@ -138,15 +138,31 @@ Open the agents' real browser from Slack, sign in to a client tool yourself, clo
 | Xvfb, x11vnc, websockify + noVNC | optional: remote browser (`apt install xvfb x11vnc websockify novnc`) |
 | ngrok authtoken or cloudflared | optional: public link for the remote browser |
 
+## Settings
+
+Open **`/settings`** (or the Settings tab → *Open Settings*) as an admin, or as the `SETTINGS_OWNERS` / `SLACK_ACCOUNT_EMAIL` account. It has 16 sections covering:
+
+- AI providers: OpenRouter, Anthropic, OpenAI, xAI, Google Gemini, Ollama/OpenAI-compatible.
+- Cheap/strong models, fallbacks, and usage with **estimated** cost and a monthly cap.
+- Per-agent models, approvals (`ask`/`block`), Slack, browser and remote browser.
+- Schedules, connector keys with Test buttons, memory, notifications and branding.
+- Backup/restore, updates, security with an audit log, and logs.
+
+Saved values win over `.env`, which wins over defaults. Most changes apply live. Secrets are encrypted at rest and only their last 4 characters are shown. Your `.env` keeps working unchanged. See [docs/settings.md](docs/settings.md).
+
 ## Configuration
 
-Everything is set in `.env` (copy of [`.env.example`](.env.example), which documents every option). The main ones:
+Everything can be set in `.env` (copy of [`.env.example`](.env.example), which documents every option). The main ones:
 
 | Variable | Purpose |
 |---|---|
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | OpenRouter key and model (needs tool calling) |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Anthropic key and model |
 | `AI_PROVIDER` | which provider to try first when several keys are set |
+| `OPENAI_API_KEY`, `XAI_API_KEY`, `GOOGLE_AI_API_KEY`, `OLLAMA_BASE_URL` | more providers (each with `_MODEL` and `_BASE_URL`) |
+| `AI_MODEL_CHEAP`, `AI_MODEL_STRONG`, `AI_FALLBACKS` | model routing and fallbacks |
+| `SPEND_CAP_MONTH_USD`, `SPEND_CAP_ACTION` | monthly cap on estimated spend (`block` or `warn`) |
+| `SETTINGS_OWNERS` | extra emails allowed to open `/settings` |
 | `SESSION_SECRET` | long random text that signs sessions and encrypts connector credentials |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD`, `TEAM_EMAIL` / `TEAM_PASSWORD` | built-in staff accounts; **change before going live** |
 | `DATABASE_URL` | Neon Postgres; empty = `data/kv.json` |
@@ -191,6 +207,7 @@ Docker: `git pull && docker compose up -d --build` (data stays in the volume).
 |---|---|
 | [Use cases](#use-cases) | six setups to try first, with a "Try it" step each |
 | [docs/guide.md](docs/guide.md) | full guide: sign-in options, Vercel + Neon deploy, workspace, agents, share links, connectors |
+| [docs/settings.md](docs/settings.md) | the `/settings` page: sections, precedence, encryption, cost estimates |
 | [docs/slack.md](docs/slack.md) | Slack bot setup, commands, notifications |
 | [docs/groups.md](docs/groups.md) | groups, task boards, planning |
 | [docs/factory-tools.md](docs/factory-tools.md) | sandbox and publishing tools |
