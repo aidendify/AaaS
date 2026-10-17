@@ -87,3 +87,7 @@ Set `SLACK_NOTIFY_CHANNEL` to a channel id (Slack: open the channel → channel 
 ## Chief operations tools
 
 The orchestrator agent has the `ops` tools: `list_schedules`, `set_schedule_paused`, `create_schedule` (new schedules start paused), `list_board_tasks` and `cancel_board_task`. Agents are told never to claim an action that no tool result confirms.
+
+## Remote browser commands
+
+Owner DM only: `open browser` / `browser` (link + expiry, in the DM), `browser status`, `close browser`. The Chief also has a `remote_browser` tool (open/close/status) so "open the browser" in plain words works; the link goes to the DM directly and never to `SLACK_NOTIFY_CHANNEL`. No extra Slack scopes are needed. Details: docs/browser-and-logins.md.

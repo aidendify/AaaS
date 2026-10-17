@@ -81,6 +81,7 @@ async function shutdown(sig) {
   await Promise.allSettled([
     slackMod && slackMod.stopSlack ? slackMod.stopSlack() : null,
     import('./lib/browser.js').then((m) => m.closeBrowsers()).catch(() => {}),
+    import('./lib/remote-browser.js').then((m) => m.closeRemoteBrowser('server shutdown')).catch(() => {}),
   ]);
   try { const st = await store(); if (st.flush) await st.flush(); } catch { /* nothing to flush */ }
   process.exit(0);
