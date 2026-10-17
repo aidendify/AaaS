@@ -1,25 +1,33 @@
 name: CI
+# Lean on purpose: the repository is private, so every run uses the account's Actions minutes.
 on:
-  push: { branches: [main] }
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**', 'clients/**', '.github/ISSUE_TEMPLATE/**']
   pull_request:
+    paths-ignore: ['**.md', 'docs/**', 'clients/**', '.github/ISSUE_TEMPLATE/**']
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix: { node: [20, 22] }
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "${{ matrix.node }}", cache: npm }
-      - run: npm ci --no-audit --no-fund
+        with: { node-version: 20, cache: npm }
+      - run: npm ci --no-audit --no-fund --ignore-scripts
       - run: npm run check
+      - run: npm test
       - name: Server boots and serves the app
         run: |
           cp .env.example .env
           PORT=3100 node server.js > server.log 2>&1 &
           for i in $(seq 1 30); do curl -fs http://127.0.0.1:3100/api/health && break; sleep 1; done
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/setup)" = 200
           kill %1 || true
-          cat server.log
+          grep -v 'setup code' server.log || true

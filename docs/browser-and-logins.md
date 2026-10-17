@@ -21,7 +21,7 @@ AIdentify agents can use a real Chromium (`lib/browser.js`). By default every se
 
 - Passwords are typed only by you, in that window. They never go through chat, Slack, the knowledge base or the server.
 - Agents' clicks on "sign in", "buy", "pay", "submit", "delete" and typing into password/OTP fields still stop for your approval.
-- One process uses the profile at a time (`<profile>/agentsphere.lock`). While your sign-in window is open the agents' browser says "in use"; while an agent is browsing, the sign-in script tells you to wait (the agents' browser closes after 10 idle minutes).
+- One process uses the profile at a time (`<profile>/aidentify.lock`). While your sign-in window is open the agents' browser says "in use"; while an agent is browsing, the sign-in script tells you to wait (the agents' browser closes after 10 idle minutes).
 - The profile folder holds live session cookies: it lives under `data/` (git-ignored, mode 700). Delete the folder to sign everything out.
 - Prefer an API over the dashboard when one exists (Gumroad: `GUMROAD_ACCESS_TOKEN` gives agents the read-only `gumroad_stats` tool).
 
@@ -34,7 +34,7 @@ Open the agents' shared browser from anywhere to sign in to sites, watch the age
 - What runs (lib/remote-browser.js): a dedicated Xvfb display (:90 and up, never the box desktop), Google Chrome on the agents' profile with the same plain flags as `npm run browser:login` (Google accepts it), x11vnc on 127.0.0.1 with a random VNC password, websockify + noVNC on 127.0.0.1, a token gate on 127.0.0.1 that serves only `/<128-bit random token>/...` (everything else is 404), and a public tunnel.
 - Protection: the link carries the random path token and the VNC password. Neither is logged (the log shows only the first 4 token characters). Pages are sent with `no-store`, `no-referrer` and `noindex`. Anyone with the link can use the browser until it closes, so keep it private.
 - Auto-close: after `REMOTE_BROWSER_IDLE_MIN` minutes (default 20) with no input from a viewer, or when a process dies, or on `close browser`, or on server shutdown. Every process is killed by its own PID; the profile lock is released. Auto-closes are announced in your DM.
-- While it is open, `<profile>/agentsphere.lock` holds the session Chrome's pid, so agent browser steps fail with "in use … close browser" (same as the sign-in window). If an agent is using the browser when you ask, you are told to try again (it frees after 10 idle minutes).
+- While it is open, `<profile>/aidentify.lock` holds the session Chrome's pid, so agent browser steps fail with "in use … close browser" (same as the sign-in window). If an agent is using the browser when you ask, you are told to try again (it frees after 10 idle minutes).
 - Tunnel (`REMOTE_BROWSER_TUNNEL`): `auto` (default) uses ngrok when `NGROK_AUTHTOKEN` is set, otherwise a cloudflared quick tunnel. cloudflared needs no account but needs outbound port 7844, which is blocked on the current box, so **set `NGROK_AUTHTOKEN`** (free account at dashboard.ngrok.com, Sign in with Google, copy the authtoken, add it to `.env` through the secure form, restart the server). ngrok free shows a one-time "Visit Site" warning page on first open; tap it once and noVNC loads (the websocket itself is not affected; verified Oct 17, 2026). `none` gives a local-only link (testing).
 - Binaries: Xvfb, x11vnc, websockify and noVNC come from apt. cloudflared and ngrok are in /usr/local/bin with copies in /workspace/aaas-run/bin (survives a box reset); override with `CLOUDFLARED_BIN` / `NGROK_BIN`. No new npm packages.
 
@@ -55,3 +55,11 @@ Open the agents' shared browser from anywhere to sign in to sites, watch the age
 - If the profile is in use (sign-in window, remote browser or the server's agents), it waits `SOCIAL_RETRY_MIN` minutes (default 4) and tries once more.
 - Exit codes: `0` all read, `3` report written but some sites need a sign-in, `2` browser busy, `1` error.
 - Accounts can be changed with `SOCIAL_X_USER`, `SOCIAL_FB_USER` and `SOCIAL_LI_NAME`. Options: `--out DIR`, `--date YYYY-MM-DD`, `--no-retry`.
+
+## Remote browser safety limits
+
+- Only the owner can open it: the Slack bot owner (`SLACK_OWNER_USER_ID`), a signed-in admin or owner in Settings (`POST /api/settings/remote-browser`), or the owner's own Chief. There is no public endpoint that starts it.
+- It closes after `REMOTE_BROWSER_IDLE_MIN` idle minutes (default 20), and always after `REMOTE_BROWSER_MAX_MIN` minutes (default 60), even while in use. Closing stops Chrome, the VNC server, the token gate and the tunnel, each by its own process id.
+- It can be opened at most `REMOTE_BROWSER_OPENS_PER_HOUR` times per hour (default 6).
+- Every open, reuse, refusal, failure and close is written to `data/remote-browser-audit.jsonl`, and to the Settings audit log. Links and passwords are never written.
+- See [SECURITY.md](../SECURITY.md#remote-browser-risks) for the risks.

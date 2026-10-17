@@ -1,4 +1,4 @@
-package app.agentsphere.client
+package com.aidentify.app
 
 import android.app.AlertDialog
 import android.net.Uri
@@ -21,7 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 /** Phone window onto a hosted AIdentify. The public address is stored on the device. */
 class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
-    private val prefs by lazy { getSharedPreferences("agentsphere", MODE_PRIVATE) }
+    private val prefs by lazy { getSharedPreferences("aidentify", MODE_PRIVATE) }
     private var fileCallback: ValueCallback<Array<Uri>>? = null
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

@@ -1,14 +1,13 @@
 <h1 align="center">AIdentify</h1>
 
-<p align="center"><b>Open-source agent-as-a-service platform.</b><br>
+<p align="center"><b>Self-hosted agent-as-a-service platform (MIT licensed; the repository is currently private).</b><br>
 Small businesses and agencies create AI agent workers, connect their tools, and run them from the web or Slack.</p>
 
 <p align="center">
-  <a href="https://github.com/aidendify/AaaS/releases/latest"><img src="https://img.shields.io/github/v/release/aidendify/AaaS?style=flat-square" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/release-v1.4.0-6d5efc?style=flat-square" alt="Release v1.4.0">
   <a href="https://github.com/aidendify/AaaS/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aidendify/AaaS/ci.yml?branch=main&style=flat-square&label=ci" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node 20+">
-  <a href="https://github.com/aidendify/AaaS/stargazers"><img src="https://img.shields.io/github/stars/aidendify/AaaS?style=flat-square" alt="GitHub stars"></a>
 </p>
 
 <p align="center">
@@ -30,40 +29,46 @@ sends, posts, publishes, pays or signs in **waits for your approval**.
 
 ## Quick start
 
-**Linux, macOS, WSL2** (needs Node.js 20+ and curl; git is used if present):
+> **The repository is private.** Installing needs access to `aidendify/AaaS` and a signed-in git: the
+> [GitHub CLI](https://cli.github.com) (`gh auth login`), an SSH key, or a token. Anonymous `curl … | bash` installs
+> and raw file links do not work.
+
+**Linux, macOS, WSL2** (needs Node.js 20+ and git):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aidendify/AaaS/main/install.sh | bash
+gh repo clone aidendify/AaaS aidentify   # or: git clone git@github.com:aidendify/AaaS.git aidentify
+cd aidentify
+./install.sh                             # checks out the latest release, runs npm install, creates .env
+nano .env                                # add OPENROUTER_API_KEY=... (or ANTHROPIC_API_KEY=...)
+npm start                                # then open http://localhost:3000/setup
 ```
 
-This installs the latest release into `~/aidentify` (change it with `--dir`), runs `npm install`, and creates `.env`
-with a random `SESSION_SECRET`. Then:
+`install.sh` creates `.env` with a random `SESSION_SECRET`. It never overwrites an existing `.env` or `data/`.
+Pin a release with `--version v1.4.0` (or `AIDENTIFY_VERSION`).
 
-```bash
-cd ~/aidentify
-nano .env            # add OPENROUTER_API_KEY=... (or ANTHROPIC_API_KEY=...), change ADMIN_PASSWORD
-npm start            # open http://localhost:3000
-```
-
-Options: `bash -s -- --dir /opt/aidentify --version v1.2.0` after `| bash`, or the env vars `AIDENTIFY_DIR` and `AIDENTIFY_VERSION`.
+**First start: create the admin.** There is no default admin password. Open `/setup` and enter the one-time setup code
+printed in the server log, an admin email and a strong password (12+ characters, not a common one). Or set a strong
+`ADMIN_PASSWORD` in `.env` before the first start. Until one of these is done, nobody can sign in as admin.
 
 ### Manual install
 
 ```bash
-git clone https://github.com/aidendify/AaaS.git aidentify && cd aidentify
+gh repo clone aidendify/AaaS aidentify && cd aidentify
 git checkout "$(git describe --tags --abbrev=0)"   # latest release (optional)
 npm install
 cp .env.example .env                              # add an AI key
-npm start
+npm start                                         # open http://localhost:3000/setup
 ```
 
-**Windows:** install [Node.js 20+](https://nodejs.org), download the [latest release](https://github.com/aidendify/AaaS/releases/latest) zip, unzip it to Desktop or Documents and double-click `start.bat`.
+**Windows:** install [Node.js 20+](https://nodejs.org). Download the latest release zip from the
+[Releases page](https://github.com/aidendify/AaaS/releases) while signed in to GitHub with access to the repo, unzip it
+and double-click `start.bat`.
 
 ### Docker
 
 ```bash
-git clone https://github.com/aidendify/AaaS.git aidentify && cd aidentify
-cp .env.example .env          # add an AI key and a SESSION_SECRET
+gh repo clone aidendify/AaaS aidentify && cd aidentify
+cp .env.example .env          # add an AI key, a SESSION_SECRET and a strong ADMIN_PASSWORD (or use /setup)
 docker compose up -d --build  # http://localhost:3000, data kept in the aidentify-data volume
 ```
 
@@ -72,7 +77,7 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 
 ### First run
 
-1. Open http://localhost:3000 and **create an account** (email + password, an emailed sign-in code, or Google if configured).
+1. Create the admin at `/setup` (see above). Then open http://localhost:3000 and **create an account** (email + password, an emailed sign-in code, or Google if configured).
 2. Onboarding asks what kind of business you run (clinic, real estate, shop, coaching, digital marketing agency or other) and adds a matching agent pack and a lead form.
 3. Chat with **Chief of Staff**, the first tile in My Workplace. It delegates to your agents, creates new agents from a description and teaches them.
 4. Add agents from **Plugins → Agents** and apps from **Plugins → Connectors**.
@@ -164,7 +169,7 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 | `SPEND_CAP_MONTH_USD`, `SPEND_CAP_ACTION` | monthly cap on estimated spend (`block` or `warn`) |
 | `SETTINGS_OWNERS` | extra emails allowed to open `/settings` |
 | `SESSION_SECRET` | long random text that signs sessions and encrypts connector credentials |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD`, `TEAM_EMAIL` / `TEAM_PASSWORD` | built-in staff accounts; **change before going live** |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD`, `TEAM_EMAIL` / `TEAM_PASSWORD` | optional staff accounts. There are no default passwords: a strong one (12+ characters) is required, or create the admin at `/setup` |
 | `DATABASE_URL` | Neon Postgres; empty = `data/kv.json` |
 | `PORT`, `HOST`, `APP_URL` | listen address (`HOST=0.0.0.0` on a VPS) and the public URL for OAuth callbacks |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | server-wide Gmail for sign-in codes and follow-ups |
@@ -176,7 +181,7 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 | `SLACK_NOTIFY_CHANNEL` | channel for review cards, failures and briefs |
 | `GITHUB_TOKEN`, `GITHUB_OWNER`, `GUMROAD_ACCESS_TOKEN` | Factory publishing (approval-gated) |
 | `BROWSER_PROFILE_DIR`, `BROWSER_HEADLESS` | agents' persistent browser profile |
-| `REMOTE_BROWSER_IDLE_MIN`, `REMOTE_BROWSER_TUNNEL`, `NGROK_AUTHTOKEN` | remote browser timeout and tunnel |
+| `REMOTE_BROWSER_IDLE_MIN`, `REMOTE_BROWSER_MAX_MIN`, `REMOTE_BROWSER_OPENS_PER_HOUR`, `REMOTE_BROWSER_TUNNEL`, `NGROK_AUTHTOKEN` | remote browser idle timeout, hard session limit, open rate limit and tunnel |
 | `CRON_SECRET` | protects `/api/cron/tick` on Vercel |
 | `DEMO_MODE`, `RATE_LIMIT` | demo account / sign-in rate limit (leave unset on public servers) |
 
@@ -191,11 +196,11 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 ## Upgrading
 
 ```bash
-cd ~/aidentify
+cd aidentify
 npm run update        # same as ./install.sh --update
 ```
 
-It switches to the newest [release](https://github.com/aidendify/AaaS/releases), reinstalls dependencies and keeps
+It uses your existing git sign-in (the repo is private), so run it from a clone made with `gh repo clone` or SSH. It switches to the newest [release](https://github.com/aidendify/AaaS/releases), reinstalls dependencies and keeps
 your `.env` and `data/`. Restart the server afterwards. Pin a version with `./install.sh --update --version v1.2.0`.
 What changed is in [CHANGELOG.md](CHANGELOG.md). Watch the repo (**Watch → Custom → Releases**) to be notified.
 
@@ -207,6 +212,7 @@ Docker: `git pull && docker compose up -d --build` (data stays in the volume).
 |---|---|
 | [Use cases](#use-cases) | six setups to try first, with a "Try it" step each |
 | [docs/guide.md](docs/guide.md) | full guide: sign-in options, Vercel + Neon deploy, workspace, agents, share links, connectors |
+| [HANDOFF.md](HANDOFF.md) | what has shipped, what is in progress, known issues |
 | [docs/settings.md](docs/settings.md) | the `/settings` page: sections, precedence, encryption, cost estimates |
 | [docs/slack.md](docs/slack.md) | Slack bot setup, commands, notifications |
 | [docs/groups.md](docs/groups.md) | groups, task boards, planning |

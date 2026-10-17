@@ -1154,6 +1154,7 @@ let user=null,mode='in',step=1,loginAs='user',adminUser=null;
 const saveUsers=()=>ST.set('as_users',JSON.stringify(users));
 const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase()||'?';
 async function sha(t){
+  // the 'agentsphere:' salt is kept so accounts made by older versions can still sign in
   try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('agentsphere:'+t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
   catch(e){return btoa(unescape(encodeURIComponent('agentsphere:'+t)))}
 }
@@ -1285,6 +1286,7 @@ $('#authForm').onsubmit=async e=>{
   await 0;
   if(await SYNC.mode()==='broken'){showAuth();$('#aBtn').disabled=true;err('The server isn’t set up yet: '+SYNC_ERR);return}
   if(await SYNC.mode()==='server'){
+    try{const su=await fetch('/api/setup').then(r=>r.json());if(su&&su.needed){location.href='/setup';return}}catch(x){}
     const hp=new URLSearchParams(location.hash.slice(1));
     if(hp.get('as_autherr')){history.replaceState(null,'',location.pathname+location.search);LS.del('as_tok');showAuth();err(hp.get('as_autherr'));return}
     if(hp.get('as_auth')){history.replaceState(null,'',location.pathname+location.search);
@@ -1297,11 +1299,9 @@ $('#authForm').onsubmit=async e=>{
     else{LS.del('as_tok');showAuth()}
     return;
   }
-  // built-in staff accounts: added quietly so they never overwrite a password changed on another device
+  // Browser-only mode has no built-in staff accounts and no default passwords. Older ones keep their role name up to date.
   let seeded=false;
-  if(!users['team@agentsphere.com']){users['team@agentsphere.com']={name:'Pricing Team',hash:await sha('team1234'),role:'pricing'};seeded=true}
-  if(users['team@agentsphere.com'].role==='team'){users['team@agentsphere.com'].role='pricing';seeded=true}
-  if(!users['admin@agentsphere.com']){users['admin@agentsphere.com']={name:'Admin',hash:await sha('admin1234'),role:'admin'};seeded=true}
+  for(const u of Object.values(users))if(u&&u.role==='team'){u.role='pricing';seeded=true}
   if(seeded)SYNC.soft('as_users',JSON.stringify(users));
   const em=ST.get('as_session');
   if(em&&users[em]&&!users[em].suspended)enter({email:em,name:users[em].name,role:users[em].role||'customer'});else showAuth();
@@ -1707,7 +1707,7 @@ function deployModal(id,msg){
     go.disabled=true;li.forEach(x=>x.className='');li[0].className='on';bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition='width 3.6s linear';bar.style.width='100%';
     [0,1,2,3].forEach(i=>setTimeout(()=>{const l=document.querySelectorAll('#depSteps li');if(!l[i])return;l[i].className='ok';if(l[i+1])l[i+1].className='on'},900*(i+1)));
     setTimeout(()=>{
-      const ver='1.0.'+a.deploys.length,url=`https://${slug(a)}${env==='staging'?'.staging':''}.agentsphere.example`;
+      const ver='1.0.'+a.deploys.length,url=`https://${slug(a)}${env==='staging'?'.staging':''}.aidentify.example`;
       a.deploys.forEach(x=>{if(x.env===env&&x.status==='live')x.status='replaced'});
       const d={env,version:ver,at:Date.now(),url,status:'live'};a.deploys.unshift(d);a.deploy=d;a.version=ver;
       log(a.kind,a.name+' deployed to '+env,'Version '+ver);refresh();
@@ -1833,7 +1833,7 @@ function newKey(){
   },'Create');
 }
 function revKey(id){const u=users[user.email];if(!u)return;okd('Revoke this key?',()=>{u.keys=(u.keys||[]).filter(k=>k.id!==id);saveUsers();renderTab();say('Key revoked')},'Revoke')}
-function exportData(){loadReqs();dlFile('agentsphere-data.json',JSON.stringify({exportedAt:new Date().toISOString(),profile:{name:user.name,email:user.email},agents:isStaff()?[]:agents,tasks:isStaff()?[]:tasks,requests:reqs.filter(r=>r.by===user.email)},null,2))}
+function exportData(){loadReqs();dlFile('aidentify-data.json',JSON.stringify({exportedAt:new Date().toISOString(),profile:{name:user.name,email:user.email},agents:isStaff()?[]:agents,tasks:isStaff()?[]:tasks,requests:reqs.filter(r=>r.by===user.email)},null,2))}
 function resetData(){okd('Reset your agents and activity to the sample data?',()=>{ST.del('as_data:'+user.email);loadData();refresh();say('Sample data restored')},'Reset')}
 function delAccount(){
   const u=users[user.email];if(!u||user.imp)return say('Not available for this account.');

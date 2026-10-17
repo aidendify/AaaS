@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # AIdentify installer and updater.
 #
-#   Install:  curl -fsSL https://raw.githubusercontent.com/aidendify/AaaS/main/install.sh | bash
+# The repository is private: you need access to aidendify/AaaS and a signed-in git (GitHub CLI, SSH key or token).
+#
+#   Install:  gh repo clone aidendify/AaaS aidentify && cd aidentify && ./install.sh
+#             (or: git clone git@github.com:aidendify/AaaS.git aidentify && cd aidentify && ./install.sh)
 #   Update:   ./install.sh --update        (or: npm run update)  run inside your AIdentify folder
 #
 # Options / environment:
@@ -9,6 +12,8 @@
 #   --version <tag>   AIDENTIFY_VERSION  a release tag such as v1.2.0 (default: the latest release)
 #   --update          update an existing install to the latest release, keeping .env and data/
 #   --no-npm          skip npm install
+#   AIDENTIFY_GIT_URL  clone URL when the installer clones for you (default: gh repo clone, else https)
+#   GITHUB_TOKEN       used for the release lookup and tarball download when git is not available
 # Your .env and data/ folder are never overwritten.
 set -euo pipefail
 
@@ -23,7 +28,7 @@ while [ $# -gt 0 ]; do
     --version) VERSION="$2"; shift 2 ;;
     --update) MODE="update"; shift ;;
     --no-npm) NPM=0; shift ;;
-    -h|--help) sed -n '2,13p' "$0" 2>/dev/null || true; exit 0 ;;
+    -h|--help) sed -n '2,18p' "$0" 2>/dev/null || true; exit 0 ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -34,7 +39,7 @@ die()  { printf '\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 # ---- prerequisites ----
-have curl || die "curl is required."
+have git || have curl || die "git (recommended) or curl is required."
 if ! have node; then
   die "Node.js 20 or newer is required. Install it from https://nodejs.org (or: curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && nvm install 20), then run this again."
 fi
@@ -42,19 +47,26 @@ NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 [ "$NODE_MAJOR" -ge 20 ] || die "Node.js $NODE_MAJOR found; AIdentify needs Node.js 20 or newer (https://nodejs.org)."
 have npm || die "npm is required (it ships with Node.js)."
 
+# Newest vX.Y.Z tag. Private repo: ask git (uses your existing git sign-in), then gh, then the API with GITHUB_TOKEN.
 latest_tag() {
-  curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1
+  local remote="${1:-}" t=""
+  if have git; then
+    if [ -n "$remote" ]; then t="$(git ls-remote --tags --refs "$remote" 'v*' 2>/dev/null | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)"; fi
+  fi
+  if [ -z "$t" ] && have gh && gh auth status >/dev/null 2>&1; then t="$(gh release view -R "$REPO" --json tagName -q .tagName 2>/dev/null || true)"; fi
+  if [ -z "$t" ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+    t="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)"
+  fi
+  printf '%s' "$t"
 }
-[ -n "$VERSION" ] || VERSION="$(latest_tag || true)"
-REF="${VERSION:-main}"
-[ -n "$VERSION" ] || warn "No published release found; using the main branch."
 
 # Download a release (or branch) tarball into $1, without .env or data/.
 fetch_tarball() {
   local dest="$1" tmp; tmp="$(mktemp -d)"
-  local url="https://codeload.github.com/$REPO/tar.gz/${REF}"
+  [ -n "${GITHUB_TOKEN:-}" ] || die "The repository is private. Install git (recommended) or set GITHUB_TOKEN to a token with access to $REPO."
+  local url="https://api.github.com/repos/$REPO/tarball/${REF}"
   say "Downloading $REPO@$REF"
-  curl -fsSL "$url" | tar -xz -C "$tmp" || die "Download failed: $url"
+  curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" "$url" | tar -xz -C "$tmp" || die "Download failed for $REPO@$REF (check that GITHUB_TOKEN can read the repo)."
   local src; src="$(find "$tmp" -mindepth 1 -maxdepth 1 -type d | head -n1)"
   mkdir -p "$dest"
   # copy everything except user data
@@ -77,14 +89,18 @@ if [ "$MODE" = "update" ]; then
   OLD="$(node -p 'require("./package.json").version' 2>/dev/null || echo unknown)"
   if [ -d .git ] && have git; then
     if [ -n "$(git status --porcelain --untracked-files=no)" ]; then die "You have local code changes in $DIR. Commit or stash them first (git stash), then update."; fi
-    say "Fetching releases"
+    say "Fetching releases (uses your git sign-in; the repository is private)"
+    [ -n "$VERSION" ] || VERSION="$(latest_tag origin)"
     if [ -n "$VERSION" ]; then
-      git fetch --quiet --force origin "refs/tags/$VERSION:refs/tags/$VERSION"
+      git fetch --quiet --force origin "refs/tags/$VERSION:refs/tags/$VERSION" || die "Could not fetch $VERSION. Check your access to $REPO (gh auth login, an SSH key or a token)."
       git -c advice.detachedHead=false checkout --quiet "tags/$VERSION"
     else
-      git fetch --quiet origin main && git checkout --quiet -B main FETCH_HEAD
+      warn "No release tag found; using the main branch."
+      git fetch --quiet origin main || die "Could not fetch from origin. Check your access to $REPO (gh auth login, an SSH key or a token)."
+      git checkout --quiet -B main FETCH_HEAD
     fi
   else
+    [ -n "$VERSION" ] || VERSION="$(latest_tag)"; REF="${VERSION:-main}"
     fetch_tarball "$DIR"
   fi
   npm_install
@@ -96,16 +112,28 @@ if [ "$MODE" = "update" ]; then
 fi
 
 # ---- install ----
-if [ -e "$DIR" ] && [ -n "$(ls -A "$DIR" 2>/dev/null)" ]; then
-  [ -f "$DIR/server.js" ] && die "AIdentify is already installed in $DIR. To update: cd $DIR && ./install.sh --update"
-  die "$DIR exists and is not empty. Choose another folder with --dir."
-fi
-if have git; then
-  say "Cloning $REPO@$REF into $DIR"
-  git -c advice.detachedHead=false clone --quiet --depth 50 --branch "$REF" "https://github.com/$REPO.git" "$DIR"
+if [ -f ./server.js ] && [ -f ./package.json ] && grep -q '"aidentify"' ./package.json; then
+  DIR="$(pwd)"; say "Setting up the AIdentify folder you cloned: $DIR"   # usual path: gh repo clone, then ./install.sh
 else
-  warn "git not found; downloading a tarball instead (updates will re-download)."
-  fetch_tarball "$DIR"
+  if [ -e "$DIR" ] && [ -n "$(ls -A "$DIR" 2>/dev/null)" ]; then
+    [ -f "$DIR/server.js" ] && die "AIdentify is already installed in $DIR. To update: cd $DIR && ./install.sh --update"
+    die "$DIR exists and is not empty. Choose another folder with --dir."
+  fi
+  if [ -n "${AIDENTIFY_GIT_URL:-}" ] && have git; then
+    say "Cloning $AIDENTIFY_GIT_URL into $DIR"; git clone --quiet "$AIDENTIFY_GIT_URL" "$DIR" || die "Clone failed. The repository is private: check your access."
+  elif have gh && gh auth status >/dev/null 2>&1; then
+    say "Cloning $REPO into $DIR (GitHub CLI)"; gh repo clone "$REPO" "$DIR" -- --quiet || die "Clone failed. Check that your GitHub account can see $REPO."
+  elif have git; then
+    say "Cloning $REPO into $DIR"; git clone --quiet "https://github.com/$REPO.git" "$DIR" || die "Clone failed. The repository is private: sign in first (gh auth login), or use AIDENTIFY_GIT_URL=git@github.com:$REPO.git with an SSH key."
+  else
+    REF="${VERSION:-$(latest_tag)}"; REF="${REF:-main}"
+    warn "git not found; downloading a tarball instead (updates will re-download)."
+    fetch_tarball "$DIR"
+  fi
+  if [ -d "$DIR/.git" ]; then
+    T="${VERSION:-$(cd "$DIR" && latest_tag origin)}"
+    if [ -n "$T" ]; then (cd "$DIR" && git -c advice.detachedHead=false checkout --quiet "tags/$T") && say "Using release $T"; fi
+  fi
 fi
 cd "$DIR"
 chmod +x install.sh start.sh 2>/dev/null || true
@@ -126,9 +154,9 @@ AIdentify $(node -p 'require("./package.json").version') is installed in $DIR
 
 Next steps:
   1. Add an AI key to $DIR/.env: OPENROUTER_API_KEY=... (or ANTHROPIC_API_KEY=...)
-     and change ADMIN_PASSWORD / TEAM_PASSWORD before anyone else can reach the server.
   2. Start it:   cd $DIR && npm start
-  3. Open http://localhost:3000 and create your account; onboarding sets up your first agents.
+  3. Open http://localhost:3000/setup and create the admin account. There is no default password:
+     use the one-time setup code printed in the server log (or set a strong ADMIN_PASSWORD in .env first).
 
 Update later:  cd $DIR && npm run update
 Docs:          https://github.com/$REPO#readme

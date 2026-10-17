@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-const roots = ['server.js', 'api', 'lib', 'scripts'];
+const roots = ['server.js', 'api', 'lib', 'scripts', 'test'];
 const files = [];
 const walk = (p) => { const s = fs.statSync(p); if (s.isDirectory()) for (const f of fs.readdirSync(p)) walk(path.join(p, f)); else if (/\.(m?js)$/.test(p)) files.push(p); };
 for (const r of roots) if (fs.existsSync(r)) walk(r);

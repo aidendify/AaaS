@@ -16,7 +16,7 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "app.agentsphere.desktop",
+    "appId": "com.aidentify.desktop",
     "productName": "AIdentify",
     "directories": {
       "output": "dist"

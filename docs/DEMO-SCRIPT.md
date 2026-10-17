@@ -12,7 +12,7 @@ Use two browser windows (or one normal and one private window) so you can switch
 
 ## 2. The business flow (2 min)
 1. As the customer: **Request custom agent** (bottom bar) → describe a need → send.
-2. Switch to the admin window → sign in as **Admin** (`admin@agentsphere.com`). The Overview shows the new request.
+2. Switch to the admin window → sign in as **Admin** (your `ADMIN_EMAIL`, created at `/setup`). The Overview shows the new request.
 3. **Quote requests → Accept request → Set price** (add a delivery time).
 4. Back to the customer: the bell shows "Quote ready" → **Accept & pay** → use test card `4242 4242 4242 4242`.
 5. Admin: **Payments** shows the payment and revenue. In **Quote requests** the job is Paid, so move it to **In progress → Delivered**.

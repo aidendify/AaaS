@@ -3,10 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 android {
-    namespace = "app.agentsphere.client"
+    namespace = "com.aidentify.app"
     compileSdk = 35
     defaultConfig {
-        applicationId = "app.agentsphere.client"
+        applicationId = "com.aidentify.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 2
@@ -14,9 +14,9 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("ANDROID_KEYSTORE_FILE") ?: "../agentsphere-release.keystore")
+            storeFile = file(System.getenv("ANDROID_KEYSTORE_FILE") ?: "../aidentify-release.keystore")
             storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
-            keyAlias = "agentsphere"
+            keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "aidentify"
             keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
         }
     }

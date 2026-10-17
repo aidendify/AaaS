@@ -5,8 +5,41 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-18
+
+Security basics before launch. Existing servers keep working with no changes: if you already set `ADMIN_PASSWORD`, nothing changes for you.
+
+### Changed (please read)
+- **No more default passwords.**
+  - The old built-in logins (`admin1234` and `team1234`) no longer exist.
+  - On a new server, the first visit opens a short setup screen where you create your own admin password. You need a one-time code shown in the server log, so a stranger who finds the server first cannot take it over.
+  - Instead of the setup screen, you can put a strong `ADMIN_PASSWORD` in `.env` before the first start.
+  - Weak or common passwords are refused. Staff passwords need at least 12 characters.
+  - **If your server still uses an old default password,** that login is now refused. Put a strong `ADMIN_PASSWORD` (or `TEAM_PASSWORD`) in `.env` and restart: the account takes the new password automatically.
+- **The demo account needs its own password.** With `DEMO_MODE=1` you must also set `DEMO_USER_PASSWORD`; there is no default demo password any more.
+- **New default staff emails.** If you never set `ADMIN_EMAIL` / `TEAM_EMAIL`, new servers now use `admin@aidentify.local` and `team@aidentify.local`. Existing accounts are not touched.
+- **The Android app has a new ID (`com.aidentify.app`).** Android treats it as a different app: people with the old app must install the new one and sign in again, and the old one can be removed. The desktop app ID is now `com.aidentify.desktop`. No new app builds come with this release, because the Android and Windows build tools are not set up on the build machine.
+- **Installing needs repository access.** The code repository is now private, so the old `curl … | bash` one-liner no longer works. Clone it with the GitHub CLI or SSH, then run `./install.sh`; `npm run update` keeps working from that clone.
+
 ### Added
-- `npm run social:snapshot`: read-only X, LinkedIn and Facebook analytics snapshot in the agents' browser profile. It writes a dated report, a TSV row and screenshots, and reports signed-out or wrong-account sites instead of guessing.
+- **Safer remote browser.** The private link to the agents' signed-in browser:
+  - closes after 60 minutes at most, even while in use (`REMOTE_BROWSER_MAX_MIN`);
+  - can be opened at most 6 times an hour (`REMOTE_BROWSER_OPENS_PER_HOUR`);
+  - records every open and close in an audit log.
+  - Only you (the Slack owner, a signed-in admin, or your own Chief) can open it. Another account's agents cannot.
+- **Security guide.** SECURITY.md explains the remote-browser risks: anyone with the link controls your signed-in accounts; what the ngrok warning page is; how to cut access off. It also has a hardening checklist for going live.
+- **Automatic tests** (`npm test`, run on every change) check that:
+  - first-run setup is required;
+  - default passwords never work;
+  - weak passwords are refused;
+  - the remote browser cannot be opened without signing in.
+- **HANDOFF.md**: one page on what has shipped, what is in progress and what is known to be missing.
+- **`npm run social:snapshot`**: a read-only snapshot of X, LinkedIn and Facebook analytics, taken in the agents' browser.
+
+### Fixed
+- Leftover "AgentSphere" names were replaced with AIdentify. Internal names that existing data depends on (a database table name and two hash prefixes) were kept on purpose so nothing breaks.
+
+## [1.3.0] - 2026-10-17: read-only X, LinkedIn and Facebook analytics snapshot in the agents' browser profile. It writes a dated report, a TSV row and screenshots, and reports signed-out or wrong-account sites instead of guessing.
 
 ## [1.3.0] - 2026-10-17
 
@@ -65,7 +98,8 @@ First public open-source release.
 ### Added
 - Initial AIdentify (AaaS) build: web workspace with sign-in (email + password, email code, Google), agents with knowledge bases, Chief of Staff orchestrator, routines, connectors (OAuth, API keys or Composio), Gmail, Buffer social posting, web search, real browser agents, customer share links and live apps, local file or Neon Postgres storage, and Vercel deployment.
 
-[Unreleased]: https://github.com/aidendify/AaaS/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/aidendify/AaaS/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/aidendify/AaaS/releases/tag/v1.4.0
 [1.3.0]: https://github.com/aidendify/AaaS/releases/tag/v1.3.0
 [1.2.0]: https://github.com/aidendify/AaaS/releases/tag/v1.2.0
 [1.1.0]: https://github.com/aidendify/AaaS/commit/b63634d

@@ -10,7 +10,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 
 // Load .env without any package
 try {
-  const txt = await fs.readFile(path.join(dir, '.env'), 'utf8');
+  const txt = await fs.readFile(process.env.AIDENTIFY_ENV_FILE || path.join(dir, '.env'), 'utf8'); // AIDENTIFY_ENV_FILE: tests use their own
   for (const line of txt.replace(/^\uFEFF/, '').split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*?)\s*$/);
     if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/(^|\s+)#.*$/, '').replace(/^["']|["']$/g, ''); // drop inline # comments
@@ -39,6 +39,9 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/setup' || url.pathname === '/setup.html')) { // first-run admin setup
+      return send(res, 200, await fs.readFile(path.join(dir, 'setup.html')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && (url.pathname === '/settings' || url.pathname === '/settings.html')) { // admin settings (Hermes-style)
       return send(res, 200, await fs.readFile(path.join(dir, 'settings.html')), 'text/html; charset=utf-8');
@@ -126,12 +129,16 @@ server.listen(PORT, HOST, async () => {
   }
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
-    const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@agentsphere.local';
-    const demoPass = process.env.DEMO_USER_PASSWORD || 'demo12345';
-    try { await handle({ method: 'POST', pathname: '/api/auth/signup', body: JSON.stringify({ email: demoEmail, name: 'Demo User', password: demoPass }), headers: {}, ip: 'seed' }); }
+    const demoEmail = process.env.DEMO_USER_EMAIL || 'demo@aidentify.local';
+    const demoPass = process.env.DEMO_USER_PASSWORD || '';
+    if (!demoPass) console.warn('DEMO_MODE=1 but DEMO_USER_PASSWORD is not set: no demo account was created.');
+    else try { await handle({ method: 'POST', pathname: '/api/auth/signup', body: JSON.stringify({ email: demoEmail, name: 'Demo User', password: demoPass }), headers: {}, ip: 'seed' }); }
     catch (e) { if (!(e instanceof HttpError && e.status === 409)) console.error('Demo login:', e.message); }
     console.log('Demo sign-in is on (DEMO_MODE=1) for ' + demoEmail + '. The password is the one in .env and is not printed here.');
   }
-  if ((process.env.ADMIN_PASSWORD || 'admin1234') === 'admin1234') console.warn('Admin is still using the default password. Set ADMIN_PASSWORD before this is public.');
+  try {
+    const be = await import('./lib/backend.js');
+    if (await be.setupNeeded()) console.warn(`FIRST RUN: no admin account yet. Open ${process.env.APP_URL || `http://localhost:${PORT}`}/setup and create one with this one-time setup code: ${await be.setupCode()}  (or set a strong ADMIN_PASSWORD in .env and restart). Nobody can sign in as admin until then.`);
+  } catch (e) { console.error('Setup check:', e.message); }
   console.log(process.env.COMPOSIO_API_KEY ? 'Connectors: Composio managed sign-in ON' : 'Connectors: own OAuth apps only (add COMPOSIO_API_KEY for managed sign-in)');
 });

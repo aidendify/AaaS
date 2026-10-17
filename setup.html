@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Set up AIdentify</title>
+<style>
+:root{--ink:#f5f5f5;--mute:#a1a1aa;--line:rgba(255,255,255,.1);--bg:#0a0a0a;--card:#111;--soft:#161616;--acc:#6d5efc;--bad:#f87171;--ok:#4ade80}
+@media (prefers-color-scheme:light){:root{--ink:#0a0a0a;--mute:#52525b;--line:#e5e5e5;--bg:#fafafa;--card:#fff;--soft:#f4f4f5;--bad:#dc2626;--ok:#16a34a}}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:20px}
+.card{width:min(440px,100%);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px}
+h1{font-size:20px;margin:0 0 6px}p{color:var(--mute);margin:0 0 16px}label{display:block;font-weight:500;margin:12px 0 4px}
+input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:inherit;font:inherit}
+small{color:var(--mute)}button{margin-top:18px;width:100%;padding:10px;border:0;border-radius:9px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+#msg{margin-top:12px;min-height:20px}.bad{color:var(--bad)}.ok{color:var(--ok)}
+</style>
+</head>
+<body>
+<form class="card" id="f" autocomplete="off">
+  <h1>Create the admin account</h1>
+  <p>This server has no admin yet. There is no default password: choose your own. The setup code is printed in the server log when it starts.</p>
+  <label for="code">Setup code</label><input id="code" required autocomplete="one-time-code">
+  <label for="email">Admin email</label><input id="email" type="email" required autocomplete="username">
+  <label for="name">Name</label><input id="name" value="Admin">
+  <label for="pw">Password</label><input id="pw" type="password" required minlength="12" autocomplete="new-password"><small>At least 12 characters, not a common password.</small>
+  <label for="pw2">Repeat password</label><input id="pw2" type="password" required autocomplete="new-password">
+  <button type="submit">Create admin</button>
+  <div id="msg"></div>
+</form>
+<script>
+const $=s=>document.querySelector(s),msg=(t,c)=>{$('#msg').className=c||'';$('#msg').textContent=t};
+fetch('/api/setup').then(r=>r.json()).then(d=>{if(!d.needed){msg('This server already has an admin. Taking you to sign in…','ok');setTimeout(()=>location.href='/',1200)}}).catch(()=>{});
+$('#f').onsubmit=async e=>{e.preventDefault();
+  if($('#pw').value!==$('#pw2').value)return msg('The passwords do not match.','bad');
+  msg('Creating…');
+  try{const r=await fetch('/api/setup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code:$('#code').value,email:$('#email').value,name:$('#name').value,password:$('#pw').value})});
+    const d=await r.json();if(!r.ok)return msg(d.message||d.error||'Could not create the admin.','bad');
+    msg('Admin created. Sign in with Admin on the next screen.','ok');setTimeout(()=>location.href='/',1500)}
+  catch(x){msg('Could not reach the server.','bad')}};
+</script>
+</body>
+</html>

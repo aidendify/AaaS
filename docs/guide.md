@@ -70,15 +70,15 @@ An AI-agent workspace: customers run agents and request custom ones, the admin t
    | Name | Value |
    |---|---|
    | `SESSION_SECRET` | **required.** Long random text, e.g. the output of `openssl rand -hex 32` |
-   | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | the admin login created on first use (defaults: `admin@agentsphere.com` / `admin1234`) |
-   | `TEAM_EMAIL` / `TEAM_PASSWORD` | the pricing-team login (defaults: `team@agentsphere.com` / `team1234`) |
+   | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | the admin login (email default `admin@aidentify.local`). No default password: set a strong one (12+ characters), or leave it empty and create the admin at `/setup` |
+   | `TEAM_EMAIL` / `TEAM_PASSWORD` | optional pricing-team login (email default `team@aidentify.local`), created only when a strong `TEAM_PASSWORD` is set |
    | `ANTHROPIC_API_KEY` | optional: turns on the Research, Finance, Support and Social agents |
    | `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | optional: use any OpenRouter model instead of (or as fallback to) Anthropic; `AI_PROVIDER=openrouter` makes it first |
    | `COMPOSIO_API_KEY` | optional: managed sign-in for Gmail, Calendar, Slack, GitHub, Notion and more (see Connectors) |
    | `TAVILY_API_KEY` | optional: web search for agents |
    | `CRON_SECRET` | needed on Vercel for scheduled routines (see Agent orchestrator) |
 
-5. **Deploy** (or Redeploy after adding variables). The table `agentsphere_kv` and the admin accounts are created automatically on the first request.
+5. **Deploy** (or Redeploy after adding variables). The table `agentsphere_kv` (the old name is kept so existing databases keep working) is created automatically on the first request. Set a strong `ADMIN_PASSWORD` (or `SETUP_CODE` and use `/setup`), because Vercel cannot store the setup code.
 
 If something is missing, the sign-in screen says what (for example "DATABASE_URL is not set").
 
@@ -95,8 +95,8 @@ Without `DATABASE_URL`, data is kept in `data/kv.json` on your computer. Put you
 | Who | Choose | Email | Password |
 |---|---|---|---|
 | Customer | **User** | create one with "Create one!" | your choice (8+ characters) |
-| Admin | **Admin** | `ADMIN_EMAIL` (default `admin@agentsphere.com`) | `ADMIN_PASSWORD` (default `admin1234`) |
-| Pricing team | **Admin** | `TEAM_EMAIL` (default `team@agentsphere.com`) | `TEAM_PASSWORD` (default `team1234`) |
+| Admin | **Admin** | `ADMIN_EMAIL` (default `admin@aidentify.local`) | the one you chose at `/setup` or in `ADMIN_PASSWORD` (no default) |
+| Pricing team | **Admin** | `TEAM_EMAIL` (default `team@aidentify.local`) | `TEAM_PASSWORD` (no default; the account exists only when it is set) |
 
 Change the default passwords before you share the site. Changing `ADMIN_PASSWORD` later does not change an existing admin; use **Settings → Change password**.
 The 5-minute walkthrough is in [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md).
@@ -107,7 +107,7 @@ The 5-minute walkthrough is in [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md).
 - **Sessions:** signing in returns a signed token (HMAC with `SESSION_SECRET`, valid 14 days). Every data request needs it.
 - **Who sees what:** a customer only receives their own account, requests, payments and workspace. Staff (admin, pricing team) see all customers.
 - **Who changes what:** a customer can only change their own data. Only an admin can suspend, delete or reset a customer. Roles can't be changed from the browser.
-- **Storage:** one Postgres table, `agentsphere_kv (k, v, at, updated_at)`. It holds `as_users`, `as_requests`, `as_admin` and one `as_data:<email>` row per customer workspace, written last-writer-wins.
+- **Storage:** one Postgres table, `agentsphere_kv (k, v, at, updated_at)` (legacy name, kept for compatibility). It holds `as_users`, `as_requests`, `as_admin` and one `as_data:<email>` row per customer workspace, written last-writer-wins.
 
 ## My Workplace
 
