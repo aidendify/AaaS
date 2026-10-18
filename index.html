@@ -755,6 +755,7 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
         <div class="ms-who"><button type="button" class="ib" id="aBack" aria-label="Back"></button><span id="aWho"></span></div>
         <h2 id="aTitle2">Enter password</h2>
         <input id="aName" class="ms-in hide" autocomplete="name" placeholder="Full name" aria-label="Full name">
+        <input id="aBiz" class="ms-in hide" autocomplete="organization" maxlength="300" placeholder="Your business in one line (optional), e.g. Social media for Pune realtors" aria-label="Your business in one line (optional)">
         <span class="pw"><input id="aPass" type="password" class="ms-in" autocomplete="current-password" placeholder="Password" aria-label="Password"><button type="button" class="ib" id="pwBtn" aria-label="Show password"></button></span>
         <label class="chk"><input type="checkbox" id="aRem" checked> Keep me signed in</label>
       </div>
@@ -1233,7 +1234,7 @@ function setStep(n){
   if(n===3)setTimeout(()=>$('#aCode').focus(),0);
   if(n===2){
     $('#aWho').textContent=$('#aEmail').value.trim();$('#aTitle2').textContent=up?'Create your account':'Enter password';
-    $('#aName').classList.toggle('hide',!up);$('#aPass').placeholder=up?'Create password':'Password';$('#aPass').autocomplete=up?'new-password':'current-password';
+    $('#aName').classList.toggle('hide',!up);$('#aBiz').classList.toggle('hide',!up);$('#aPass').placeholder=up?'Create password':'Password';$('#aPass').autocomplete=up?'new-password':'current-password';
     (up?$('#aName'):$('#aPass')).focus();
   }else $('#aEmail').focus();
 }
@@ -1273,7 +1274,7 @@ $('#authForm').onsubmit=async e=>{
   if(await SYNC.mode()==='server'){
     $('#aBtn').disabled=true;
     try{
-      const r=await SYNC.api(mode==='up'?'/api/auth/signup':'/api/auth/login',mode==='up'?{email,name,password:pw}:{email,password:pw});
+      const r=await SYNC.api(mode==='up'?'/api/auth/signup':'/api/auth/login',mode==='up'?{email,name,password:pw,business:{about:$('#aBiz').value.trim()}}:{email,password:pw});
       await authDone(r,email,$('#aRem').checked);
     }catch(x){$('#aBtn').disabled=false;err(x.message||'Something went wrong. Try again.')}
     return;

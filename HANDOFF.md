@@ -9,6 +9,9 @@
 - What broke / what we fixed (19 Oct):
   - The first staging run caught a 500 on broken JSON and orphaned public-link tokens after account delete. Both are fixed.
   - Still open for Phase 3: `/api/kv` reads the whole database, high per-request overhead (account delete takes 4 s), real AI up to 30–37 s per request against Vercel's 60 s limit, no approvals without a connected app, and daily-only routines on the API. Also the known gaps.
+- v1.8.0 was released on 19 Oct (~1:05 AM IST): merged to main, with GitHub Releases v1.7.1 and v1.8.0. `aidentify-demo` was redeployed and verified: `ai:true`, no mock, broken JSON returns 400. The landing site was not redeployed.
+- v1.9.0 (branch `fixes-v1.9.0`, local only, tested on staging, not deployed to prod) fixes F3–F7, F9–F11 and adds region `sin1` plus a daily cron. Before → after numbers are in REPORT.md. Deploying it to prod moves the demo's functions to Singapore.
+- Deferred: streaming or async agent chat, direct Trello actions, an every-minute pinger (needs a third-party account), purging old placeholder rows in the `demo` schema, and staff `/api/kv` still reading everything.
 - Staging runs on mock AI by default. To switch to real AI, set `AI_PROVIDER=openrouter` and `AI_MOCK=off` on `aidentify-staging` and redeploy. Switch back afterwards.
 
 ## Hosted demo (18 Oct 2026 ~12:50 IST)

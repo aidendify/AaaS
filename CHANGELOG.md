@@ -5,6 +5,30 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-19
+
+Faster, safer and more useful for new accounts. These fix the top problems the v1.8.0 tests found.
+
+### Changed
+- **Much faster hosted app.** The app's servers moved next to the database, in Singapore (close to India). Each page now asks the database fewer questions.
+  - Measured on staging, server time, before → after:
+    - Plain AI request with test AI: 1.1 s → 0.014 s.
+    - Account delete: 4.2 s → 0.07 s.
+    - Loading a workspace: 0.9 s → 0.01 s.
+  - Agent chat with real AI went from about 20 s to about 6 s typical.
+- **Your data stays yours, and loading it no longer reads everyone's.** Loading a workspace now reads only your own records instead of scanning the whole database.
+- **No more hanging on slow AI.** When the AI is slow, you get a clear "took too long, try again" message within 50 seconds, instead of the request being cut off. Public lead and quote pages never make a visitor wait more than about 8 seconds. If the AI is slow there, they use the built-in reply.
+
+### Added
+- **Business profile at signup.** New accounts can describe their business in one line, and add more later through `/api/profile`. Every AI draft, agent chat and scheduled routine starts from it, so posts mention the right business without being told each time.
+- **Approvals work from day one.** Without connecting any app, the agent puts posts, replies and emails in your approval queue as drafts. Approving a draft sends nothing: you copy it and post it yourself. Apps connected with only a key, such as Trello, now give a clear "approved draft" instead of an approval that always failed.
+- **One-off follow-ups through the API.** `POST /api/routines` accepts `run_at`, for example "follow up in 3 days", and an optional repeat.
+- **Daily scheduler.** The hosted app runs due routines every morning at 08:00 IST. Instructions for a free every-minute pinger are in `docs/STAGING.md`.
+- `test/e2e/bench.mjs` measures speed on any copy of the app.
+
+### Fixed
+- Deleting an account now removes its rows completely instead of leaving empty ones behind. It also removes its email from the AI spend log; the totals stay.
+
 ## [1.8.0] - 2026-10-19
 
 Real-customer journeys tested from start to finish (stress-test plan, phase 1).

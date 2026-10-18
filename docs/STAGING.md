@@ -27,3 +27,17 @@ E2E_CRON_SECRET=… E2E_ADMIN_EMAIL=… E2E_ADMIN_PASSWORD=… npm run e2e -- --
 - Four scenarios: agency owner, lead flow, BYOK, and outside script. Each creates throwaway `e2e-<time>-<x>@example.com` accounts and deletes them at the end.
 - Results are appended to `test/e2e/REPORT.md`.
 - Secrets come only from environment variables. On the box, load them from the staging env file with a parser, not `source`, because the database URL contains `&`.
+
+## Scheduler (v1.9.0)
+- **Vercel cron (built in):** `vercel.json` calls `/api/cron/tick` every day at 02:30 UTC (08:00 IST). Vercel sends `Authorization: Bearer $CRON_SECRET` on its own when the project has `CRON_SECRET` set. Hobby allows once a day.
+- **Every minute (free, outside):** create a job on a free pinger such as cron-job.org (or a GitHub Actions schedule, which runs about every 5–15 minutes):
+  - URL: `https://<site>/api/cron/tick`
+  - Method: POST
+  - Header: `Authorization: Bearer <CRON_SECRET>`
+  - Interval: every minute
+
+  Due routines run on each call. Overlapping calls are safe, because each routine is locked for 10 minutes while it runs. Keep the secret only in the pinger's header settings.
+- The landing project (`aidentify`) shares `vercel.json`. Its cron gets 401 because it has no `CRON_SECRET`, which is harmless.
+
+## Region (v1.9.0)
+- `vercel.json` pins functions to `sin1` (Singapore), next to the Neon database (`ap-southeast-1`) and close to users in India. Before this, functions ran in `iad1` (Washington), and every database query crossed the Pacific (about 220 ms each).
