@@ -1,5 +1,15 @@
 # AIdentify handoff
 
+## Hosted demo (18 Oct 2026 ~12:50 IST)
+- Live: https://aidentify-demo.vercel.app (Vercel Hobby, team aidentify)
+- Waitlist: https://aidentify-demo.vercel.app/waitlist (and /early-access)
+- Health: /api/health reports db:neon, schema demo
+- Branch: hosted-demo (CLI deploy; GitHub not linked to Vercel yet)
+- Local box still runs Slack + board worker; Vercel does not
+- Waitlist now requires email; one row per person, unique by email AND by WhatsApp (re-submitting with either updates the row). Admin export: GET /api/waitlist?format=csv
+- Public sign-up is open (email + password). Google and email-code sign-in are not configured on Vercel (no GOOGLE_CLIENT_ID / SMTP)
+- Admin password for hosted: saved on box at /workspace/aaas-run/vercel-admin.secret (chmod 600); not in git
+
 A one-page status for anyone picking up AIdentify: what it does today, what is in progress, and what is known to be
 missing. Last updated for **v1.6.0** (18 Oct 2026).
 

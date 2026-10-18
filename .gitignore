@@ -29,3 +29,5 @@ data.bak-*/
 # install/update scratch
 .aidentify-update/
 public/
+.vercel
+.env*

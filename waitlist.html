@@ -1,76 +1,271 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AIdentify early access: AI agents for your business</title>
-<meta name="description" content="Join the AIdentify early-access list. AI agent workers that answer leads, follow up and run routine work for small businesses in India.">
-<meta property="og:title" content="AIdentify early access">
-<meta property="og:description" content="AI agent workers for your business. Join the early-access list.">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Join the AIdentify waitlist: AI agent workers for your business</title>
+<meta name="description" content="Join the AIdentify early-access waitlist. AI agent workers that answer leads, follow up, send quotes and run routine work for small businesses in India, with you approving anything important.">
+<meta name="theme-color" content="#000000">
+<meta property="og:title" content="Join the AIdentify waitlist">
+<meta property="og:description" content="AI agent workers for your business. Get early access.">
+<meta property="og:type" content="website">
+<script>try{const t=localStorage.getItem('as_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 <style>
-:root{--ink:#f5f5f5;--mute:#a1a1aa;--bg:#0a0a0a;--soft:#141414;--line:#27272a;--green:#4ade80;--err:#f87171}
-*{box-sizing:border-box}body{margin:0;background:#000;color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-main{max-width:520px;margin:0 auto;padding:40px 20px 60px}
-h1{font-size:30px;line-height:1.2;margin:0 0 10px}p.lead{color:var(--mute);margin:0 0 26px}
-.badge{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);border:1px solid #14532d;border-radius:99px;padding:3px 10px;margin-bottom:16px}
-ul.pts{color:var(--mute);padding-left:18px;margin:0 0 28px}ul.pts li{margin:4px 0}
-form{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:22px}
-label{display:block;font-size:14px;margin:0 0 14px}label span{display:block;margin-bottom:6px;color:var(--ink)}
-input,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit}
-input:focus,select:focus{outline:2px solid #3f3f46;border-color:#52525b}
-.chk{display:flex;gap:10px;align-items:flex-start;color:var(--mute)}.chk input{width:auto;margin-top:4px}
+/* Same tokens as the AIdentify app (index.html): black canvas, hairline borders, white type, Geist, pill buttons */
+:root{--ink:#f5f5f5;--mute:#a1a1aa;--mute2:#71717a;--line:rgba(255,255,255,.08);--bd:rgba(255,255,255,.12);--bg:#0a0a0a;--soft:#141414;--page:#000;--pv:rgba(255,255,255,.06);
+--green:#4ade80;--gt:#86efac;--g:rgba(74,222,128,.14);--err:#f87171;--sans:'Geist','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+--grid:rgba(255,255,255,.035);color-scheme:dark}
+:root[data-theme="light"]{--ink:#0a0a0a;--mute:#52525b;--mute2:#71717a;--line:#e7e7e7;--bd:#e4e4e7;--bg:#fff;--soft:#f4f4f5;--page:#fafafa;--pv:#f4f4f5;
+--green:#16a34a;--gt:#15803d;--g:#ecfdf3;--err:#dc2626;--grid:rgba(0,0,0,.04);color-scheme:light}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--page);-webkit-font-smoothing:antialiased;line-height:1.5;padding-bottom:env(safe-area-inset-bottom,0px)}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+h1,h2,h3{margin:0;font-weight:500;letter-spacing:-.035em}
+.bggrid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse 80% 55% at 50% 0%,#000 30%,transparent 100%);mask-image:radial-gradient(ellipse 80% 55% at 50% 0%,#000 30%,transparent 100%)}
+.glow{position:fixed;left:50%;top:-260px;width:900px;height:520px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent);pointer-events:none;z-index:0}
+:root[data-theme="light"] .glow{background:radial-gradient(closest-side,rgba(0,0,0,.04),transparent)}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* top bar, like the app's topbar */
+.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--page) 82%,transparent);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{height:64px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:500;letter-spacing:-.04em;text-decoration:none}
+.top nav{margin-left:auto;display:flex;align-items:center;gap:8px}
+.top nav a.lk{color:var(--mute);text-decoration:none;font-size:14px;padding:8px 12px;border-radius:10px}.top nav a.lk:hover{background:var(--soft);color:var(--ink)}
+.ib{background:none;border:0;padding:8px;border-radius:10px;color:var(--mute);display:grid;place-items:center;cursor:pointer}.ib:hover{background:var(--soft);color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;border:1px solid transparent;padding:10px 18px;font-size:14px;font-weight:500;text-decoration:none;cursor:pointer;white-space:nowrap;transition:filter .15s,background .15s}
+.btn.dk{background:var(--ink);color:var(--page);border-color:var(--ink)}.btn.dk:hover{filter:brightness(1.08)}
+.btn.gh{background:transparent;border-color:var(--bd);color:var(--ink)}.btn.gh:hover{background:var(--soft)}
+.btn:disabled{opacity:.6;cursor:default}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:start;padding:72px 0 64px}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--bd);border-radius:999px;padding:5px 12px 5px 10px;font-size:12.5px;color:var(--mute);margin-bottom:22px}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(74,222,128,.5);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}70%,100%{box-shadow:0 0 0 7px rgba(74,222,128,0)}}
+.hero h1{font-size:clamp(38px,5.4vw,60px);line-height:1.02;letter-spacing:-.045em}
+.hero h1 em{font-style:normal;color:var(--mute)}
+.lead{color:var(--mute);font-size:17.5px;max-width:560px;margin:20px 0 28px}
+.pts{list-style:none;margin:0 0 30px;padding:0;display:grid;gap:12px}
+.pts li{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.tick{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--bd);color:var(--ink);margin-top:1px}
+.works{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--mute2);font-size:12.5px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;color:var(--mute);font-size:12.5px}
+
+/* form card, like the app's sign-in card */
+.card{background:var(--bg);border:1px solid var(--bd);border-radius:28px;padding:32px 30px 28px;position:sticky;top:96px}
+:root:not([data-theme="light"]) .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0) 40%),var(--bg)}
+.card h2{font-size:24px;margin:0 0 6px}.card .sub{color:var(--mute);font-size:14px;margin:0 0 22px}
+.f{display:grid;gap:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld{display:grid;gap:6px;font-size:13px;color:var(--mute)}
+.fld>span{color:var(--ink);font-weight:500}
+.in{width:100%;font-size:15px;padding:12px 14px;border:1px solid var(--bd);border-radius:14px;background:var(--soft);color:var(--ink);outline:0;transition:border-color .15s;-webkit-appearance:none;appearance:none}
+.in::placeholder{color:var(--mute2)}
+.in:focus{border-color:var(--ink)}
+.in[aria-invalid="true"]{border-color:var(--err)}
+select.in{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.wa{position:relative}.wa b{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-weight:400;color:var(--mute);font-size:15px;pointer-events:none}.wa .in{padding-left:50px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mute);cursor:pointer;line-height:1.45}
+.chk input{appearance:none;-webkit-appearance:none;flex:none;width:18px;height:18px;margin:1px 0 0;border:1px solid var(--bd);border-radius:6px;background:var(--soft);display:grid;place-items:center;cursor:pointer}
+.chk input:checked{background:var(--ink);border-color:var(--ink)}
+.chk input:checked::after{content:'';width:9px;height:5px;border:2px solid var(--page);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.err{color:var(--err);font-size:12.5px}.err:empty{display:none}
 .hp{position:absolute;left:-5000px;width:1px;height:1px;overflow:hidden}
-.err{color:var(--err);font-size:13px;margin-top:4px;min-height:0}
-button{width:100%;padding:13px;border:0;border-radius:10px;background:var(--ink);color:#000;font:600 16px system-ui;cursor:pointer}button:disabled{opacity:.6}
-.ok{display:none;text-align:center;padding:30px 10px}.ok h2{margin:0 0 8px}.ok p{color:var(--mute)}
-.foot{color:#71717a;font-size:13px;margin-top:22px;text-align:center}.foot a{color:var(--mute)}
+.submit{width:100%;height:48px;font-size:15px;margin-top:4px}
+.fine{color:var(--mute2);font-size:12px;text-align:center;margin:12px 0 0}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ok{display:none;text-align:center;padding:18px 4px 6px;animation:rise .4s ease}
+.ok .orb{width:64px;height:64px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;background:var(--ink);color:var(--page)}
+.ok h2{margin-bottom:8px}.ok p{color:var(--mute);font-size:14.5px;margin:0 0 20px}
+.ok .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* sections */
+section.blk{padding:56px 0;border-top:1px solid var(--line)}
+.eyebrow{font-size:11px;letter-spacing:.14em;font-weight:500;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.blk h2{font-size:clamp(26px,3.4vw,36px);line-height:1.1;max-width:640px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px}
+.feat{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:22px;transition:box-shadow .15s}
+.feat:hover{box-shadow:0 0 0 1px var(--bd)}
+.tile{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--bd);margin-bottom:16px}
+.feat h3{font-size:15.5px;margin-bottom:6px;letter-spacing:-.02em}.feat p{color:var(--mute);font-size:13.5px;margin:0}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px;counter-reset:s}
+.step{border:1px solid var(--line);border-radius:20px;padding:22px;position:relative}
+.step b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--pv);font-size:13px;font-weight:500;margin-bottom:14px}
+.step h3{font-size:15.5px;margin-bottom:6px;letter-spacing:-.02em}.step p{color:var(--mute);font-size:13.5px;margin:0}
+.faq{margin-top:26px;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.faq details{border-bottom:1px solid var(--line)}.faq details:last-child{border:0}
+.faq summary{list-style:none;cursor:pointer;padding:18px 22px;font-weight:500;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--mute);font-size:20px;font-weight:400;line-height:1;transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin:0;padding:0 22px 18px;color:var(--mute);font-size:14.5px}
+.cta{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--bd);border-radius:28px;padding:30px 32px}
+.cta h2{font-size:26px}.cta p{color:var(--mute);margin:6px 0 0}
+footer{border-top:1px solid var(--line);padding:26px 0 34px;color:var(--mute2);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer a{color:var(--mute);text-decoration:none}footer a:hover{color:var(--ink)}
+
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:44px 0 48px}
+  .card{position:static}
+  .lead{font-size:16.5px}
+}
+@media(max-width:640px){
+  .wrap{padding:0 18px}
+  .top nav a.lk{display:none}
+  .grid,.steps{grid-template-columns:1fr}
+  .row2{grid-template-columns:1fr}
+  .card{padding:26px 20px 22px;border-radius:24px}
+  section.blk{padding:44px 0}
+  .cta{padding:24px 22px}
+  .in{font-size:16px} /* no iOS zoom on focus */
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<main>
-  <div class="badge">Early access</div>
-  <h1>AI agent workers for your business</h1>
-  <p class="lead">AIdentify gives you AI agents that reply to leads in seconds, follow up, send quotes and keep your team's routine work moving, with you approving anything important.</p>
-  <ul class="pts">
-    <li>Built for small businesses in India first</li>
-    <li>Works with WhatsApp, Gmail, Google Calendar and more</li>
-    <li>Nothing is sent or paid without your approval</li>
-  </ul>
-  <form id="f" novalidate>
-    <label><span>Your name</span><input name="name" autocomplete="name" maxlength="80" required><div class="err" data-for="name"></div></label>
-    <label><span>Business type</span>
-      <select name="businessType" required><option value="">Choose one</option></select>
-      <div class="err" data-for="businessType"></div></label>
-    <label id="otherWrap" style="display:none"><span>What kind of business?</span><input name="businessOther" maxlength="60"></label>
-    <label><span>City</span><input name="city" autocomplete="address-level2" maxlength="60" required><div class="err" data-for="city"></div></label>
-    <label><span>WhatsApp number</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="98765 43210" required><div class="err" data-for="whatsapp"></div></label>
-    <div class="hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
-    <label class="chk"><input type="checkbox" name="consent"><span>You can message me on WhatsApp about AIdentify early access.</span></label>
-    <div class="err" data-for="consent" style="margin:-8px 0 12px"></div>
-    <button id="b" type="submit">Join the waitlist</button>
-    <div class="err" id="gerr" style="text-align:center;margin-top:10px"></div>
-  </form>
-  <div class="ok" id="ok"><h2>You're on the list 🎉</h2><p id="okp">We'll message you on WhatsApp when your early-access spot opens.</p></div>
-  <p class="foot">Want to look around first? <a href="/">Open the demo</a></p>
+<div class="bggrid" aria-hidden="true"></div><div class="glow" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="AIdentify home"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.5"/><ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.5" transform="rotate(-32 16 16)"/><circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/></svg><span>AIdentify</span></a>
+    <nav>
+      <a class="lk" href="#how">How it works</a>
+      <a class="lk" href="#faq">FAQ</a>
+      <button class="ib" id="themeBtn" type="button" aria-label="Switch light or dark theme"></button>
+      <a class="btn gh" href="/">Open the demo</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div>
+      <div class="pill"><i></i>Early access · onboarding in small batches</div>
+      <h1>AI agent workers for your business. <em>You stay in charge.</em></h1>
+      <p class="lead">AIdentify gives you AI agents that reply to leads in seconds, follow up, send quotes and keep your team's routine work moving, with you approving anything important.</p>
+      <ul class="pts">
+        <li><span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span><span>Built for small businesses in India first</span></li>
+        <li><span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span><span>Agents that work across the tools you already use</span></li>
+        <li><span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></span><span>Nothing is sent or paid without your approval</span></li>
+      </ul>
+      <div class="works"><span>Works with</span><span class="chip">WhatsApp</span><span class="chip">Gmail</span><span class="chip">Google Calendar</span><span class="chip">Slack</span><span class="chip">+ more</span></div>
+    </div>
+
+    <div class="card" id="join">
+      <form id="f" class="f" novalidate>
+        <div><h2>Join the waitlist</h2><p class="sub">Get early access to AIdentify. It takes under a minute.</p></div>
+        <label class="fld"><span>Your name</span><input class="in" name="name" autocomplete="name" maxlength="80" placeholder="Ravi Kumar" required><div class="err" data-for="name"></div></label>
+        <label class="fld"><span>Work email</span><input class="in" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="you@business.com" required><div class="err" data-for="email"></div></label>
+        <label class="fld"><span>WhatsApp number</span><span class="wa"><b>+91</b><input class="in" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="98765 43210" required></span><div class="err" data-for="whatsapp"></div></label>
+        <div class="row2">
+          <label class="fld"><span>Business type</span><select class="in" name="businessType" required><option value="">Choose one</option></select><div class="err" data-for="businessType"></div></label>
+          <label class="fld"><span>City</span><input class="in" name="city" autocomplete="address-level2" maxlength="60" placeholder="Hyderabad" required><div class="err" data-for="city"></div></label>
+        </div>
+        <label class="fld" id="otherWrap" hidden><span>What kind of business?</span><input class="in" name="businessOther" maxlength="60" placeholder="Tell us in a few words"></label>
+        <div class="hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <label class="chk"><input type="checkbox" name="consent"><span>You can message me on WhatsApp and email about AIdentify early access.</span></label>
+        <div class="err" data-for="consent"></div>
+        <button class="btn dk submit" id="b" type="submit">Join the waitlist</button>
+        <div class="err" id="gerr" role="alert" style="text-align:center"></div>
+        <p class="fine">No spam. We only use your details to contact you about early access.</p>
+      </form>
+      <div class="ok" id="ok" role="status">
+        <div class="orb"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg></div>
+        <h2>You're on the list</h2>
+        <p id="okp">Thanks! We'll reach out on WhatsApp and email when your early-access spot opens.</p>
+        <div class="acts"><a class="btn dk" href="/">Explore the demo</a><button class="btn gh" type="button" id="again">Edit my details</button></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="blk" id="what">
+    <p class="eyebrow">What your agents do</p>
+    <h2>A small team of AI workers that never misses a lead.</h2>
+    <div class="grid">
+      <div class="feat"><div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg></div><h3>Instant lead replies</h3><p>New enquiries get a helpful answer in seconds, day or night.</p></div>
+      <div class="feat"><div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="8.5"/></svg></div><h3>Follow-ups on time</h3><p>Reminders and nudges go out on schedule so deals don't go cold.</p></div>
+      <div class="feat"><div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></div><h3>Quotes and paperwork</h3><p>Draft quotes, status updates and summaries ready for you to check.</p></div>
+      <div class="feat"><div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.4 3.4 8.3 8 9 4.6-.7 8-4.6 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>You approve first</h3><p>Anything important waits for your OK before it is sent or paid.</p></div>
+    </div>
+  </section>
+
+  <section class="blk" id="how">
+    <p class="eyebrow">How early access works</p>
+    <h2>Three steps from waitlist to working agents.</h2>
+    <div class="steps">
+      <div class="step"><b>1</b><h3>Join the waitlist</h3><p>Tell us about your business. It takes under a minute.</p></div>
+      <div class="step"><b>2</b><h3>We reach out</h3><p>We contact you on WhatsApp or email when your spot opens.</p></div>
+      <div class="step"><b>3</b><h3>Your agents go live</h3><p>Connect your tools, pick your agents and approve what they do.</p></div>
+    </div>
+  </section>
+
+  <section class="blk" id="faq">
+    <p class="eyebrow">Questions</p>
+    <h2>Good to know</h2>
+    <div class="faq">
+      <details><summary>Who is AIdentify for?</summary><p>Small and growing businesses (salons, clinics, agencies, shops, coaches, real estate and more) that want leads answered and routine work done without hiring more people.</p></details>
+      <details><summary>Will the agents send things without asking me?</summary><p>No. You choose what needs approval. Messages, payments and anything important wait for your OK.</p></details>
+      <details><summary>Can I try it before my spot opens?</summary><p>Yes. Open the demo to look around the app. Your waitlist spot stays saved.</p></details>
+      <details><summary>I already joined. Can I change my details?</summary><p>Yes. Fill in the form again with the same email or WhatsApp number and we'll update your entry instead of adding a new one.</p></details>
+    </div>
+  </section>
+
+  <section class="blk" style="border-top:0;padding-top:8px">
+    <div class="cta"><div><h2>Ready when you are.</h2><p>Grab your early-access spot today.</p></div><a class="btn dk" href="#join" id="ctaJoin">Join the waitlist</a></div>
+  </section>
 </main>
+
+<footer><div class="wrap"><span>© AIdentify</span><span><a href="/">Demo</a> · <a href="#faq">FAQ</a></span></div></footer>
+
 <script>
 const TYPES=['Agency','Clinic / healthcare','Coaching / education','Consulting','E-commerce / D2C','Home services','Manufacturing','Real estate','Restaurant / food','Retail shop','Salon / wellness','Software / IT','Travel','Other'];
-const f=document.getElementById('f'),sel=f.businessType;
+const $=(s,r=document)=>r.querySelector(s);
+const f=$('#f'),sel=f.businessType,b=$('#b');
 for(const t of TYPES){const o=document.createElement('option');o.value=o.textContent=t;sel.appendChild(o)}
-sel.onchange=()=>{document.getElementById('otherWrap').style.display=sel.value==='Other'?'block':'none'};
-const src=new URLSearchParams(location.search).get('utm_source')||new URLSearchParams(location.search).get('ref')||'';
+sel.onchange=()=>{$('#otherWrap').hidden=sel.value!=='Other'};
+// theme toggle shares the app's as_theme setting
+const SUN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',MOON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg>';
+const tb=$('#themeBtn'),paint=()=>{tb.innerHTML=document.documentElement.dataset.theme==='light'?MOON:SUN};paint();
+tb.onclick=()=>{const t=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=t;try{localStorage.setItem('as_theme',t)}catch(e){}paint()};
+// +91 hint hides when the visitor types their own country code
+const wa=f.whatsapp,pre=$('.wa b'),waPad=()=>{const own=/^\s*(\+|00)/.test(wa.value);pre.style.display=own?'none':'';wa.style.paddingLeft=own?'14px':''};wa.oninput=waPad;
+const qs=new URLSearchParams(location.search),src=qs.get('utm_source')||qs.get('ref')||'';
+const EMAIL=/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+function setErr(k,m){const el=$('[data-for="'+k+'"]');if(el)el.textContent=m||'';const inp=f.elements[k];if(inp&&inp.setAttribute)inp.setAttribute('aria-invalid',m?'true':'false')}
+function check(){const e={};const v=n=>String(f.elements[n].value||'').trim();
+  if(v('name').length<2)e.name='Enter your name.';
+  if(!EMAIL.test(v('email')))e.email='Enter a valid email address, like you@business.com.';
+  if(v('whatsapp').replace(/\D/g,'').length<10)e.whatsapp='Enter your WhatsApp number (10 digits for India).';
+  if(!v('businessType'))e.businessType='Choose your business type.';
+  if(v('city').length<2)e.city='Enter your city.';
+  if(!f.consent.checked)e.consent='Tick the box so we can contact you.';
+  return e}
+f.addEventListener('input',e=>{if(e.target.name)setErr(e.target.name==='businessOther'?'businessType':e.target.name,'')});
 f.onsubmit=async(e)=>{e.preventDefault();
-  document.querySelectorAll('.err').forEach(x=>x.textContent='');
-  const b=document.getElementById('b');b.disabled=true;b.textContent='Saving…';
+  document.querySelectorAll('.err').forEach(x=>x.textContent='');f.querySelectorAll('[aria-invalid]').forEach(x=>x.setAttribute('aria-invalid','false'));
+  const bad=check();if(Object.keys(bad).length){for(const[k,m]of Object.entries(bad))setErr(k,m);const first=f.elements[Object.keys(bad)[0]];if(first&&first.focus)first.focus();return}
+  b.disabled=true;b.innerHTML='<span class="spin"></span>Saving…';
   const d=Object.fromEntries(new FormData(f));d.consent=f.consent.checked;d.source=src;
   try{const r=await fetch('/api/waitlist',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)});
     const j=await r.json().catch(()=>({}));
-    if(r.ok){f.style.display='none';document.getElementById('ok').style.display='block';if(j.again)document.getElementById('okp').textContent='You were already on the list, so we updated your details. We\'ll message you on WhatsApp soon.';return}
-    if(j.fields)for(const[k,v]of Object.entries(j.fields)){const el=document.querySelector('[data-for="'+k+'"]');if(el)el.textContent=v}
-    else document.getElementById('gerr').textContent=j.message||'Something went wrong. Please try again.';
-  }catch(x){document.getElementById('gerr').textContent='No connection. Please try again.'}
+    if(r.ok){f.style.display='none';$('#ok').style.display='block';$('#okp').textContent=j.again?'You were already on the list, so we updated your details. We\'ll reach out on WhatsApp and email soon.':'Thanks, '+String(d.name||'').trim().split(' ')[0]+'! We\'ll reach out on WhatsApp and email when your early-access spot opens.';b.disabled=false;b.textContent='Join the waitlist';$('#join').scrollIntoView({block:'nearest',behavior:'smooth'});return}
+    if(j.fields)for(const[k,v]of Object.entries(j.fields))setErr(k,v);
+    else $('#gerr').textContent=r.status===429?'Too many tries. Please wait a minute and try again.':(j.message||'Something went wrong. Please try again.');
+  }catch(x){$('#gerr').textContent='No connection. Please try again.'}
   b.disabled=false;b.textContent='Join the waitlist';
 };
+$('#again').onclick=()=>{$('#ok').style.display='none';f.style.display='';f.name.focus()};
+$('#ctaJoin').onclick=(e)=>{e.preventDefault();$('#join').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>f.name.focus({preventScroll:true}),400)};
 </script>
 </body>
 </html>
