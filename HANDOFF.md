@@ -4,7 +4,12 @@
 - Staging: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`; Neon schema `staging`; $2 AI budget; mock AI on by default). How it works: `docs/STAGING.md`.
 - Staging secrets (admin password, cron secret, session secret) live only in Vercel and in `/workspace/aaas-run/staging.env.local` on the box (chmod 600), never in git.
 - Staging deploys are made from `/workspace/aaas-staging-deploy`, which is linked to `aidentify-staging`. Run `/workspace/aaas-run/stg-sync.sh` to copy the worktree there, then `npx vercel deploy --prod --yes --scope aidentify` from that folder. Never deploy from the worktree itself, because it is linked to `aidentify-demo`.
-- v1.7.1 added mock AI, request logging and admin metrics. Branch `stress-v1.7.1`.
+- v1.7.1 added mock AI, request logging and admin metrics. v1.8.0 added the end-to-end suite and fixed two bugs: the 500 on broken JSON, and public links left behind by deleted accounts. Branch `stress-v1.7.1`, committed locally, not pushed or released yet.
+- Run the suite on staging with `/workspace/aaas-run/e2e-staging.sh [--only a,b] [--label …]`. It loads the secrets itself. Results are appended to `test/e2e/REPORT.md`, which also lists findings F1–F13.
+- What broke / what we fixed (19 Oct):
+  - The first staging run caught a 500 on broken JSON and orphaned public-link tokens after account delete. Both are fixed.
+  - Still open for Phase 3: `/api/kv` reads the whole database, high per-request overhead (account delete takes 4 s), real AI up to 30–37 s per request against Vercel's 60 s limit, no approvals without a connected app, and daily-only routines on the API. Also the known gaps.
+- Staging runs on mock AI by default. To switch to real AI, set `AI_PROVIDER=openrouter` and `AI_MOCK=off` on `aidentify-staging` and redeploy. Switch back afterwards.
 
 ## Hosted demo (18 Oct 2026 ~12:50 IST)
 - Live: https://aidentify-demo.vercel.app (Vercel Hobby, team aidentify)

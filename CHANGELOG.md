@@ -5,6 +5,32 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-19
+
+Real-customer journeys tested from start to finish (stress-test plan, phase 1).
+
+### Added
+- **End-to-end test suite** (`npm run e2e -- --base <url>`). It runs four real journeys against a live copy of the app. Each creates throwaway accounts and deletes them afterwards.
+  - **Agency owner:** saves a business profile, drafts 10 posts and replies, and approves or rejects the agent's proposals.
+  - **Lead flow:** a visitor fills in the quote form, the lead appears in the CRM, a follow-up is scheduled and actually runs.
+  - **Own AI key:** wrong keys, out-of-credit keys and revoked keys all give clear errors and never fall back to our shared key.
+  - **Outside script:** logs in, sends tasks, and is refused with fake, changed or logged-out tokens.
+- **Test report** (`test/e2e/REPORT.md`) with pass/fail, timings, AI cost and every problem found, ranked by severity.
+
+### Fixed
+- Sending broken data to the hosted API now gets a clear "not valid JSON" answer instead of a server error.
+- Deleting an account now also switches off its public links (lead forms, quote and rating pages). Before, those links kept pointing at the deleted account and its email.
+
+### Results
+- On the staging copy all four journeys pass, with free test AI and with real AI. The real-AI run cost about a quarter of a cent.
+- Nothing was sent or posted without approval, including when a message tried to trick the agent into emailing and posting.
+- Bigger issues found are listed in the report for the next phase. The main ones:
+  - Loading a workspace reads the whole database.
+  - Every request has noticeable fixed delay.
+  - Slow AI answers come close to the hosting time limit.
+  - New accounts can't get approvals until they connect an app.
+  - Scheduled work only runs when something triggers it.
+
 ## [1.7.1] - 2026-10-19
 
 A safe place to test (stress-test plan, phase 0). Nothing changes for demo users.

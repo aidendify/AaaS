@@ -6,7 +6,9 @@ import { obsScope, obs, obsDone } from '../lib/obs.js';
 export const config = { maxDuration: 60 };
 
 async function rawBody(req) {
-  if (req.body !== undefined) return typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  // Vercel parses JSON bodies lazily and its req.body getter throws on broken JSON: answer 400, not 500
+  let b; try { b = req.body; } catch { throw new HttpError(400, 'bad_json', 'The request body is not valid JSON.'); }
+  if (b !== undefined) return typeof b === 'string' ? b : Buffer.isBuffer(b) ? b.toString('utf8') : JSON.stringify(b);
   let s = ''; for await (const c of req) s += c; return s;
 }
 

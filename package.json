@@ -1,6 +1,6 @@
 {
   "name": "aidentify",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "private": true,
   "description": "AIdentify: open-source agent-as-a-service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
@@ -12,7 +12,8 @@
     "social:snapshot": "node scripts/social-snapshot.mjs",
     "test": "node --test test/*.test.mjs",
     "db:migrate-from-file": "node scripts/db-migrate.mjs from-file",
-    "db:export-to-file": "node scripts/db-migrate.mjs to-file"
+    "db:export-to-file": "node scripts/db-migrate.mjs to-file",
+    "e2e": "node test/e2e/run.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
