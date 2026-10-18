@@ -47,6 +47,9 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && (url.pathname === '/settings' || url.pathname === '/settings.html')) { // admin settings (Hermes-style)
       return send(res, 200, await fs.readFile(path.join(dir, 'settings.html')), 'text/html; charset=utf-8');
     }
+    if (req.method === 'GET' && (url.pathname === '/waitlist' || url.pathname === '/waitlist.html' || url.pathname === '/early-access')) { // public early-access form
+      return send(res, 200, await fs.readFile(path.join(dir, 'waitlist.html')), 'text/html; charset=utf-8');
+    }
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
     }

@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+CREDENTIALS.local
+data/
+data.bak-*/
+node_modules
+clients/
+releases/
+*.apk
+*.exe

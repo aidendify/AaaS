@@ -1,5 +1,21 @@
 {
-  "functions": { "api/index.js": { "maxDuration": 60 } },
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index.js" }, { "source": "/p/(.*)", "destination": "/api/index.js" }],
-  "headers": [{ "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }, { "source": "/p/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --omit=dev --no-audit --no-fund",
+  "buildCommand": "node scripts/vercel-build.mjs",
+  "outputDirectory": "public",
+  "functions": { "api/index.js": { "maxDuration": 60, "includeFiles": "lib/**" } },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/p/(.*)", "destination": "/api/index.js" },
+    { "source": "/setup", "destination": "/setup.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/waitlist", "destination": "/waitlist.html" },
+    { "source": "/early-access", "destination": "/waitlist.html" }
+  ],
+  "headers": [
+    { "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/p/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }] }
+  ]
 }

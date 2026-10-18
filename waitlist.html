@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIdentify early access: AI agents for your business</title>
+<meta name="description" content="Join the AIdentify early-access list. AI agent workers that answer leads, follow up and run routine work for small businesses in India.">
+<meta property="og:title" content="AIdentify early access">
+<meta property="og:description" content="AI agent workers for your business. Join the early-access list.">
+<style>
+:root{--ink:#f5f5f5;--mute:#a1a1aa;--bg:#0a0a0a;--soft:#141414;--line:#27272a;--green:#4ade80;--err:#f87171}
+*{box-sizing:border-box}body{margin:0;background:#000;color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:40px 20px 60px}
+h1{font-size:30px;line-height:1.2;margin:0 0 10px}p.lead{color:var(--mute);margin:0 0 26px}
+.badge{display:inline-block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);border:1px solid #14532d;border-radius:99px;padding:3px 10px;margin-bottom:16px}
+ul.pts{color:var(--mute);padding-left:18px;margin:0 0 28px}ul.pts li{margin:4px 0}
+form{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:22px}
+label{display:block;font-size:14px;margin:0 0 14px}label span{display:block;margin-bottom:6px;color:var(--ink)}
+input,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit}
+input:focus,select:focus{outline:2px solid #3f3f46;border-color:#52525b}
+.chk{display:flex;gap:10px;align-items:flex-start;color:var(--mute)}.chk input{width:auto;margin-top:4px}
+.hp{position:absolute;left:-5000px;width:1px;height:1px;overflow:hidden}
+.err{color:var(--err);font-size:13px;margin-top:4px;min-height:0}
+button{width:100%;padding:13px;border:0;border-radius:10px;background:var(--ink);color:#000;font:600 16px system-ui;cursor:pointer}button:disabled{opacity:.6}
+.ok{display:none;text-align:center;padding:30px 10px}.ok h2{margin:0 0 8px}.ok p{color:var(--mute)}
+.foot{color:#71717a;font-size:13px;margin-top:22px;text-align:center}.foot a{color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+  <div class="badge">Early access</div>
+  <h1>AI agent workers for your business</h1>
+  <p class="lead">AIdentify gives you AI agents that reply to leads in seconds, follow up, send quotes and keep your team's routine work moving, with you approving anything important.</p>
+  <ul class="pts">
+    <li>Built for small businesses in India first</li>
+    <li>Works with WhatsApp, Gmail, Google Calendar and more</li>
+    <li>Nothing is sent or paid without your approval</li>
+  </ul>
+  <form id="f" novalidate>
+    <label><span>Your name</span><input name="name" autocomplete="name" maxlength="80" required><div class="err" data-for="name"></div></label>
+    <label><span>Business type</span>
+      <select name="businessType" required><option value="">Choose one</option></select>
+      <div class="err" data-for="businessType"></div></label>
+    <label id="otherWrap" style="display:none"><span>What kind of business?</span><input name="businessOther" maxlength="60"></label>
+    <label><span>City</span><input name="city" autocomplete="address-level2" maxlength="60" required><div class="err" data-for="city"></div></label>
+    <label><span>WhatsApp number</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="98765 43210" required><div class="err" data-for="whatsapp"></div></label>
+    <div class="hp" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <label class="chk"><input type="checkbox" name="consent"><span>You can message me on WhatsApp about AIdentify early access.</span></label>
+    <div class="err" data-for="consent" style="margin:-8px 0 12px"></div>
+    <button id="b" type="submit">Join the waitlist</button>
+    <div class="err" id="gerr" style="text-align:center;margin-top:10px"></div>
+  </form>
+  <div class="ok" id="ok"><h2>You're on the list 🎉</h2><p id="okp">We'll message you on WhatsApp when your early-access spot opens.</p></div>
+  <p class="foot">Want to look around first? <a href="/">Open the demo</a></p>
+</main>
+<script>
+const TYPES=['Agency','Clinic / healthcare','Coaching / education','Consulting','E-commerce / D2C','Home services','Manufacturing','Real estate','Restaurant / food','Retail shop','Salon / wellness','Software / IT','Travel','Other'];
+const f=document.getElementById('f'),sel=f.businessType;
+for(const t of TYPES){const o=document.createElement('option');o.value=o.textContent=t;sel.appendChild(o)}
+sel.onchange=()=>{document.getElementById('otherWrap').style.display=sel.value==='Other'?'block':'none'};
+const src=new URLSearchParams(location.search).get('utm_source')||new URLSearchParams(location.search).get('ref')||'';
+f.onsubmit=async(e)=>{e.preventDefault();
+  document.querySelectorAll('.err').forEach(x=>x.textContent='');
+  const b=document.getElementById('b');b.disabled=true;b.textContent='Saving…';
+  const d=Object.fromEntries(new FormData(f));d.consent=f.consent.checked;d.source=src;
+  try{const r=await fetch('/api/waitlist',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){f.style.display='none';document.getElementById('ok').style.display='block';if(j.again)document.getElementById('okp').textContent='You were already on the list, so we updated your details. We\'ll message you on WhatsApp soon.';return}
+    if(j.fields)for(const[k,v]of Object.entries(j.fields)){const el=document.querySelector('[data-for="'+k+'"]');if(el)el.textContent=v}
+    else document.getElementById('gerr').textContent=j.message||'Something went wrong. Please try again.';
+  }catch(x){document.getElementById('gerr').textContent='No connection. Please try again.'}
+  b.disabled=false;b.textContent='Join the waitlist';
+};
+</script>
+</body>
+</html>
