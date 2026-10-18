@@ -11,12 +11,13 @@
 - Admin password for hosted: saved on box at /workspace/aaas-run/vercel-admin.secret (chmod 600); not in git
 
 A one-page status for anyone picking up AIdentify: what it does today, what is in progress, and what is known to be
-missing. Last updated for **v1.6.0** (18 Oct 2026).
+missing. Last updated 18 Oct 2026 (hosted demo + landing live; CHANGELOG 1.7.0 drafted on `hosted-demo`, GitHub Release not cut yet).
 
 | | |
 |---|---|
-| Live demo | **Not deployed yet** |
-| Signup / waitlist | **Not live yet** |
+| Live demo | **https://aidentify-demo.vercel.app** (Vercel Hobby, `hosted-demo` branch) |
+| Marketing / waitlist | **https://aidentify.vercel.app** (join waitlist; same form as `/waitlist` and `/early-access` on the demo) |
+| Signup on demo | Email + password open. Google and email-code sign-in not configured yet |
 | Code | github.com/aidendify/AaaS (**private**: you need access to clone or install it) |
 | Licence | Proprietary, all rights reserved, from v1.6.0 (see LICENSE). v1.5.0 and earlier were MIT. |
 
@@ -87,15 +88,11 @@ These screenshots were taken from a local test server with made-up data (no real
 
 ## In progress
 
-The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4 (storage and tests) in v1.5.0. Still open:
+The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4 (storage and tests) in v1.5.0.
 
-- **Step 2, hosted demo:** waiting for Phanindra's inputs. The database is ready: Neon project in the **AIdentify** org,
-  free plan, Singapore region, Postgres 18, database `aidentify` (still empty; tests use throwaway schemas and drop them).
-  The connection string is kept on the build machine only, never in the repo.
+- **Step 2, hosted demo:** **live** on Vercel Hobby (18 Oct 2026). Demo at https://aidentify-demo.vercel.app; marketing waitlist at https://aidentify.vercel.app. Neon schema `demo`; shared OpenRouter key with in-app $10 soft cap + customer BYOK; Google login hidden until OAuth is configured. Still open on this step: link the GitHub repo to Vercel (CLI deploy only today), and wire Google / email-code sign-in when ready.
 - **Step 3, payments (Razorpay):** waiting for Phanindra's inputs. A webhook signature checker (`lib/billing.js`) and its tests exist; no payment route yet.
-
-- Deploying a public demo, and opening a signup or waitlist page.
-- More of the launch list after security, such as onboarding polish, a public site and pricing (not started).
+- More of the launch list after the demo, such as onboarding polish and priced plans (not started).
 - Step 1 follow-ups: see "Known issues".
 
 ## Known issues and limits

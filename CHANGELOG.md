@@ -5,6 +5,21 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-18
+
+Hosted demo and public waitlist (launch-readiness step 2).
+
+### Added
+- **Public demo on Vercel.** Sign up with email and password at https://aidentify-demo.vercel.app. The demo uses Neon Postgres (schema `demo`) and keeps Slack and the board worker on a separate always-on box.
+- **Marketing waitlist site.** https://aidentify.vercel.app explains Agent-as-a-Service, who it is for, benefits and features, and lets people join the waitlist. The same form also lives at `/waitlist` and `/early-access` on the demo.
+- **Waitlist form fields.** Name, email, business type, city and WhatsApp. Email is required and checked. One row per person: the same email or WhatsApp updates the existing row instead of adding a duplicate. Admins can export CSV from `/api/waitlist?format=csv`.
+- **Shared AI with a soft $10 cap.** New demo users can chat right away on a shared OpenRouter key. Soft limits stop the shared pool (total, daily, and per-customer). Staff still count toward the pool.
+- **Bring your own AI key (BYOK).** During onboarding or later in the user menu / Settings, paste an OpenRouter, OpenAI, xAI, Google Gemini or Anthropic key. It is checked once, stored encrypted, and never shown again. BYOK users are not limited by the shared pool.
+- **Hosted AI docs and tests.** `docs/HOSTED-AI.md` plus automated tests for the key store and waitlist rules.
+
+### Changed
+- **Google and email-code sign-in stay hidden** on the hosted demo until OAuth / SMTP are configured. Email + password sign-up stays open.
+
 ## [1.6.0] - 2026-10-18
 
 ### Changed (please read)
