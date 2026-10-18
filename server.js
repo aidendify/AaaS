@@ -1,6 +1,8 @@
 // AIdentify server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
 // Needs Node 20+. `npm install` only matters when DATABASE_URL is set (it adds the Neon driver).
 import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
+import { obsScope, obs, obsDone } from './lib/obs.js';
+import { mockOn } from './lib/llm.js';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -34,7 +36,12 @@ async function readBody(req, max = 4 * 1024 * 1024) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-const server = http.createServer(async (req, res) => {
+const server = http.createServer((req, res) => obsScope(() => { // one JSON log line per API request (lib/obs.js)
+  const t0 = Date.now(), store = obs(), pth = new URL(req.url, 'http://x').pathname;
+  if (pth.startsWith('/api/') || pth.startsWith('/p/')) res.on('finish', () => { try { obsDone({ method: req.method, pathname: pth, status: res.statusCode, ms: Date.now() - t0, store }); } catch { /* never break a response */ } });
+  return serve(req, res);
+}));
+async function serve(req, res) {
   const url = new URL(req.url, 'http://x');
   const ip = req.socket.remoteAddress || 'local';
   try {
@@ -60,7 +67,7 @@ const server = http.createServer(async (req, res) => {
       const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
       if (url.pathname === '/api/health') {
         const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });
-        return send(res, 200, { ...out, ai: Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY) });
+        return send(res, 200, { ...out, ai: Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY) || mockOn(), aiMock: mockOn() || undefined });
       }
       const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
       if (out && out.__redirect) { res.writeHead(302, { Location: out.__redirect, 'Cache-Control': 'no-store' }); return res.end(); }
@@ -76,7 +83,7 @@ const server = http.createServer(async (req, res) => {
     const disk = e && ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'EINVAL', 'EBUSY', 'ENOSPC', 'EEXIST', 'ENOTDIR'].includes(e.code);
     send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AIdentify folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
   }
-});
+}
 
 // ---- shutdown: SIGTERM / SIGINT stop cleanly within a few seconds ----
 // (Playwright installs its own SIGTERM handler that can hang on open browsers, so ours runs first and always exits.)

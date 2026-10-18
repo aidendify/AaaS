@@ -5,6 +5,17 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-19
+
+A safe place to test (stress-test plan, phase 0). Nothing changes for demo users.
+
+### Added
+- **Staging copy** at https://aidentify-staging.vercel.app. It has its own database area, its own $2 AI budget and its own passwords, so test runs never touch the live demo or its $10 AI budget. See `docs/STAGING.md`.
+- **Free test AI ("mock AI").** It gives fixed, made-up answers with made-up costs, so tests cost nothing. It only switches on when two separate settings are both set, and it never quietly falls back to paid AI.
+- **Request log.** Every API call now writes one short line with which page was called, whether it worked, how long it took, how many AI calls it made and what they cost. Accounts appear only as a scrambled id, never an email.
+- **Admin metrics page** (`/api/admin/metrics`). Admins see speed, errors and AI spend per API route, plus the shared AI budget.
+- Tests for the mock AI and the request log.
+
 ## [1.7.0] - 2026-10-18
 
 Hosted demo and public waitlist (launch-readiness step 2).

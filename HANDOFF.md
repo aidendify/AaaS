@@ -1,5 +1,11 @@
 # AIdentify handoff
 
+## Staging + stress testing (19 Oct 2026)
+- Staging: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`; Neon schema `staging`; $2 AI budget; mock AI on by default). How it works: `docs/STAGING.md`.
+- Staging secrets (admin password, cron secret, session secret) live only in Vercel and in `/workspace/aaas-run/staging.env.local` on the box (chmod 600), never in git.
+- Staging deploys are made from `/workspace/aaas-staging-deploy`, which is linked to `aidentify-staging`. Run `/workspace/aaas-run/stg-sync.sh` to copy the worktree there, then `npx vercel deploy --prod --yes --scope aidentify` from that folder. Never deploy from the worktree itself, because it is linked to `aidentify-demo`.
+- v1.7.1 added mock AI, request logging and admin metrics. Branch `stress-v1.7.1`.
+
 ## Hosted demo (18 Oct 2026 ~12:50 IST)
 - Live: https://aidentify-demo.vercel.app (Vercel Hobby, team aidentify)
 - Waitlist: https://aidentify-demo.vercel.app/waitlist (and /early-access)
