@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -273,8 +273,36 @@ async function scenarioD(S) {
   });
 }
 
+// ---------- scenario e: single-lead API ----------
+async function scenarioE(S) {
+  const acct = await signup(S, 'e'); if (!acct.token) return;
+  const L = (m, p, body) => call(m, p, { token: acct.token, ...(body !== undefined ? { body } : {}) });
+  const bad = await L('POST', '/api/leads', { email: 'not-an-email', name: 'X' });
+  S.check('invalid lead → 400 bad_lead', bad.status === 400 && bad.d && bad.d.error === 'bad_lead', short(bad));
+  const c = await L('POST', '/api/leads', { name: 'Ravi Lead', email: `ravi-${TS}@example.com`, phone: '+91 90000 11111', source: 'Website', notes: 'Wants 3 listings promoted', followUp: { in_days: 3, message: 'Check in on the proposal' } });
+  S.check('POST /api/leads creates a lead with an id', c.status === 200 && c.d && c.d.created && c.d.lead && c.d.lead.id >= 1 && c.d.lead.status === 'New', short(c));
+  S.check('followUp creates a one-off routine ~3 days out', c.d && c.d.followUp && c.d.followUp.routine_id && c.d.followUp.next > Date.now() + 2.9 * 864e5, JSON.stringify(c.d && c.d.followUp));
+  const dup = await L('POST', '/api/leads', { name: 'Ravi again', email: `RAVI-${TS}@example.com` });
+  S.check('same email → 409 duplicate with the existing lead', dup.status === 409 && dup.d && dup.d.lead && dup.d.lead.id === c.d.lead.id, short(dup));
+  const many = await Promise.all(Array.from({ length: 8 }, (_, i) => L('POST', '/api/leads', { name: 'Batch ' + i, email: `batch${i}-${TS}@example.com`, source: 'Referral' })));
+  S.check('8 concurrent POSTs all succeed with distinct ids (no lost writes on Neon)', many.every((r) => r.status === 200) && new Set(many.map((r) => r.d.lead.id)).size === 8, many.map((r) => r.status).join(','));
+  const list = await L('GET', '/api/leads?limit=200');
+  S.check('GET /api/leads lists all 9', list.status === 200 && list.d.total === 9, short(list) + ' total=' + (list.d && list.d.total));
+  const f = await L('GET', '/api/leads?source=referral&limit=3');
+  S.check('filters and limit work', f.d && f.d.total === 8 && f.d.leads.length === 3, `total=${f.d && f.d.total}`);
+  const w = await getWorkspace(acct), crm = w.data && w.data.agents.find((a) => a.kind === 'crm');
+  S.check('leads appear in the workspace CRM the web app reads (GET /api/kv)', crm && crm.db && crm.db.lead.length === 9, `crm=${!!crm}`);
+  const p = await L('PATCH', '/api/leads/' + c.d.lead.id, { status: 'Qualified', score: 'Hot' });
+  S.check('PATCH changes status and score', p.status === 200 && p.d.lead.status === 'Qualified' && p.d.lead.score === 'Hot', short(p));
+  const del = await L('DELETE', '/api/leads/' + many[0].d.lead.id);
+  const gone = await L('GET', '/api/leads/' + many[0].d.lead.id);
+  S.check('DELETE removes the lead (then 404)', del.status === 200 && gone.status === 404, short(gone));
+  const st = await call('GET', '/api/agents/state?aid=' + (crm && crm.id), { token: acct.token });
+  S.check('writing leads sent nothing and queued no approvals', st.status === 200 && ((st.d && st.d.approvals) || []).length === 0, short(st));
+}
+
 // ---------- main ----------
-const SC = { a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD] };
+const SC = { a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);

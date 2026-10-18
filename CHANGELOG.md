@@ -5,6 +5,15 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-10-19
+
+### Added
+- **Leads API.** Scripts, website forms and automation tools can now add one lead at a time to your CRM with `POST /api/leads`. They can also list, read, change and delete leads (`GET`, `PATCH`, `DELETE /api/leads/:id`). The leads show up in the app's CRM straight away. See `docs/API-LEADS.md`.
+  - The same email or phone isn't added twice. You get the existing lead back, and can update it with `"upsert": true`.
+  - Add `followUp` (for example "in 3 days") and the CRM agent drafts the follow-up for your approval at that time. Nothing is ever sent automatically.
+  - Each account only ever sees and changes its own leads. Saves at the same moment don't overwrite each other: 8 leads added at the same instant on staging all arrived.
+- The end-to-end suite has a fifth journey covering the leads API.
+
 ## [1.9.0] - 2026-10-19
 
 Faster, safer and more useful for new accounts. These fix the top problems the v1.8.0 tests found.
