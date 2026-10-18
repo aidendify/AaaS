@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     if (out && out.__redirect) { res.setHeader('Location', out.__redirect); return res.status(302).end(); }
     if (out && out.__bytes) { res.setHeader('Content-Type', out.__type || 'application/octet-stream'); return res.status(200).send(out.__bytes); }
     if (out && out.__html) { res.setHeader('Content-Type', 'text/html; charset=utf-8'); return res.status(200).send(out.__html); }
-    if (url.pathname === '/api/health') out.ai = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY);
+    if (url.pathname === '/api/health') { out.ai = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY); out.byok = true; out.aiCap = Number(process.env.PLATFORM_AI_BUDGET_USD) > 0; }
     return res.status(200).json(out);
   } catch (e) {
     if (e instanceof HttpError) return res.status(e.status).json({ error: e.code, message: e.message, ...(e.extra || {}) });

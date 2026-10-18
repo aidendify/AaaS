@@ -12,11 +12,13 @@ const body = (req) => new Promise((ok) => { let b = ''; req.on('data', (d) => { 
 export async function mockLLM(script) {
   const calls = [];
   const srv = http.createServer(async (req, res) => {
-    const j = JSON.parse((await body(req)) || '{}');
+    const raw = await body(req);
+    if (String(req.headers.authorization || '').includes('rejected')) { res.statusCode = 401; return res.end('{"error":"invalid key"}'); } // a key the provider refuses
+    const j = JSON.parse(raw || '{}');
     const msgs = j.messages || [];
     const text = (m) => (typeof m.content === 'string' ? m.content : Array.isArray(m.content) ? m.content.map((c) => c.text || '').join('') : '');
     const info = { system: msgs.filter((m) => m.role === 'system').map(text).join('\n'), user: text([...msgs].reverse().find((m) => m.role === 'user') || {}),
-      messages: msgs, tools: (j.tools || []).map((t) => t.function?.name || t.name), lastIsTool: msgs.length > 0 && msgs[msgs.length - 1].role === 'tool' };
+      auth: String(req.headers.authorization || ''), path: req.url, messages: msgs, tools: (j.tools || []).map((t) => t.function?.name || t.name), lastIsTool: msgs.length > 0 && msgs[msgs.length - 1].role === 'tool' };
     calls.push(info);
     const out = script(info) || { text: 'OK.' };
     const message = out.tool

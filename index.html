@@ -740,8 +740,8 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
         <input id="aEmail" type="email" class="ms-in" autocomplete="username" placeholder="Email" aria-label="Email">
         <p class="ms-sm" id="aSwapLine"></p>
         <div id="aAlt" class="ms-alt hide"><div class="ms-or"><span>or</span></div>
-          <button type="button" class="ms-sso" id="aGoogle"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continue with Google</span></button>
-          <button type="button" class="ms-sso" id="aCodeBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg><span>Email me a sign-in code</span></button>
+          <button type="button" class="ms-sso hide" id="aGoogle"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continue with Google</span></button>
+          <button type="button" class="ms-sso hide" id="aCodeBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg><span>Email me a sign-in code</span></button>
           <p class="ms-sm ms-note hide" id="aAltNote"></p></div>
       </div>
       <div id="stepCode" class="hide">
@@ -963,6 +963,7 @@ document.addEventListener('click',e=>{
   else if(act==='newAgent')newAgent();
   else if(act==='sugg')runTask(t.dataset.p);
   else if(act==='profile'){$('#userPop').classList.add('hide');profile()}
+  else if(act==='aikey'){$('#userPop').classList.add('hide');aiKeyModal()}
   else if(act==='goHome'){$('#userPop').classList.add('hide');go(tabsFor()[0][0])}
   else if(act==='goTab'){$('#userPop').classList.add('hide');go(t.dataset.go)}
   else if(act==='goSettings'){$('#userPop').classList.add('hide');tab='Settings';renderStatic();refresh();window.scrollTo(0,0)}
@@ -1163,7 +1164,7 @@ function renderUser(){
   $('#avatarBtn').textContent=initials(user.name);
   $('#userPop').innerHTML=`<div class="u-head"><span class="avatar-btn big">${initials(user.name)}</span><div><b>${esc(user.name)}</b><small>${esc(user.email)}</small></div></div>
    ${navGridHtml('goTab')}
-   <button data-act="profile">${ic('user',18)} Profile</button><button data-act="goSettings">${ic('gear',18)} Settings</button><button class="dn" data-act="signout">${ic('logout',18)} Sign out</button>`;
+   <button data-act="profile">${ic('user',18)} Profile</button>${isStaff()?'':`<button data-act="aikey">${ic('gear',18)} AI key</button>`}<button data-act="goSettings">${ic('gear',18)} Settings</button><button class="dn" data-act="signout">${ic('logout',18)} Sign out</button>`;
 }
 function enter(u,welcome){
   user=u;loadData();$('#vaVoice').checked=prefOf('voice')!==false;if(!tabsFor().some(x=>x[0]===tab))tab=tabsFor()[0][0];document.body.classList.remove('locked');$('#auth').classList.add('hide');
@@ -1197,8 +1198,10 @@ function setSeg(){
 let authProv=null;
 async function altShow(){const box=$('#aAlt');if(!box)return;
   if(loginAs==='admin'||(await SYNC.mode())!=='server'){box.classList.add('hide');return}
-  box.classList.remove('hide');
-  if(!authProv){try{authProv=await SYNC.api('/api/auth/providers')}catch(e){authProv={google:false,email:false}}}}
+  if(!authProv){try{authProv=await SYNC.api('/api/auth/providers')}catch(e){authProv={google:false,email:false}}}
+  // only the methods that are set up on this server: no dead "Continue with Google" before GOOGLE_CLIENT_ID is configured
+  $('#aGoogle').classList.toggle('hide',!authProv.google);$('#aCodeBtn').classList.toggle('hide',!authProv.email);
+  box.classList.toggle('hide',!authProv.google&&!authProv.email)}
 function altNote(m){const n=$('#aAltNote');n.textContent=m||'';n.classList.toggle('hide',!m)}
 $('#aGoogle').onclick=async()=>{err('');altNote('');
   if(authProv&&!authProv.google)return altNote('Google sign-in isn’t set up on this server yet. The admin adds GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env (see README → Sign-in). Use an email code or a password meanwhile.');
@@ -1799,13 +1802,38 @@ function cancelReq(id){loadReqs();const r=reqs.find(x=>x.id===id);if(!r||!['pend
 const theme=()=>ST.get('as_theme')||'dark';
 function applyTheme(){const t=theme(),h=document.documentElement;if(t==='light'||t==='dark')h.dataset.theme=t;else delete h.dataset.theme}
 function setTheme(v){ST.set('as_theme',v);applyTheme();renderTab()}
+// ---- Bring your own AI key (customers, server mode): GET/POST /api/ai/key, POST /api/ai/key/delete ----
+let aiKeyInfo=null;
+async function aiKeyLoad(){if(await SYNC.mode()!=='server')return null;try{aiKeyInfo=await SYNC.api('/api/ai/key')}catch(e){aiKeyInfo=null}return aiKeyInfo}
+function aiKeyFields(pfx){const ps=(aiKeyInfo&&aiKeyInfo.providers)||[{id:'openrouter',name:'OpenRouter'},{id:'openai',name:'OpenAI'},{id:'xai',name:'xAI Grok'},{id:'google',name:'Google Gemini'},{id:'anthropic',name:'Anthropic'}];
+  return `<label>Provider<select name="${pfx}prov">${ps.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
+  <label>API key<input name="${pfx}key" type="password" autocomplete="off" spellcheck="false" maxlength="400" placeholder="sk-or-v1-…"></label>
+  <small class="muted" style="display:block;margin:-4px 0 6px">Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> (you can set your own spend limit there). We check it once, store it encrypted, use it only for your account and never show it again.</small>`}
+function aiKeyStatus(){const i=aiKeyInfo;if(!i)return 'Agents use the shared demo key unless you add your own key.';
+  if(i.byok)return `Using your own ${esc(i.byok.name)} key (${esc(i.byok.hint)}). The shared demo credit isn’t touched.`;
+  if(!i.platform||!i.platform.on)return 'There is no shared AI key on this server. Add your own key to chat with your agents.';
+  if(i.platform.exhausted)return 'The shared demo AI credit is used up. Add your own key to keep testing.';
+  const t=i.platform.today;return 'Using the shared demo key'+(t&&t.callLimit?` (${t.calls} of ${t.callLimit} free AI calls used today)`:'')+'. Add your own key to test as much as you like on your own credit.'}
+async function aiKeyFill(){const n=$('#aiKeyNote');if(!n)return;await aiKeyLoad();if(n.isConnected)n.innerHTML=aiKeyStatus()}
+async function aiKeySave(provider,key){return SYNC.api('/api/ai/key',{provider,key})}
+async function aiKeyModal(){await aiKeyLoad();
+  modal('AI key',`<p class="muted" style="margin:0 0 10px">${aiKeyStatus()}</p>${aiKeyFields('ai')}<p class="err hide" id="aiKeyErr" role="alert"></p>${aiKeyInfo&&aiKeyInfo.byok?'<p style="margin:6px 0 0"><button type="button" class="btn gh sm dnb" id="aiKeyDel">Remove my key</button></p>':''}`,f=>{
+    const key=String(f.get('aikey')||'').trim(),provider=String(f.get('aiprov')||'openrouter'),e=$('#aiKeyErr'),btn=$('#mf button.dk');
+    if(!key){e.textContent='Paste your API key first.';e.classList.remove('hide');return false}
+    btn.disabled=true;btn.textContent='Checking…';e.classList.add('hide');
+    aiKeySave(provider,key).then(r=>{$('#modal').innerHTML='';aiKeyInfo=null;say('Saved. Your chats now use your own '+r.byok.name+' key.');if(tab==='Settings')refresh()})
+      .catch(x=>{btn.disabled=false;btn.textContent='Save key';e.textContent=x.message||'That key didn’t work.';e.classList.remove('hide')});
+    return false},'Save key');
+  const d=$('#aiKeyDel');if(d)d.onclick=async()=>{try{await SYNC.api('/api/ai/key/delete',{});$('#modal').innerHTML='';aiKeyInfo=null;say('Removed. Chats use the shared demo key again.');if(tab==='Settings')refresh()}catch(x){say(x.message||'Couldn’t remove the key.')}};
+}
 function settingsHtml(){
-  const u=users[user.email]||{},pf=u.prefs||{},cust=!isStaff();
+  const u=users[user.email]||{},pf=u.prefs||{},cust=!isStaff();if(cust)setTimeout(aiKeyFill,0);
   const sw=(k,l,d,on)=>`<label class="sw-row"><span><b>${l}</b><small>${d}</small></span><span class="sw"><input type="checkbox" data-pref="${k}" ${on?'checked':''}><i></i></span></label>`;
   const keys=(u.keys||[]);
   return `<div class="sec first"><h2>Settings</h2></div><div class="set">
   <section class="card panel"><h3>Server settings</h3><p class="muted" style="margin:0 0 10px">AI providers and models, keys, usage and spending, Slack, browser, approvals, backups and updates. For the server owner.</p><div class="acts l"><a class="btn gh sm" href="/settings">Open Settings</a></div></section>
   <section class="card panel"><h3>Profile</h3><div class="u-head" style="border:0"><span class="avatar-btn big">${initials(user.name)}</span><div><b>${esc(user.name)}</b><small>${esc(user.email)}</small></div></div><div class="acts l"><button class="btn gh sm" data-act="profile">Edit profile</button></div></section>
+  ${cust?`<section class="card panel"><h3>AI key</h3><p class="muted" id="aiKeyNote" style="margin:0 0 10px">Agents use the shared demo key unless you add your own OpenRouter (or OpenAI, xAI, Gemini, Anthropic) key.</p><div class="acts l"><button class="btn gh sm" data-act="aikey">Manage AI key</button></div></section>`:''}
   <section class="card panel"><h3>Password &amp; security</h3><p class="muted" style="margin:0 0 10px">Use at least 8 characters.</p><div class="acts l"><button class="btn gh sm" data-act="chpw">Change password</button><button class="btn gh sm" data-act="signout">Sign out</button></div></section>
   <section class="card panel"><h3>Appearance</h3><div class="tools" style="margin:0">${['system','light','dark'].map(v=>`<button class="fpill ${theme()===v?'on':''}" data-act="theme" data-v="${v}">${v[0].toUpperCase()+v.slice(1)}</button>`).join('')}</div></section>
   <section class="card panel"><h3>Preferences</h3>${sw('card','Show task progress card','See the steps while an agent works',pf.card!==false)}${sw('voice','Speak assistant replies','The voice assistant reads its answers aloud',pf.voice!==false)}</section>
@@ -2203,12 +2231,19 @@ function showOnboard(){
    <label>Phone or WhatsApp<input name="phone" maxlength="40" placeholder="Optional"></label>
    <label>Website<input name="website" maxlength="160" placeholder="Optional"></label>
    <label>What should we help with first?<textarea name="help" rows="3" placeholder="e.g. reply to new patient enquiries the same day"></textarea></label>
+   <details class="hide" id="obAi"><summary><b>Use your own AI key (optional)</b> — test as much as you like on your own credit</summary><div style="margin-top:8px">${aiKeyFields('ob')}</div><small class="muted">Leave this empty to start on the shared demo key (a free daily allowance). You can add or change a key later from the user menu → AI key.</small></details>
+   <p class="err hide" id="obErr" role="alert"></p>
    <div class="acts"><button class="btn dk" type="submit">Start working</button></div></form>`;
+  SYNC.mode().then(m=>{if(m==='server'){const d=el.querySelector('#obAi');d&&d.classList.remove('hide')}});
   let vertical='clinic';
   el.querySelector('#obChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;vertical=b.dataset.v;el.querySelectorAll('#obChips button').forEach(x=>x.classList.toggle('on',x===b))};
-  el.querySelector('#obForm').onsubmit=e=>{
+  el.querySelector('#obForm').onsubmit=async e=>{
     e.preventDefault();const f=new FormData(e.target),business=String(f.get('business')||'').trim(),city=String(f.get('city')||'').trim();
     if(!business||!city)return;
+    const okey=String(f.get('obkey')||'').trim(),oe=el.querySelector('#obErr'),ob=el.querySelector('#obForm button[type=submit]');
+    if(okey){ob.disabled=true;ob.textContent='Checking your key…';oe.classList.add('hide');
+      try{const r=await aiKeySave(String(f.get('obprov')||'openrouter'),okey);say('Your '+r.byok.name+' key is saved. Chats use your own credit.')}
+      catch(x){ob.disabled=false;ob.textContent='Start working';oe.textContent=(x.message||'That key didn’t work.')+' Fix it, or clear the key field to use the shared demo key.';oe.classList.remove('hide');return}}
     wp.profile={vertical,business,city,phone:String(f.get('phone')||'').trim(),website:String(f.get('website')||'').trim(),help:String(f.get('help')||'').trim(),at:Date.now()};
     (VERTICALS[vertical]||VERTICALS.other).kinds.forEach(ensureAgent);
     const ff=agents.find(a=>a.kind==='formfirst');
