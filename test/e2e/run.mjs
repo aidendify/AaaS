@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g,h')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -380,7 +380,38 @@ async function scenarioG(S, ctx) {
   S.check('clear history removes the decided items', cl.d.cleared === 3, short(cl));
 }
 
-const SC = { g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
+async function scenarioH(S) {
+  const A = await signup(S, 'h'), B = await signup(S, 'h2'); if (!A.token || !B.token) return;
+  const lead = (await call('POST', '/api/leads', { token: A.token, body: { name: 'Track Me', email: 'track-' + TS + '@example.com', stage: 'Contacted' } })).d?.lead;
+  if (!S.check('lead created', !!lead)) return;
+  const dest = 'https://example.com/pricing?x=' + TS;
+  const ln = await call('POST', '/api/tracking/link', { token: A.token, body: { lead_id: lead.id, url: dest } });
+  S.check('tracking link made, nothing sent', ln.status === 200 && /^\/t\/c\/[a-f0-9]{32}$/.test(ln.d.path) && ln.d.sent === false, short(ln));
+  const lnb = await call('POST', '/api/tracking/link', { token: B.token, body: { lead_id: lead.id, url: dest } });
+  S.check('another account cannot make links for this lead (404)', lnb.status === 404, short(lnb));
+  const bad = await call('POST', '/api/tracking/link', { token: A.token, body: { lead_id: lead.id, url: 'javascript:alert(1)' } });
+  S.check('non-http destinations refused', bad.status === 400, short(bad));
+  const cl = await fetch(BASE + ln.d.path + '?url=https://evil.example', { redirect: 'manual' });
+  S.check('click redirects only to the stored URL (query ignored)', [301, 302, 303, 307, 308].includes(cl.status) && cl.headers.get('location') === dest, 'HTTP ' + cl.status + ' → ' + cl.headers.get('location'));
+  const fake = await fetch(BASE + '/t/c/' + '0'.repeat(32), { redirect: 'manual' });
+  S.check('unknown click token does not redirect', fake.status === 200 && !fake.headers.get('location'), 'HTTP ' + fake.status);
+  const em = await call('POST', '/api/tracking/email', { token: A.token, body: { lead_id: lead.id, html: '<p>Hi</p>' } });
+  const px = em.d && em.d.pixel ? new URL(em.d.pixel, BASE).pathname : '';
+  const pr = px ? await fetch(BASE + px) : { status: 0, headers: new Headers() };
+  S.check('open pixel returns a GIF', pr.status === 200 && /image\/gif/.test(pr.headers.get('content-type') || ''), 'HTTP ' + pr.status);
+  await sleep(500);
+  const tl = await call('GET', '/api/leads/' + lead.id + '/timeline', { token: A.token });
+  const kinds = new Set((tl.d && tl.d.events || []).map((e) => e.kind));
+  S.check('timeline shows the open and the click', tl.status === 200 && kinds.has('open') && kinds.has('click'), short(tl));
+  const tlb = await call('GET', '/api/leads/' + lead.id + '/timeline', { token: B.token });
+  S.check('another account cannot read this timeline (404)', tlb.status === 404, short(tlb));
+  const nb = await call('POST', '/api/leads/' + lead.id + '/notes', { token: B.token, body: { text: 'pwned' } });
+  S.check('another account cannot add notes (404)', nb.status === 404, short(nb));
+  const da = await call('GET', '/api/crm/dashboard', { token: A.token }), db = await call('GET', '/api/crm/dashboard', { token: B.token });
+  S.check('dashboard counts this account only', da.status === 200 && da.d.leads === 1 && da.d.tracking.opens >= 1 && da.d.tracking.clicks >= 1 && db.d.leads === 0 && db.d.tracking.clicks === 0, short(da) + ' / ' + short(db));
+}
+
+const SC = { h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);
