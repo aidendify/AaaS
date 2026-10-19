@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g,h,i')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g,h,i,j')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -443,7 +443,46 @@ async function scenarioI(S, ctx) {
   S.check('another account sees none of these approvals', bl.status === 200 && bl.d.total === 0, short(bl));
 }
 
-const SC = { i: ['Workflows: compile from text, enable, new lead → approval, nothing sent, cross-account', scenarioI], h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
+async function scenarioJ(S, ctx) {
+  if (!ctx.mock) { S.note('skipped: needs mock AI (test clock on cron)'); return; }
+  if (!CRON) { S.note('skipped: needs E2E_CRON_SECRET'); return; }
+  const A = await signup(S, 'j'), B = await signup(S, 'j2'); if (!A.token || !B.token) return;
+  for (let i = 0; i < 5; i++) await call('POST', '/api/leads', { token: A.token, body: { name: 'Ref ' + i, email: `ref${i}-${TS}@example.com`, source: 'Referral', stage: 'Won' } });
+  for (let i = 0; i < 5; i++) await call('POST', '/api/leads', { token: A.token, body: { name: 'Ad ' + i, email: `ad${i}-${TS}@example.com`, source: 'Ads' } });
+  const cron = (now) => call('POST', '/api/cron/tick', { headers: { authorization: 'Bearer ' + CRON, 'x-test-now': String(now) } });
+  await cron(Date.now());
+  const tk = await cron(Date.now() + 8 * 864e5);
+  S.check('weekly review ran on the test clock', tk.status === 200 && tk.d.cos && tk.d.cos.reviewed >= 1, short(tk));
+  const cos = await call('GET', '/api/cos', { token: A.token });
+  const sg = ((cos.d && cos.d.suggestions) || []).find((x) => x.kind === 'source_wins' && x.status === 'open');
+  if (!S.check('a suggestion from real numbers: Referral leads convert best', !!sg && /Referral/.test(sg.text), short(cos))) return;
+  S.check('another account sees none of it and cannot apply it (404)', !((await call('GET', '/api/cos', { token: B.token })).d.suggestions || []).length
+    && (await call('POST', '/api/cos/suggestions/apply', { token: B.token, body: { id: sg.id } })).status === 404);
+  const ap = await call('POST', '/api/cos/suggestions/apply', { token: A.token, body: { id: sg.id } });
+  const wf = ap.d && ap.d.workflow;
+  S.check('apply makes a draft workflow only: nothing sent, outbound steps need approval', ap.status === 200 && ap.d.sent === false && wf && wf.status === 'draft'
+    && (wf.steps || []).filter((x) => ['send_email', 'draft_email', 'social_post', 'pay'].includes(x.type)).every((x) => x.autonomy === 'needs_approval'), short(ap));
+  S.check('a draft from another account is 404', (await call('GET', '/api/workflows/' + wf.id, { token: B.token })).status === 404);
+  const ex = await call('POST', '/api/playbooks/export', { token: A.token, body: { name: 'J setup' } });
+  const pb = ex.d && ex.d.playbook, raw = JSON.stringify(pb || {});
+  S.check('export has no contacts, emails or secrets', ex.status === 200 && !!pb && !raw.includes('@example.com') && !/sk-|password|token/i.test(raw.replace(/"(redacted|summary)":[^,}]*/g, '')), short(ex));
+  S.check('another account cannot open the exported playbook (404)', (await call('GET', '/api/playbooks/' + pb.id, { token: B.token })).status === 404
+    && (await call('POST', '/api/playbooks/install', { token: B.token, body: { id: pb.id, confirm: true } })).status >= 400);
+  const evil = { format: 'aidentify-playbook', name: 'Evil <script>alert(1)</script>', workflows: [{ name: 'Blast', trigger: { type: 'lead_created' }, steps: [{ id: 's1', type: 'send_email', autonomy: 'auto', autonomy_set_by: 'customer', subject: 'Hi', body: '<img src=x onerror=alert(1)>Hello', limits: { allowed_recipients: ['all@victim.com'] } }] }], api_key: 'sk-live-abcdefghijklmnop1234' };
+  const pv = await call('POST', '/api/playbooks/preview', { token: B.token, body: { bundle: evil } });
+  S.check('import preview: no script, no auto send, no secret', pv.status === 200 && !/<script|onerror|sk-live|all@victim/i.test(JSON.stringify(pv.d)), short(pv));
+  S.check('import over 256 KB is refused', (await call('POST', '/api/playbooks/preview', { token: B.token, body: { bundle: { ...evil, summary: 'x'.repeat(300 * 1024) } } })).status >= 400);
+  const pre = await call('POST', '/api/playbooks/install', { token: B.token, body: { bundle: evil } });
+  S.check('install without confirm only previews', pre.status === 200 && !pre.d.installed, short(pre));
+  const ins = await call('POST', '/api/playbooks/install', { token: B.token, body: { bundle: evil, confirm: true } });
+  S.check('install with confirm: workflows land as drafts, nothing sent', ins.status === 200 && ins.d.installed && ins.d.sent === false && ins.d.result.workflows.every((w) => w.status === 'draft'), short(ins));
+  const w2 = ins.d && ins.d.result && ins.d.result.workflows[0];
+  const got = w2 && await call('GET', '/api/workflows/' + w2.id, { token: B.token });
+  S.check('imported send step stays on needs approval', !!got && (got.d.workflow.steps || []).every((x) => x.type !== 'send_email' || x.autonomy === 'needs_approval'), short(got));
+  S.check('A cannot see B\'s imported workflow (404)', !!w2 && (await call('GET', '/api/workflows/' + w2.id, { token: A.token })).status === 404);
+}
+
+const SC = { j: ['Learning CoS + playbooks: weekly review, apply, export/import/install, cross-account', scenarioJ], i: ['Workflows: compile from text, enable, new lead → approval, nothing sent, cross-account', scenarioI], h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);

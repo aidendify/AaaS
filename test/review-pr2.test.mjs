@@ -36,7 +36,8 @@ test('sendEmail: HTML body goes out as HTML; ownOnly never falls back to the pla
     const { sendEmail } = await import('../lib/mailer.js');
     const st = { get: async () => null, put: async () => {} };
     await assert.rejects(sendEmail({ st, email: 't@x.co', secret: async () => 's', to: 'lead@x.co', subject: 'Hi', body: 'x', ownOnly: true }), /isn’t connected/);
-    await sendEmail({ st, email: 't@x.co', secret: async () => 's', to: 'lead@x.co', subject: 'Hi', body: '<p>Hello <a href="https://a.co/t/c/1">here</a></p>' });
+    await sendEmail({ st, email: 't@x.co', secret: async () => 's', to: 'lead@x.co', subject: 'Hi', body: '<p>Hello <a href="https://a.co/t/c/1">here</a></p>', allowPlatform: true });
+    await assert.rejects(sendEmail({ st, email: 't@x.co', secret: async () => 's', to: 'lead@x.co', subject: 'Hi', body: 'x' }), /isn’t connected/); // customers: no platform fallback by default
     const m = smtp.mails[smtp.mails.length - 1];
     assert.match(m.data, /text\/html/i); assert.match(m.data, /text\/plain/i);
   } finally { process.env = save; await smtp.close(); }

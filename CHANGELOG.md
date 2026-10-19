@@ -26,6 +26,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - The widget rate limit is per process. The hosted routine tick is often once a day, so a workflow send waits for that tick.
 - Voice is not included. Embedded Signup is not included.
 
+### Review fixes (PR #3)
+- Approved emails from customers send only from their own connected mail; the server's mailbox is used only for the server owner (`allowPlatform`).
+- Playbook import: 256 KB cap; scripts, iframes, event handlers and `javascript:` links stripped; specific addresses dropped from `allowed_recipients`; outbound steps still locked to needs approval.
+- Playbook export: emails and phone numbers in prompts/templates replaced with "[contact removed]".
+- Tests: test/review-pr3.test.mjs; e2e scenario j (weekly review on the test clock, apply, export/import preview/install, cross-account 404).
+
 ## [2.2.0] - unreleased
 
 ### Added
