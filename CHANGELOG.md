@@ -5,6 +5,27 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.0] - unreleased
+
+### Added
+- **One inbox per account.** WhatsApp, SMS and email sit on the Inbox page, matched to a CRM contact and written onto that contact’s timeline. Credentials are stored encrypted, the same way a bring-your-own AI key is stored. The page and `GET /api/channels` show a hint, not the secret.
+- **WhatsApp Cloud API.** Each account pastes its own phone number id, access token and app secret. The webhook URL has no account id in it. The account is chosen from the phone number id, then the signature is checked with that account’s app secret. A verify token is shown once. Outside 24 hours of the last inbound message, a free-form reply is refused and a template name is required. The whole message `STOP` (and the usual opt-out words) sets consent to Opted out and nothing is sent back.
+- **SMS adapter.** Twilio, MSG91, or `mock`. Inbound SMS is routed by the destination number you saved, then checked with that account’s secret. MSG91 can carry a sender id and a DLT template id you already have. This build does not register DLT for you.
+- **Inbound email.** Sync uses the Gmail connection already on the account. With the test switches on, a mock inbound email can be posted for the signed-in account only.
+- **Workflow sends.** A sentence can add a WhatsApp step or an SMS step. Both start as needs approval, use the same approval queue, and keep the contact-only rule, the step cap and the account ceiling. Opt-out skips them. A WhatsApp outside the 24 hour window waits unless the step names a template.
+- **Front desk.** Answers inbound WhatsApp and the website chat from this account’s business profile and FAQs, asks what the lead wants, and can offer call times (Monday–Friday 10:00–18:00 Asia/Kolkata by default). A reply is a draft unless you turn on auto within limits. Full auto is not available. If the desk is unsure, or the message tries to change the rules, it hands the chat to you and does not send.
+- **Website chat.** Each account can create an embeddable widget. The token is unguessable, the script is rate limited, and drafts are not shown to the visitor. Setup is in `docs/CHANNELS.md`.
+
+### Notes
+- This is still the current per-account store. It is not a separate database, and it is not a LangGraph runtime.
+- Mock providers (`mock_` WhatsApp tokens, SMS provider `mock`, and `CHANNELS_MOCK` together with `AI_MOCK`) let the tests run without Meta, Twilio, MSG91 or Google credentials. The signature check still runs.
+- A webhook cannot name an account. Two phone number ids in one payload are rejected. Deleting an account removes the number indexes and the widget token.
+- The 24 hour window is the last inbound message stored here, not a call to Meta’s window API.
+- The front desk decision is rules. The model may only make it more cautious. Inbound text never changes autonomy.
+- A booking is saved when the confirmation is actually sent. Google Calendar is optional. A mock calendar link is available only with the test switches on.
+- The widget rate limit is per process. The hosted routine tick is often once a day, so a workflow send waits for that tick.
+- Voice is not included. Embedded Signup is not included.
+
 ## [2.2.0] - unreleased
 
 ### Added
