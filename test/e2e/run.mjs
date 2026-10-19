@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -337,7 +337,50 @@ async function scenarioF(S) {
   S.check('/signup sends people to the one sign-in screen', (pg.status === 307 || pg.status === 308 || pg.status === 302) , 'HTTP ' + pg.status);
 }
 
-const SC = { a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
+async function scenarioG(S, ctx) {
+  const A = await signup(S, 'g'), B = await signup(S, 'g2'); if (!A.token || !B.token) return;
+  // connections: per account status, check and disconnect of something never connected
+  const cn = await call('GET', '/api/connectors', { token: A.token });
+  S.check('connections list answers with no apps connected', cn.status === 200 && Array.isArray(cn.d.items) && cn.d.items.length === 0, short(cn));
+  const ck = await call('POST', '/api/connectors/check', { token: A.token, body: { c: 'gmail' } });
+  S.check('checking an app that is not connected says so (404)', ck.status === 404, short(ck));
+  const dc = await call('POST', '/api/connectors/disconnect', { token: A.token, body: { c: 'slack' } });
+  S.check('disconnecting an app that is not connected reports was:false', dc.status === 200 && dc.d.was === false, short(dc));
+  // CRM: fields, stages, import (dry run, then real), tags, export; B sees none of it
+  const f = await call('PUT', '/api/leads/fields', { token: A.token, body: { fields: [{ label: 'Clients', type: 'number' }, { label: 'Plan', type: 'select', options: 'Starter, Growth' }] } });
+  const sg = await call('PUT', '/api/leads/stages', { token: A.token, body: { stages: ['Inbound', 'Call booked', 'Won'] } });
+  S.check('custom fields and stages saved', f.status === 200 && sg.status === 200, short(f) + ' ' + short(sg));
+  const csv = 'Name,Email,Stage,Clients,Plan,Tags\nRavi K,ravi-' + TS + '@example.com,Inbound,12,Growth,agency;email\nAsha R,asha-' + TS + '@example.com,Call booked,3,Starter,agency\nBad,bad-' + TS + '@example.com,,,Gold,\n';
+  const dry = await call('POST', '/api/leads/import', { token: A.token, body: { csv, dry_run: true } });
+  S.check('CSV dry run: 2 new, 1 problem, nothing saved', dry.status === 200 && dry.d.created === 2 && dry.d.errors.length === 1, short(dry));
+  const im = await call('POST', '/api/leads/import', { token: A.token, body: { csv } });
+  const ls = await call('GET', '/api/leads?tag=agency', { token: A.token });
+  S.check('CSV import saved 2 leads with fields and tags', im.status === 200 && im.d.created === 2 && ls.d.total === 2 && ls.d.leads.some((l) => l.fields && l.fields.clients === 12), short(ls));
+  const tg = await call('POST', '/api/leads/tags', { token: A.token, body: { ids: ls.d.leads.map((l) => l.id), add: 'vip' } });
+  const tb = await call('POST', '/api/leads/tags', { token: B.token, body: { ids: ls.d.leads.map((l) => l.id), add: 'pwned' } });
+  S.check('bulk tags work for the owner, change nothing for another account', tg.d.updated === 2 && tb.d.updated === 0, short(tg) + ' ' + short(tb));
+  const ex = await fetch(BASE + '/api/leads/export.csv', { headers: { authorization: 'Bearer ' + A.token } }), txt = await ex.text();
+  S.check('CSV export downloads the leads', ex.ok && /text\/csv/.test(ex.headers.get('content-type') || '') && txt.includes('ravi-' + TS) && txt.includes('Clients'), 'HTTP ' + ex.status);
+  const exb = await (await fetch(BASE + '/api/leads/export.csv', { headers: { authorization: 'Bearer ' + B.token } })).text();
+  S.check('another account exports none of them', !exb.includes('ravi-' + TS));
+  // approvals: draft approvals only (mock AI makes them; nothing is sent)
+  if (!ctx.mock) { S.note('approvals part skipped: needs mock AI'); return; }
+  const mk = async (n) => (await call('POST', '/api/workplace/chat', { token: A.token, body: { message: 'draft [[mock:propose_action {"app":"draft","summary":"Post ' + n + '","request":"Text ' + n + '"}]]' } })).d?.approvals?.[0];
+  const a1 = await mk(1), a2 = await mk(2), a3 = await mk(3);
+  if (!S.check('three draft approvals waiting', !!(a1 && a2 && a3))) return;
+  const ed = await call('POST', '/api/agents/approval/edit', { token: A.token, body: { id: a1.id, request: 'Edited text' } });
+  const edb = await call('POST', '/api/agents/approval/edit', { token: B.token, body: { id: a1.id, request: 'x' } });
+  S.check('edit works for the owner, 404 for another account', ed.status === 200 && ed.d.approval.edited && edb.status === 404, short(ed) + ' ' + short(edb));
+  const rj = await call('POST', '/api/agents/approval', { token: A.token, body: { id: a3.id, decision: 'reject', note: 'Wrong tone' } });
+  const bt = await call('POST', '/api/agents/approvals/batch', { token: A.token, body: { ids: [a1.id, a2.id], decision: 'approve' } });
+  S.check('reject with a note, then batch approve two (drafts: nothing sent)', rj.d?.approval?.note === 'Wrong tone' && bt.status === 200 && bt.d.results.every((r) => r.status === 'done' && /Nothing was sent/.test(r.result)), short(bt));
+  const hs = await call('GET', '/api/agents/approvals', { token: A.token });
+  S.check('history shows 3 decided, 0 waiting', hs.d.total === 3 && hs.d.pending === 0, short(hs));
+  const cl = await call('POST', '/api/agents/approvals/clear', { token: A.token, body: {} });
+  S.check('clear history removes the decided items', cl.d.cleared === 3, short(cl));
+}
+
+const SC = { g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);

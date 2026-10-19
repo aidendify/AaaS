@@ -5,6 +5,16 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.15.0] - unreleased (on staging only)
+
+### Added
+- **CRM settings screen.** Account menu → "Leads: fields, stages, CSV". Set your pipeline stages and your own lead fields there, without the API. The CRM refreshes by itself after an import or a settings change.
+- **Backups and a restore drill.** `scripts/db-backup.mjs` backs up the database to a checked, optionally encrypted file. It restores into a new schema (never over live data by accident) and runs a full restore drill. The first drill on staging passed: 13 rows restored in 7 seconds, and the copies matched exactly. See docs/BACKUPS.md.
+- **Monitoring endpoint.** `/api/health/deep` shows whether the database answers (it returns 503 when it doesn't), the version, whether AI is ready, and when the daily routine run last happened. It holds no customer data. docs/MONITORING.md has the uptime and error alerting plan.
+- **One-command rollback.** `scripts/vercel-rollback.sh <project>` switches back to the previous deployment instantly, and `undo` switches forward again. The live demo asks for a typed "yes" first.
+- **Cost notes** (docs/MONITORING.md) and an **AWS deployment plan** in Mumbai, inside a private network (docs/DEPLOY-AWS.md). These are documents only; nothing was created on AWS.
+- Staging tests now also cover app connections, approvals (edit, reject with a note, batch, history, clear) and the CRM (fields, stages, CSV import and export, tags), each checked against a second account.
+
 ## [1.14.0] - unreleased (on staging only)
 
 ### Added

@@ -1,5 +1,13 @@
 # AIdentify handoff
 
+## v1.15.0 deployment basics (20 Oct 2026), staging only
+- Branch `deploy-v1.15.0` (on top of `integrations-v1.14.0`), not pushed, not on prod. package.json version is now 1.15.0.
+- Backups: `scripts/db-backup.mjs` (backup/verify/restore/drill), docs/BACKUPS.md (drill log). Box copies are in /workspace/aaas-run/backups (git-ignored, mode 600). Set `BACKUP_KEY` before backing up prod.
+- Monitoring: `/api/health/deep`. Cron runs are recorded in `as_sys_cron`. Plan in docs/MONITORING.md (monitors not created yet; they need the owner's email/account).
+- Rollback: `scripts/vercel-rollback.sh`, tested on staging.
+- AWS: docs/DEPLOY-AWS.md (plan only).
+- Staging e2e scenario `g` covers v1.14 features.
+
 ## v1.14.0 integrations, approvals, flexible CRM (20 Oct 2026), staging only
 - Branch `integrations-v1.14.0` (on top of `security-v1.13.0`), not pushed, not on prod.
 - Connectors: `GET /api/connectors` now returns status/error/reconnect; `POST /api/connectors/check {c}`; disconnect returns `was`. Live reads that fail with expired access mark the app "error".

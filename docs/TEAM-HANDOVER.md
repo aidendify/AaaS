@@ -304,3 +304,10 @@ From `/api/admin/metrics?minutes=60` and REPORT.md: requests, error rate, p50/p9
 - Gmail/Slack: per-account status (connected / error + reason / reconnect), an on-demand check, and clearer disconnect. Slack and Google OAuth checks need those apps registered on the server to try for real; the Gmail app-password path is tested end to end.
 - Approvals: edit inline, reject with a note, batch (max 25), history and clear. Approval-first is unchanged.
 - CRM groundwork for v2: custom fields, custom stages, bulk tags, CSV import (dry run first) and export. Lead `hist` is the seed of the v2 contact timeline. Data still lives in `as_data:<email>` on the CRM agent (`db.lead`, `db.leadFields`, `db.stages`); v2 moves this to real tables.
+
+## Finding #5 status (v1.15.0, staging)
+- Backups and restore: `scripts/db-backup.mjs` plus docs/BACKUPS.md. The drill passed on staging.
+- Monitoring: `/api/health/deep` plus the alerting plan in docs/MONITORING.md. External monitors still need to be created.
+- Rollback: `scripts/vercel-rollback.sh`.
+- Costs: docs/MONITORING.md. AWS/VPC: docs/DEPLOY-AWS.md (no spend). AWS waits on the paid-host decision.
+- Next phases (GHL-style pillars) go to Cursor cloud agents. Start from branch `deploy-v1.15.0`.
