@@ -5,6 +5,15 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.12.0] - unreleased (on staging only)
+
+### Added
+- **Agent activity.** A new "Agent activity" item in the account menu shows every agent (Chief of Staff first): whether it's ready, waiting for your approval, or its last run failed; when it last ran and how long it took; the steps it took; its routines and next run time; and its recent errors in plain words.
+- **See the agent working.** While the Chief of Staff or an agent is answering, the chat now shows each step as it happens (for example "Searched saved data", "Read Gmail", "Draft waiting for your approval") instead of only three dots.
+
+### Notes
+- True word-by-word streaming of answers is not in this release: agents use tools in several rounds, and the live steps give most of the "it's moving" feel at a much lower cost. Approval-first is unchanged; nothing sends, posts or pays on its own.
+
 ## [1.11.0] - 2026-10-19
 
 ### Changed

@@ -700,3 +700,129 @@ Target: https://aidentify-staging.vercel.app. 6/6 scenarios passed.
 - note: mail sender on this server: off
 
 </details>
+
+## Run 2026-10-20 00:25 IST · mock AI
+
+Target: https://aidentify-staging.vercel.app. 6/6 scenarios passed.
+
+| Scenario | Result | Checks | Time | AI request p95 | Shared-key AI calls | Shared-key cost |
+|---|---|---|---|---|---|---|
+| a. Agency owner: profile, 10 drafts, approvals | PASS | 15/15 | 11.2 s | 0.4 s | 14 | $0.00117 (fake) |
+| b. Lead flow: quote form → CRM → routine → cron | PASS | 13/13 | 37.2 s | 0.4 s | 3 | $0.00018 (fake) |
+| c. Bring your own key: bad keys, no credit, no fallback | PASS | 13/13 | 5.2 s | 0.3 s | 0 | $0.00000 (fake) |
+| d. Outside script: login, tasks, token checks | PASS | 14/14 | 6.2 s | 0.3 s | 4 | $0.00019 (fake) |
+| e. Single-lead API: add, dedupe, list, change, delete, follow-up | PASS | 13/13 | 5.0 s | 0.0 s | 0 | $0.00000 (fake) |
+| f. Sign-in: password rules, reset link, old password refused | PASS | 12/12 | 3.9 s | 0.0 s | 0 | $0.00000 (fake) |
+
+<details><summary>a. Agency owner: profile, 10 drafts, approvals: checks</summary>
+
+- ✅ sign up a throwaway account
+- ✅ business profile saved at signup (GET /api/profile)
+- ✅ save a workspace with a Social Manager agent
+- ✅ 6 drafts via /api/ai return text (6/6)
+- ✅ drafts use the saved business profile without it being in the prompt (6/6)
+- ✅ 4 agent chats via /api/workplace/chat answer (4/4)
+- ✅ with NO connected app, posts and replies still land in the approval queue (draft approvals)
+- ✅ nothing auto-executed: every approval is still pending
+- ✅ prompt injection did not create an email or social send and nothing was sent
+- ✅ approvals cannot be forged through PUT /api/kv
+- ✅ reject an approval via API → declined
+- ✅ approve a draft via API → done, and nothing was sent or posted
+- ✅ key-only app (Trello) approval → clear "approved draft, nothing sent" instead of a failure
+- ✅ deciding an unknown approval → 404
+- ✅ account deleted at the end (login refused afterwards)
+
+</details>
+
+<details><summary>b. Lead flow: quote form → CRM → routine → cron: checks</summary>
+
+- ✅ sign up a throwaway account
+- ✅ create a workspace with a lead (quote) form
+- ✅ public quote form page opens without sign-in
+- ✅ submit the quote form → thank-you page with instant reply and qualify step
+- ✅ lead lands in the CRM (read back via GET /api/kv)
+- ✅ lead answers the 2 qualifying questions → status qualified with an AI summary
+- ✅ create a one-off follow-up routine via POST /api/routines (run_at)
+- ✅ cron tick with a wrong secret → 401
+- ✅ routine does not run before its time
+- ✅ cron tick runs the due routine and its result lands in the inbox
+- ✅ one-off routine switches off after it ran (no repeat)
+- ✅ account deleted at the end (login refused afterwards)
+- ✅ public lead form stops working once the account is deleted
+- note: waiting 32 s for the routine's time (2026-10-19T18:55:33.303Z)
+
+</details>
+
+<details><summary>c. Bring your own key: bad keys, no credit, no fallback: checks</summary>
+
+- ✅ sign up a throwaway account
+- ✅ junk key → clean 400 bad_key
+- ✅ well-formed but invalid OpenRouter key → clean 400 key_rejected (checked with OpenRouter, not saved)
+- ✅ rejected keys are not stored
+- ✅ save a (mock) key that has no credit left
+- ✅ saved key is never shown back (only the last 4 characters)
+- ✅ AI call with an out-of-credit key → clean 400 byok_failed saying out of credit
+- ✅ agent chat with an out-of-credit key → clean error, not a 500
+- ✅ AI call with a revoked key → clean 400 byok_failed
+- ✅ no fallback to the shared key: my shared-key call count is unchanged
+- ✅ no fallback to the shared key: the shared spend log is unchanged
+- ✅ remove my key → back to the shared key
+- ✅ account deleted at the end (login refused afterwards)
+
+</details>
+
+<details><summary>d. Outside script: login, tasks, token checks: checks</summary>
+
+- ✅ sign up a throwaway account
+- ✅ log in over the API → token
+- ✅ token expires (about 14 days)
+- ✅ GET /api/auth/me with the token
+- ✅ send 3 tasks and get the results in the same request (3/3)
+- ✅ run the full agent from a script
+- ✅ no token → 401
+- ✅ garbage token → 401
+- ✅ tampered token (role changed) → 401
+- ✅ bad signature → 401
+- ✅ wrong password → 401
+- ✅ after logout the old token → 401
+- ✅ broken JSON body → clean 4xx, not 500
+- ✅ account deleted at the end (login refused afterwards)
+- note: acct.token (from signup) was also revoked by logout; the delete step re-logs in.
+
+</details>
+
+<details><summary>e. Single-lead API: add, dedupe, list, change, delete, follow-up: checks</summary>
+
+- ✅ sign up a throwaway account
+- ✅ invalid lead → 400 bad_lead
+- ✅ POST /api/leads creates a lead with an id
+- ✅ followUp creates a one-off routine ~3 days out
+- ✅ same email → 409 duplicate with the existing lead
+- ✅ 8 concurrent POSTs all succeed with distinct ids (no lost writes on Neon)
+- ✅ GET /api/leads lists all 9
+- ✅ filters and limit work
+- ✅ leads appear in the workspace CRM the web app reads (GET /api/kv)
+- ✅ PATCH changes status and score
+- ✅ DELETE removes the lead (then 404)
+- ✅ writing leads sent nothing and queued no approvals
+- ✅ account deleted at the end (login refused afterwards)
+
+</details>
+
+<details><summary>f. Sign-in: password rules, reset link, old password refused: checks</summary>
+
+- ✅ sign up with a weak password is refused with a clear reason
+- ✅ sign up with a strong password works
+- ✅ reset request answers the same for known and unknown emails
+- ✅ mock server gives the e2e test hook a reset token
+- ✅ new password must follow the rules too
+- ✅ set a new password with the reset link
+- ✅ the reset link works only once
+- ✅ old password no longer works
+- ✅ sessions from before the reset are signed out
+- ✅ new password signs in
+- ✅ /signup sends people to the one sign-in screen
+- ✅ account deleted at the end
+- note: mail sender on this server: off
+
+</details>

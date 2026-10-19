@@ -281,3 +281,8 @@ From `/api/admin/metrics?minutes=60` and REPORT.md: requests, error rate, p50/p9
 | **End of week 2 review with Phanindra** | v1.10 live, Phase 2 report, v2.0 design, hosting decision | LangGraph decision with evidence, v2.3 design |
 
 **Owner inputs needed early:** Razorpay keys + GSTIN, decision on Vercel Pro vs VPS, Google OAuth client (if Google login wanted), 10 agency conversations to validate pricing.
+
+
+## Finding #2 status (v1.12.0, staging)
+- Agent visibility: done. Agent activity panel (status, last run, steps, routines, errors) and live steps in chat. Code: `lib/activity.js`, `/api/agents/status`, `/api/agents/run`.
+- Slow Chief of Staff replies: the live step progress is done. Token streaming is a follow-up. It needs a streaming response path in `api/index.js` plus `runWithTools` streaming the final turn.

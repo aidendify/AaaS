@@ -400,6 +400,7 @@ details{margin:8px 0;font-size:13px}details summary{cursor:pointer;color:var(--a
 .wp-chip b{display:grid;place-items:center;min-width:18px;height:18px;border-radius:50%;font-size:10.5px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}.wp-chip:hover{border-color:var(--accent);color:var(--ink)}
 .wp-note{margin-top:8px;font-size:11.5px;color:var(--mute2)}.wp-err{margin-top:8px;font-size:12.5px;color:var(--err)}.wp-err .link{font-size:12.5px;margin-left:6px}
 .wp-typing{display:inline-flex;gap:4px;padding:6px 0}.wp-typing i{width:6px;height:6px;border-radius:50%;background:var(--mute2);animation:wpDot 1.2s infinite ease-in-out}.wp-typing i:nth-child(2){animation-delay:.15s}.wp-typing i:nth-child(3){animation-delay:.3s}
+.wp-live{display:block;margin:2px 0 0;padding:0;list-style:none;color:var(--mute2);font-size:12px}.wp-live li::before{content:"✓ "}
 .wp-hello{margin:auto;max-width:560px;text-align:center;display:grid;gap:10px;justify-items:center;padding:20px 0;animation:wpFade .4s ease both}
 .wp-hello h3{font-family:var(--serif);font-size:26px;font-weight:500;margin:4px 0 0}.wp-hello p{margin:0;color:var(--mute);font-size:14px}
 .wp-orb{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#00A4EF,var(--accent) 55%,#5856D6);box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 30%,transparent)}
@@ -2706,7 +2707,7 @@ function wpTrim(){ // keep the saved workspace small enough to sync
 function wpSources(m){return ((m.src||[]).length?`<div class="wp-src" aria-label="Sources">${m.src.map((s,i)=>`<button type="button" class="wp-chip" data-act="wpSrc" data-m="${m.id}" data-n="${i}" title="${esc(s.agent+' · '+s.kind+' · '+s.title)}"><b>${i+1}</b>${(()=>{if(/^Live/.test(s.kind||'')){const x=wpCnAll().find(c=>c.name===s.agent);return x?wpLogo(x,14):''}const ag=agents.find(x=>x.name===s.agent);return ag?wpAva(ag,18):''})()}${esc(s.agent.replace(/\s*Agent$/,''))} · ${esc(s.title.slice(0,38))}</button>`).join('')}</div>`:'')+(m.live&&m.live.errors&&m.live.errors.length?`<div class="wp-liveerr">${ic('plug',13)} Couldn’t read ${m.live.errors.map(e=>esc(e.name+' — '+e.error)).join(', ')}</div>`:'')}
 function wpBody(m){
   if(m.r==='u')return `<div class="wp-txt">${esc(m.t).replace(/\n/g,'<br>')}</div>${(m.files||[]).length?`<div class="wp-files">${m.files.map(n=>`<span class="wp-file">${ic('doc',13)} ${esc(n)}</span>`).join('')}</div>`:''}`;
-  if(m.st==='thinking'&&!m.t)return '<div class="wp-typing" aria-label="Thinking"><i></i><i></i><i></i></div>';
+  if(m.st==='thinking'&&!m.t)return '<div class="wp-typing" aria-label="Thinking"><i></i><i></i><i></i></div>'+(m.live&&m.live.length?'<ul class="wp-live">'+m.live.slice(-4).map(x=>'<li>'+esc(x.t)+'</li>').join('')+'</ul>':'<small class="wp-live">'+(Date.now()-m.at>4000?'Working on it…':'Thinking…')+'</small>');
   const html=md(String(m.t||'').replace(/<<(?:DO|SAVE):[\s\S]*?(?:>>|$)/g,'').replace(/\s?\[KB:[^\]]*\]/g,'').replace(/\s?\[(\d{1,2})(?:\s*[,–-]\s*\d{1,2})*\](?!\()/g,''));
   return `<div class="wp-txt">${html}</div>`;
 }
@@ -2758,6 +2759,7 @@ function wpHtml(){
         <div class="wp-um-sub" role="menu" aria-label="Help">
           <button type="button" role="menuitem" data-act="wpUmTour">${ic('spark',16)}<span>Take the product tour</span></button>
           <button type="button" role="menuitem" data-act="wpUmVoice">${ic('mic',16)}<span>Ask the voice assistant</span></button>
+          <button type="button" role="menuitem" data-act="wpUmActv">${ic('bot',16)}<span>Agent activity</span></button>
           <button type="button" role="menuitem" data-act="wpUmGo" data-go="Knowledge">${ic('book',16)}<span>Knowledge base</span></button>
           <button type="button" role="menuitem" data-act="wpUmReq">${ic('chat',16)}<span>Contact our team</span></button>
         </div></div>
@@ -2814,6 +2816,20 @@ function wpBind(){
 function wpAppend(m){const log=$('#wpLog');if(!log)return;if(log.querySelector('.wp-hello'))log.innerHTML='';log.insertAdjacentHTML('beforeend',wpMsg(m));log.scrollTop=log.scrollHeight}
 function wpPaint(m){const el=$('#wpm-'+m.id);if(!el){return}const log=$('#wpLog'),stick=log.scrollHeight-log.scrollTop-log.clientHeight<80;el.outerHTML=wpMsg(m);if(stick)log.scrollTop=log.scrollHeight}
 function wpStream(m){const el=$('#wpm-'+m.id+' .wp-b');if(!el)return;const log=$('#wpLog'),stick=log.scrollHeight-log.scrollTop-log.clientHeight<80;el.innerHTML=wpBody(m);if(stick)log.scrollTop=log.scrollHeight}
+// Agent activity: what each agent is doing, its last run and steps, routines and recent errors (GET /api/agents/status)
+async function agActivity(){
+  let o=$('#agAct');if(!o){o=document.createElement('div');o.id='agAct';o.setAttribute('role','dialog');o.setAttribute('aria-label','Agent activity');o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center';o.addEventListener('click',e=>{if(e.target===o||e.target.dataset.x)o.remove()});document.body.appendChild(o)}
+  const box=h=>{o.innerHTML='<div style="background:var(--bg,#fff);color:inherit;max-width:640px;width:92%;max-height:80vh;overflow:auto;border-radius:14px;padding:18px"><div style="display:flex;justify-content:space-between;align-items:center"><b>Agent activity</b><button type="button" class="ib" data-x="1" aria-label="Close">✕</button></div>'+h+'</div>'};
+  box('<p>Loading…</p>');
+  if(!SYNC.token){box('<p>Sign in to see agent activity.</p>');return}
+  try{const j=await SYNC.api('/api/agents/status');const L={idle:'Ready',error:'Last run failed',waiting:'Waiting for your approval'};
+    const when=t=>t?new Date(t).toLocaleString():'never';
+    box(j.agents.map(a=>'<div class="ag-row" style="border-top:1px solid rgba(127,127,127,.25);padding:10px 0"><b>'+esc(a.name)+'</b> · <span data-st="'+a.status+'">'+L[a.status]+'</span><br><small>Last run: '+when(a.last&&a.last.at)+(a.last?' · '+Math.round(a.last.ms/100)/10+'s':'')+' · '+a.runs+' recent run'+(a.runs===1?'':'s')+'</small>'
+      +(a.last&&a.last.steps.length?'<ol style="margin:6px 0 0 18px">'+a.last.steps.map(s=>'<li>'+esc(s.t)+'</li>').join('')+'</ol>':'')
+      +(a.routines.length?'<div><small>Routines: '+a.routines.map(r=>esc(r.title)+(r.paused?' (paused)':r.next?' (next '+when(r.next)+')':'')).join(', ')+'</small></div>':'')
+      +(a.lastError?'<div style="color:#c0392b"><small>Last error ('+when(a.lastError.at)+'): '+esc(a.lastError.msg)+'</small></div>':'')+'</div>').join(''))}
+  catch(e){box('<p>'+esc(e.message||'Could not load activity.')+'</p>')}
+}
 async function wpSend(text,retryOf){
   let c=wpConv();
   if(!c){c={id:Date.now(),title:text.replace(/\s+/g,' ').slice(0,60),at:Date.now(),msgs:[]};wp.convs.unshift(c);wp.cur=c.id;renderTab()}
@@ -2830,8 +2846,10 @@ async function wpSend(text,retryOf){
     if(SYNC.token){ // server: retrieval + answer happen on the server for the signed-in user
       saveData();await new Promise(r=>setTimeout(r,50));
       let tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}
-      const r=await SYNC.api('/api/workplace/chat',{message:full,history:hist.map(x=>({r:x.r,t:x.t})),agent_id:ag?ag.id:undefined,tz,app:(ag?appSpec(ag):appSpecAll()).slice(0,9000),apps:wpAppsAll()});
-      m.src=r.sources||[];m.t=r.answer||'';m.mode=r.mode;m.live=r.live||null;
+      const rid='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);let pol=true;
+      (async()=>{await new Promise(z=>setTimeout(z,1200));while(pol&&m.st==='thinking'){try{const j=await SYNC.api('/api/agents/run?id='+rid);if(j.run&&pol&&m.st==='thinking'&&!m.t){m.live=j.run.steps;wpStream(m)}}catch(e){}await new Promise(z=>setTimeout(z,1500))}})();
+      const r=await SYNC.api('/api/workplace/chat',{run_id:rid,message:full,history:hist.map(x=>({r:x.r,t:x.t})),agent_id:ag?ag.id:undefined,tz,app:(ag?appSpec(ag):appSpecAll()).slice(0,9000),apps:wpAppsAll()});
+      pol=false;delete m.live;m.src=r.sources||[];m.t=r.answer||'';m.mode=r.mode;m.live=r.live||null;
       if(ag&&r.kb&&r.kb.length)kbAddDocs(ag,r.kb,'learned');
       m.acts=r.acts||[];m.steps=r.steps||[];m.appr=(r.approvals||[]).map(a=>({id:a.id,app:a.app,summary:a.summary,status:a.status,kind:a.kind||'',shot:a.shot||'',...(a.kind==='email'||a.kind==='social'?{to:a.to,subject:a.subject,body:a.body}:{})}));m.q=r.question||null;
       if(ag&&m.steps.some(x=>x.k==='mem'||x.k==='routine'))wpOrchCache.delete(ag.id);
@@ -3915,6 +3933,7 @@ function wpAct(act,t){
   if(act==='wpUmVoice'){wpUmShow(false);openVa(true);return}
   if(act==='wpUmReq'){wpUmShow(false);newRequest();return}
   if(act==='wpUmOut'){wpUmShow(false);signOut();return}
+  if(act==='wpUmActv'){wpUmShow(false);agActivity();return}
   const id=+t.dataset.id;
   if(act==='wpNew'){wpView=null;wp.cur=null;wpDraft='';wpFocus=true;$('#wp')&&$('#wp').classList.remove('side-open');renderTab()}
   else if(act==='wpOpen'){wpView=null;wp.cur=id;wpFocus=true;$('#wp').classList.remove('side-open');renderTab()}

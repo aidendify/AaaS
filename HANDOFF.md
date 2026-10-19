@@ -1,5 +1,11 @@
 # AIdentify handoff
 
+## v1.12.0 agent activity (20 Oct 2026, ~12:45 AM IST), staging only
+- Branch `agents-v1.12.0` (on top of `auth-v1.11.0`), not pushed, not on prod.
+- New `lib/activity.js`: live run record `as_run:<email>:<runId>` (10-minute life) and per-agent history `as_act:<email>` (last 10 runs, last 5 errors).
+- New routes: `GET /api/agents/status`, `GET /api/agents/run?id=`. Chat accepts `run_id`; the page polls every 1.5 s and shows steps.
+- Tests: `test/activity.test.mjs`, plus an e2e check. Staging: https://aidentify-staging.vercel.app
+
 ## v1.11.0 sign-in fixes (19 Oct 2026, ~late night IST)
 - The owner decided we fix things ourselves instead of the team. Billing moves to v1.12.0.
 - Branch `auth-v1.11.0` (off v1.10.0 `dc3ed28`) is local only. It is deployed to **staging only**, not to `aidentify-demo`.
