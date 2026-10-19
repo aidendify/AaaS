@@ -5,6 +5,25 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.0] - unreleased
+
+### Added
+- **Weekly suggestions.** On the same routine tick as workflows, each account is reviewed about once a week. The review reads only that account’s timeline, email opens and clicks, workflow runs and approvals, and writes 3 to 5 plain sentences. For example: “Emails sent on Tuesday get about 2× the opens of other days” or “Leads from LinkedIn convert best.” Open them on the Suggestions page.
+- **Apply does not send.** Apply on a suggestion saves a draft workflow, or a change that still needs a separate Confirm. A draft stays off until you turn it on. Confirm copies words or remembers a preference. It does not send, post or pay, and it does not change a step’s approval setting or its send caps.
+- **What the account learns.** Shortening a subject twice, repeating a greeting, or rejecting a draft with a note is remembered for that account and used the next time a sentence becomes an email. You can still set a step to auto afterwards.
+- **A/B tests on an email step.** Two subjects and bodies are split across contacts. Opens and clicks are counted. Auto-pick copies the winning words only when you already set that step to auto or auto within limits. It never sends, and it leaves the approval setting, the step cap and the account ceiling alone. Otherwise the winner waits for Apply, then Confirm.
+- **Playbooks.** A playbook is workflows, agent notes, pipeline stages, custom fields and email templates. Export writes JSON for this account with no contacts and no secrets. Preview lists what will be created. Install writes only after you confirm. Built-in starters cover an agency, a digital marketing business and an email marketing business. There is no real-estate starter.
+- **Installed workflows stay drafts.** Send, post and pay go back to needs approval. Installing does not turn a workflow on and does not send anything.
+
+### Notes
+- This is still the current per-account store. It is not a separate database, and it is not a LangGraph runtime.
+- The weekly review runs on the existing routine tick. On the hosted app that tick is often once a day, so a review that is due is picked up on the next tick.
+- “Tuesday” means that weekday in UTC, on the tick that ran the workflow.
+- An A/B email gets a tracking image and rewritten links so opens and clicks can be counted. The email still waits for approval, or for the send caps, before anything goes out.
+- Auto-send still has the limits from v2.1: only the contact’s own address, the step’s daily cap, and an account ceiling (`WORKFLOW_SEND_DAILY_MAX`, default 50, and 0 means none). Workflow mail never uses the platform mailbox.
+- Suggestions are for this account only. A playbook you export is visible only to this account. The starters are built in. This is not a public marketplace.
+- Nothing in Apply, Confirm, auto-pick or Install sends an email.
+
 ## [2.1.0] - unreleased
 
 ### Added

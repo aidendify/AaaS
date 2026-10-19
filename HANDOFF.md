@@ -1,5 +1,25 @@
 # AIdentify handoff
 
+## v2.2.0 learning chief of staff + playbooks (19 Oct 2026), not deployed
+- Branch `cursor/learning-cos-playbooks-c27f`, based on `cursor/plain-english-workflows-b818` (includes review commits ab66f8e, 5546b0f, 829f425: auto-email caps, no platform mailbox, HTML send). package.json version is 2.2.0. Not on staging or prod. Do not merge to main from this branch.
+- This is pillars 4 and 5 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.2 tracking/consent slice, not the v2.5 marketplace or v2.7 self-learning numbering, and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is this slice.
+- **Suggestions.** `lib/cos.js`. The routines tick calls `runDueCos`. The first tick for an account only schedules the next review (7 days). A later tick, when that time has passed, reads that account’s timeline, workflow runs and approvals and stores up to 5 open suggestions. `GET /api/cos`, `POST /api/cos/suggestions/apply`, `POST /api/cos/suggestions/dismiss`, `POST /api/cos/confirm`. The Suggestions page has Apply, Dismiss and Confirm.
+- **Apply and Confirm do not send.** Apply on a timing or source suggestion inserts a draft workflow (`insertDraftWorkflow` → `lockOutbound`). Send, post and pay are needs approval and the workflow is not enabled. Apply on “keep emails on needs approval”, or on an A/B winner that is not already customer-auto, stores a pending change. Confirm writes that change. Copying a subject and body (`updateWorkflowStepCopy`) puts the words back and restores autonomy, limits and `autonomy_set_by`.
+- **Preferences.** Edits and rejections update `as_cos:<email>` (shorter subjects, a repeated greeting, phrases to avoid, no posts, hold new email steps on needs approval). The next compile runs `shapeEmailSteps` after the normaliser. Hold does not stop the customer from later setting a step to auto on the workflow page.
+- **A/B.** `POST /api/cos/ab` on an email step. Variant is a hash of the test id and the lead id. Opens and clicks on the tracking token carry `ab_test` / `ab_variant`. Auto-pick (`autoPickDecision`) returns `send: false` always. It copies the winner only when the step is `send_email`, `autonomy_set_by` is `customer`, and autonomy is `auto` or `auto_within_limits`. The next run still goes through `decideOutbound` and `sendEmail(..., ownOnly: true)`.
+- **Caps kept from the v2.1 review.** Contact-only for auto, the step daily cap, and the account ceiling. `WORKFLOW_SEND_DAILY_MAX` defaults to 50 when unset; `0` means no automatic sends (the old `|| 50` treated 0 as unset). A workflow never falls back to the platform mailbox. HTML mail is sent as HTML plus a plain-text copy.
+- **Playbooks.** `lib/playbooks.js`. `GET /api/playbooks`, `GET /api/playbooks/:id`, `POST /api/playbooks/export`, `POST /api/playbooks/preview`, `POST /api/playbooks/install`. Install writes only when `confirm` is boolean true. `prepareInstall` redacts secret-shaped strings and runs every workflow through `normalizeCompiled` and `lockOutbound`, so a file cannot arrive enabled or set to auto-send. Starters: `pb_agency`, `pb_digital`, `pb_email`. No real estate. Stages replace the pipeline; a lead on a removed stage moves to the first stage and is not deleted. The Playbooks page previews, then asks before install.
+- Storage: `as_cos:<email>` (suggestions, preferences, pending changes), `as_abt:<email>` (A/B tests), `as_pb:<email>` (exports), `as_tpl:<email>` (templates). All four are removed when the account is deleted, and none of them is readable through `/api/kv`.
+- Tests: `test/v220-cos-playbooks.test.mjs`, plus the new keys and cross-account checks in `test/tenant-isolation.test.mjs`. Customer B cannot read A’s suggestions, tests, or exported playbook id. `npm test`: 74 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- Not LangGraph. The weekly review is rules over this account’s own rows, not a model, so the tests stay deterministic.
+- The hosted tick is still often once a day, so “weekly” means the next tick after 7 days, not a clock time.
+- “Tuesday” is the UTC weekday of the tick that ran the workflow.
+- A/B emails get a tracking image and rewritten links so opens and clicks can be counted. Approval and the send caps still apply. Auto-pick never sends.
+- Suggestions are per account only. Playbooks are the three starters plus that account’s own exports, not a paid public marketplace.
+- Installed workflows are not enabled. Installing does not send.
+
 ## v2.1.0 plain-English workflows (19 Oct 2026), not deployed
 - Branch `cursor/plain-english-workflows-b818`, based on `cursor/v2-timeline-tracking-e476`. package.json version is 2.1.0. Not on staging or prod. Do not merge to main from this branch.
 - This is pillar 3 of the AI-first plan, on the current per-account store. It is not the v2.1 queue-and-worker from docs/TEAM-HANDOVER.md, and it is not a LangGraph engine. The existing OpenRouter path (and the mock AI path) compiles the sentence. Runs go through the existing routines tick.

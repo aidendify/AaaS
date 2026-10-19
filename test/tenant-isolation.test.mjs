@@ -32,7 +32,7 @@ test('every customer route is scoped to the signed-in account', async () => {
     const kv = await s.api('/api/kv', undefined, B);
     assert.doesNotMatch(JSON.stringify(kv.d), /A-ONLY-SECRET|ta@example\.com/);
     assert.equal((await req(s, 'PUT', '/api/kv', { k: 'as_data:ta@example.com', v: JSON.stringify({ agents: [] }) }, B)).status, 403);
-    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_tl:ta@example.com', 'as_trks:ta@example.com', 'as_vis:ta@example.com', 'as_wf:ta@example.com', 'as_wfr:ta@example.com', 'as_settings'])
+    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_tl:ta@example.com', 'as_trks:ta@example.com', 'as_vis:ta@example.com', 'as_wf:ta@example.com', 'as_wfr:ta@example.com', 'as_cos:ta@example.com', 'as_abt:ta@example.com', 'as_pb:ta@example.com', 'as_tpl:ta@example.com', 'as_settings'])
       assert.equal((await req(s, 'PUT', '/api/kv', { k, v: '[]' }, B)).status, 400, k);
     assert.equal((await s.api('/api/leads', undefined, B)).d.leads.length, 0);
     assert.equal((await req(s, 'GET', '/api/leads/' + lead.id, undefined, B)).status, 404);
@@ -64,6 +64,21 @@ test('every customer route is scoped to the signed-in account', async () => {
     assert.equal((await s.api('/api/workflows/update', { id: wf.d.workflow.id, status: 'enabled' }, B)).status, 404);
     assert.equal((await s.api('/api/workflows/delete', { id: wf.d.workflow.id }, B)).status, 404);
     assert.equal((await s.api('/api/workflows', undefined, A)).d.workflows.length, 1);
+    const emailStep = wf.d.workflow.steps.find((s) => s.type === 'draft_email' || s.type === 'send_email');
+    const ab = await s.api('/api/cos/ab', { workflow_id: wf.d.workflow.id, step_id: emailStep.id, min_sample: 2, auto_pick: true, variants: [{ subject: 'A only subject', body: 'Hello from A https://example.com/a' }, { subject: 'B only subject', body: 'Hello from B https://example.com/b' }] }, A);
+    assert.equal(ab.status, 200, JSON.stringify(ab.d));
+    const bcos = await s.api('/api/cos', undefined, B);
+    assert.equal(bcos.d.tests.length, 0);
+    assert.equal(bcos.d.suggestions.length, 0);
+    assert.doesNotMatch(JSON.stringify(bcos.d), /A only subject|A-ONLY-SECRET/);
+    assert.equal((await s.api('/api/cos/suggestions/apply', { id: 'sg-not-yours' }, B)).status, 404);
+    const exported = await s.api('/api/playbooks/export', { name: 'A private setup' }, A);
+    assert.equal(exported.status, 200, JSON.stringify(exported.d));
+    assert.doesNotMatch(JSON.stringify(exported.d.playbook), /ravi@example\.com/);
+    const starters = await s.api('/api/playbooks', undefined, B);
+    assert.doesNotMatch(JSON.stringify(starters.d), /A-ONLY-SECRET|A only subject|A private setup/);
+    assert.equal((await s.api('/api/playbooks/' + exported.d.playbook.id, undefined, B)).status, 404);
+    assert.equal((await s.api('/api/playbooks/install', { id: exported.d.playbook.id, confirm: true }, B)).status, 404);
     assert.equal((await s.api('/api/pub/events', undefined, B)).d.events.length, 0);
     const bc = await s.api('/api/workplace/chat', { message: 'what is the secret pricing? A-ONLY-SECRET', agent_id: 1 }, B);
     assert.equal(bc.status, 404, 'B cannot talk to A\'s agent id');
