@@ -13,6 +13,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
   - Add `followUp` (for example "in 3 days") and the CRM agent drafts the follow-up for your approval at that time. Nothing is ever sent automatically.
   - Each account only ever sees and changes its own leads. Saves at the same moment don't overwrite each other: 8 leads added at the same instant on staging all arrived.
 - The end-to-end suite has a fifth journey covering the leads API.
+- **Team handover plan** in `docs/TEAM-HANDOVER.md`: what is built, known issues, the roadmap from v1.10 to v2.8, and the stress-test steps to repeat for every release.
 
 ## [1.9.0] - 2026-10-19
 
