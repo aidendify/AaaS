@@ -5,6 +5,23 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.4.0] - unreleased
+
+### Added
+- **Agency workspaces.** A customer can turn their login into an agency and add client workspaces and staff. Each client is still their own account, so one client cannot read another, and one agency cannot read another agency’s clients. Staff roles are owner, admin, and member.
+- **Branding.** Name, logo, colours, support email, and a hostname. The login page on that hostname, the app after sign-in (name, logo, and the colour on the top bar and primary buttons), sign-in and password-reset wording, and the website chat use it. DNS setup is documented. Saving a hostname does not change DNS or issue a certificate.
+- **Playbooks into a client.** Install writes only after confirm. Workflows stay drafts. Nothing is enabled or sent.
+- **Per-client usage and caps.** AI calls, AI cost, messages, and leads for the month. A full cap blocks the new call, message, or lead.
+- **Manual usage summary.** CSV and a printable HTML page, with the agency’s markup. AI stays in USD and messages and leads stay in INR. No payment is taken.
+- **View as a client.** Owner or admin only. An audit line is written first. The session is read-only and lasts about two hours.
+
+### Notes
+- This is still the current per-account store. It is not organisations, memberships, or row-level security, and it is not a LangGraph runtime.
+- Billing and Razorpay stay shelved. The summary is for an invoice you raise yourself. It is not a tax invoice.
+- Mail to a client’s contacts sends only from the Gmail that client connected. The platform mailbox is not used for that. Creating a client does not send email. Sign-in codes and password resets still use the server mailbox, with the agency’s name on them.
+- A cap is checked when the action runs. It is not a lock across every process. The website chat rate limit is still per process. The hosted routine tick is still often once a day.
+- View-as cannot send, change, or open the agency. A member cannot view-as. The Back to agency bar stays on screen, and the business-setup form does not open.
+
 ## [2.3.0] - unreleased
 
 ### Added

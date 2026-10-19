@@ -1,5 +1,27 @@
 # AIdentify handoff
 
+## v2.4.0 agency white-label (19 Oct 2026), not deployed
+- Branch `cursor/agency-whitelabel-5dc2`, based on `cursor/india-channels-frontdesk-108b` (includes merge `06c0b1c` and e2e scenario k `bd03b8c`). package.json version is 2.4.0. Not on staging or prod. Do not merge this line to main.
+- This is pillar 6 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.6 slice (no relational organisations, no row-level security, no Razorpay Route). v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is inbox + front desk. v2.4 is this slice.
+- **Agency.** `lib/agency.js`. `POST /api/agency` turns a direct customer into the owner. Clients and staff cannot. `GET /api/agency` lists staff and clients with counts only. `POST /api/agency/clients`, `/clients/update`, `/clients/remove`, `GET /api/agency/clients/usage`. `POST /api/agency/staff`, `/staff/role`, `/staff/remove`. Owner, admin, member. A member cannot change clients, view-as, or open the invoice. An admin cannot change branding, markup, or other admins. Platform staff get 403.
+- **Branding.** `POST /api/agency/branding`, `GET /api/agency/dns`, public `GET /api/branding?host=`. Keys: `as_ag:<owner email>`, `as_agdom:<hostname>`. Logo is an https URL or a small PNG, JPEG, GIF, or WebP. The hostname is a label plus the DNS steps in `docs/AGENCY.md`. No domain API and no certificate issuance. The login page, the app after sign-in, and the website chat use the brand.
+- **Mail.** Customer sends stay on the account’s own connected Gmail (`allowPlatform` is not set for a client; workflow sends stay `ownOnly`). The from-name and a one-line sign-off can use the agency name. The mailbox address does not change. Sign-in codes and password resets still use `sendSystemEmail` (the server mailbox) with the agency’s words. Creating a client returns `mailed: false`. The usage summary is a download, not an email.
+- **Playbooks.** `POST /api/agency/playbook` resolves a starter or the agency’s own export, runs the same scrub as a normal install, and writes into the client only when `confirm` is boolean true. Status stays draft. Nothing is enabled or sent.
+- **Usage and caps.** `as_aguse:<client email>`, month in `APP_TIMEZONE` (default Asia/Kolkata). AI calls and cost (including a client’s own key), messages after a successful channel send, and new leads. Over the lead cap, an inbound message is kept and no extra CRM lead is saved; an opt-out is still saved. A public form still thanks the visitor. API create returns 402 `client_limit`. AI returns 429 `client_limit`.
+- **Invoice helper.** `GET /api/agency/invoice`, `/invoice.csv`, `/invoice.html`. Owner sets markup (`POST /api/agency/markup`): percent on AI USD cost, and INR rates for messages and leads. USD and INR are not added into one pay total. `payment: false`. No Razorpay.
+- **View-as.** `POST /api/agency/view-as` writes `as_agaudit:<owner>` first, then a token for the client with `imp`, the actor, and the agency, for about two hours. Non-GET is 403. GET of keys, connectors, settings, and `/api/agency` is 403. The actor must still be owner or admin of that agency. The workplace does not cover the Back to agency bar, and the business-setup form does not open.
+- **Delete.** An owner who still has clients or staff gets 409 `agency_busy`. Account delete still removes the agency record and the hostname index.
+- Storage prefixes `as_ag:`, `as_aguse:`, `as_agaudit:`, and `as_agdom:` are not readable through `/api/kv`.
+- Tests: `test/v240-agency.test.mjs`, plus the new keys in `test/tenant-isolation.test.mjs`. `npm test`: 80 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- Not relational organisations or row-level security. Isolation is the existing per-account store plus the agency checks on these routes.
+- Not Razorpay, not a tax invoice, not automatic billing.
+- Not a domain API and not certificate issuance. The hostname is documentation and a lookup for the login page.
+- Sign-in and password-reset mail still leave from the server mailbox. Only the wording is branded. Contact mail is the client’s own Gmail or it is not sent.
+- Caps are not a cross-process lock. The widget rate limit is still per process. The hosted tick is still often once a day.
+- View-as is read-only. It is not a way to send or to change the client.
+
 ## v2.3.0 India-first channels + AI front desk (19 Oct 2026), not deployed
 - Branch `cursor/india-channels-frontdesk-108b`, based on `cursor/learning-cos-playbooks-c27f`. package.json version is 2.3.0. Not on staging or prod. Do not merge to main from this branch.
 - This is pillars 7 and 8 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.4 owned-channels slice (no Embedded Signup, no campaign email, no DLT registration) and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is this slice.

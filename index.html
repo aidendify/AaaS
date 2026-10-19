@@ -646,6 +646,8 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
 .side-ind,.side-ind.row{background:var(--pv)!important;box-shadow:none!important}
 .avatar-btn{background:var(--soft);color:var(--ink);border:1px solid var(--bd)}
 .btn.dk,.go,.fpill.on,.seg button.on{background:var(--ink)!important;color:var(--page)!important;border-color:var(--ink)!important;box-shadow:none!important}
+html[data-brand="1"] .topbar{box-shadow:inset 0 -3px 0 var(--brand, var(--accent))}
+html[data-brand="1"] .btn.dk,html[data-brand="1"] .go,html[data-brand="1"] .ms-act .btn{background:var(--brand, var(--accent))!important;border-color:var(--brand, var(--accent))!important;color:#fff!important}
 .btn.dk:hover,.go:hover{filter:brightness(1.08)}
 .btn.gh{background:transparent}
 .tile{border-radius:50%!important;background:transparent!important;color:var(--ink)!important;box-shadow:inset 0 0 0 1px var(--bd)}
@@ -869,8 +871,9 @@ function countUp(){
   });
 }
 function renderStatic(){
-  document.body.classList.toggle('is-admin',isStaff());document.body.classList.toggle('no-side',!!user&&!isStaff());document.body.classList.toggle('wp-full',!!user&&!isStaff()&&tab==='My Workplace');$('#admTag').classList.toggle('hide',!isStaff());placeInd();document.querySelector('.search').classList.toggle('hide',isStaff());
-  $('#imp').innerHTML=user&&user.imp?`<div class="imp"><span>Viewing as <b>${esc(user.name)}</b> (customer view)</span><button class="btn gh sm" data-a="stopImp">Back to admin</button></div>`:'';
+  const agBack=!!(user&&user.imp&&LS.get('as_ag_back'));
+  document.body.classList.toggle('is-admin',isStaff());document.body.classList.toggle('no-side',!!user&&!isStaff());document.body.classList.toggle('wp-full',!!user&&!isStaff()&&tab==='My Workplace'&&!agBack);$('#admTag').classList.toggle('hide',!isStaff());placeInd();document.querySelector('.search').classList.toggle('hide',isStaff());
+  $('#imp').innerHTML=user&&user.imp?`<div class="imp"><span>Viewing as <b>${esc(user.name)}</b> (${agBack?'read only':'customer view'})</span><button class="btn gh sm" data-a="stopImp">${agBack?'Back to agency':'Back to admin'}</button></div>`:'';
   loadReqs();$('#reqBtn').innerHTML=ic('plus',16)+' Request custom agent';$('#reqBtn').classList.toggle('hide',isStaff());
   $('#sideItems').innerHTML=sideTabs().map(([t,i])=>`<button class="nav-i ${t===tab?'on':''}" data-tab="${t}" ${t===tab?'aria-current="page"':''}>${ic(i,20)}<span>${t}</span>${cnt(t)}</button>`).join('');
   $('#burger').innerHTML=ic('menu',24);$('#bell').innerHTML=ic('bell',22)+(hasNew()?'<span class="badge"></span>':'');
@@ -930,6 +933,7 @@ function renderTab(){
   else if(tab==='Playbooks')h=`<div class="sec first"><h2>Playbooks</h2><p class="muted">A playbook packages workflows, agent notes, pipeline stages, fields and email templates. Preview first. Install only after you confirm. Nothing is turned on or sent.</p></div><div id="pbPage"><p class="muted">Loading…</p></div>`;
   else if(tab==='Inbox')h=`<div class="sec first"><h2>Inbox</h2><p class="muted">WhatsApp, SMS and email for this account, tied to the contact timeline. Anything you send waits in Approvals unless you confirm it here.</p></div><div id="inbPage"><p class="muted">Loading…</p></div>`;
   else if(tab==='Front desk')h=`<div class="sec first"><h2>Front desk</h2><p class="muted">Answers WhatsApp and the website chat from your business profile and FAQs. Replies wait for approval unless you turn on auto within limits. A message from a visitor cannot change that.</p></div><div id="fdPage"><p class="muted">Loading…</p></div>`;
+  else if(tab==='Agency')h=`<div class="sec first"><h2>Agency</h2><p class="muted">Client workspaces stay separate from each other and from other agencies. Mail to a client’s contacts sends only from the Gmail that client connects. Nothing on this page takes a payment.</p></div><div id="agPage"><p class="muted">Loading…</p></div>`;
   else if(tab==='Requests'||tab==='Quotes'){loadReqs();loadA();const team=isTeam();const L=reqs.filter(r=>team||r.by===user.email);
     h=`<div class="sec first"><h2>${team?'Quote requests':'My requests'}</h2>${team?'':`<button class="btn dk" data-act="newReq">${ic('plus',18)} New request</button>`}</div>`+(L.length?`<div class="reqs">${L.map(r=>reqCard(r,team)).join('')}</div>`:`<div class="empty">${team?'No requests yet.':'No requests yet. Use “Request custom agent” to send your first one.'}</div>`)}
   else if(tab==='Billing'){loadReqs();loadA();h=billHtml()}
@@ -945,6 +949,7 @@ function renderTab(){
   if(tab==='Playbooks'&&!isStaff())pbPage();
   if(tab==='Inbox'&&!isStaff())inbPage();
   if(tab==='Front desk'&&!isStaff())fdPage();
+  if(tab==='Agency'&&!isStaff())agPage();
   if(tab==='My Workplace'&&!isStaff()){wpBind();wpSetBind();if(wlKeep!=null)$('#wpLog').scrollTop=wlKeep;
     if(wfo&&wfo.n){const el=$('#wpEd [name='+wfo.n+']');if(el){el.focus({preventScroll:true});try{if(wfo.st!=null)el.setSelectionRange(wfo.st,wfo.en)}catch(x){}}}}
 }
@@ -1008,6 +1013,9 @@ document.addEventListener('click',e=>{
   else if(act==='pbOpen'){pbId=String(t.dataset.rid||'');renderTab();return}
   else if(act==='pbBack'){pbId=null;renderTab();return}
   else if(act==='pbInstall'){pbInstall(String(t.dataset.rid||''));return}
+  else if(act==='agView'){agView(String(t.dataset.em||''));return}
+  else if(act==='agSuspend'){agSuspend(String(t.dataset.em||''), t.dataset.on==='1');return}
+  else if(act==='agRemove'){agRemove(String(t.dataset.em||''));return}
   else if(act==='inbOpen'){inbId=String(t.dataset.rid||'');renderTab();return}
   else if(act==='inbBack'){inbId=null;renderTab();return}
   else if(act==='newAgent')newAgent();
@@ -1216,8 +1224,29 @@ function renderUser(){
    ${navGridHtml('goTab')}
    <button data-act="profile">${ic('user',18)} Profile</button>${isStaff()?'':`<button data-act="aikey">${ic('gear',18)} AI key</button>`}<button data-act="goSettings">${ic('gear',18)} Settings</button><button class="dn" data-act="signout">${ic('logout',18)} Sign out</button>`;
 }
+function applyBrand(b){
+  const name=(b&&b.name)||'AIdentify';
+  document.querySelectorAll('.brand span,.ms-logo span').forEach(el=>{el.textContent=name});
+  const home=document.querySelector('button.brand'); if(home) home.setAttribute('aria-label', name+' home');
+  if(b&&b.name) document.title=name;
+  const hex=v=>v&&/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)?v:'';
+  const color=hex(b&&b.color), accent=hex(b&&b.accent)||color;
+  const root=document.documentElement;
+  if(accent) root.style.setProperty('--accent', accent); else root.style.removeProperty('--accent');
+  if(color) root.style.setProperty('--brand', color); else root.style.removeProperty('--brand');
+  if(color||accent) root.dataset.brand='1'; else delete root.dataset.brand;
+  if(b&&b.logo){
+    document.querySelectorAll('.brand,.ms-logo').forEach(el=>{
+      let img=el.querySelector('img.brand-logo');
+      if(!img){img=document.createElement('img');img.className='brand-logo';img.alt='';img.width=28;img.height=28;img.style.cssText='width:28px;height:28px;object-fit:contain;border-radius:6px';const svg=el.querySelector('svg');if(svg)svg.replaceWith(img);else el.prepend(img)}
+      img.src=b.logo;
+    });
+  }
+}
+fetch('/api/branding').then(r=>r.ok?r.json():null).then(b=>{if(b&&b.name)applyBrand(b)}).catch(()=>{});
+function sessionUser(u){return {email:u.email,name:u.name,role:u.role||'customer',kind:u.kind||'',agencyRole:u.agencyRole||'',agency:u.agency||'',brand:u.brand||null,imp:!!u.imp}}
 function enter(u,welcome){
-  user=u;loadData();$('#vaVoice').checked=prefOf('voice')!==false;if(!tabsFor().some(x=>x[0]===tab))tab=tabsFor()[0][0];document.body.classList.remove('locked');$('#auth').classList.add('hide');
+  user=u;if(u&&u.brand)applyBrand(u.brand);loadData();$('#vaVoice').checked=prefOf('voice')!==false;if(!tabsFor().some(x=>x[0]===tab))tab=tabsFor()[0][0];document.body.classList.remove('locked');$('#auth').classList.add('hide');
   playIn();renderUser();renderStatic();refresh();window.scrollTo(0,0);
   if(needsOnboard())showOnboard();
   else if(welcome)showIntro(u.name);
@@ -1275,7 +1304,7 @@ async function authDone(r,email,rem){
   try{users=JSON.parse(ST.get('as_users')||'{}')||{}}catch(x){}
   users[email]=Object.assign({},users[email],r.user);delete users[email].email;
   ST.del('as_session');ST.set('as_session',email,rem);
-  $('#aPass').value='';$('#aCode').value='';$('#aBtn').disabled=false;enter({email,name:r.user.name,role:r.user.role||'customer'},true)}
+  $('#aPass').value='';$('#aCode').value='';$('#aBtn').disabled=false;enter(sessionUser(Object.assign({email}, r.user)),true)}
 $('#roleSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;loginAs=b.dataset.r;setSeg();err('')};
 function setStep(n){
   step=n;const up=mode==='up';err('');
@@ -1381,8 +1410,11 @@ $('#authForm').onsubmit=async e=>{
     const tok=LS.get('as_tok'),em=ST.get('as_session');
     let ok=false;if(tok&&em){try{ok=await SYNC.auth(tok)}catch(x){ok=false}}
     if(ok!==false&&tok&&em){try{users=JSON.parse(ST.get('as_users')||'{}')||{}}catch(x){}}
-    if(ok!==false&&tok&&em&&users[em])enter({email:em,name:users[em].name,role:users[em].role||'customer'});
-    else{LS.del('as_tok');showAuth()}
+    if(ok!==false&&tok&&em){
+      try{const me=await SYNC.api('/api/auth/me'); if(me&&me.user){enter(sessionUser(me.user));return}}catch(x){}
+      if(users[em]){enter(sessionUser(Object.assign({email:em}, users[em])));return}
+    }
+    LS.del('as_tok');showAuth();
     return;
   }
   // Browser-only mode has no built-in staff accounts and no default passwords. Older ones keep their role name up to date.
@@ -1407,14 +1439,14 @@ const fmt=(v,c)=>new Intl.NumberFormat(c==='USD'?'en-US':'en-IN',{style:'currenc
 const PAGES={admin:null,pricing:['Overview','Quote requests','Plans & pricing','Settings']};
 const ATABS=[['Overview','grid'],['Customers','users'],['Quote requests','tag'],['Plans & pricing','target'],['Payments','card'],['Agents & usage','bot'],['Support','chat'],['Team & roles','users'],['Settings','gear']];
 // customers: Dashboard and My Workplace stay in the sidebar; the other pages live in the profile menus
-const SIDE_KEEP=['Dashboard','My Workplace','Contacts','Inbox','Workflows','Suggestions','Playbooks','Front desk'];
+const SIDE_KEEP=['Dashboard','My Workplace','Contacts','Inbox','Workflows','Suggestions','Playbooks','Front desk','Agency'];
 const sideTabs=()=>isStaff()?tabsFor():tabsFor().filter(t=>SIDE_KEEP.includes(t[0]));
 const menuTabs=()=>isStaff()?[]:tabsFor().filter(t=>t[0]!=='Settings');
 const navGridHtml=(act,skip)=>{const L=menuTabs().filter(t=>t[0]!==skip);return L.length?`<div class="nav-grid" role="group" aria-label="Pages">${L.map(([t,i])=>`<button type="button" role="menuitem" class="${t===tab?'on':''}" data-act="${act}" data-go="${t}">${ic(i,16)}<span>${t}</span>${cnt(t)}</button>`).join('')}</div>`:''};
 const PAYMENTS=false;
 function tabsFor(){
   if(isStaff()){const pg=user.role in PAGES?PAGES[user.role]:['Overview'];return ATABS.filter(t=>!pg||pg.includes(t[0])).filter(t=>PAYMENTS||t[0]!=='Payments')}
-  const t=TABS.filter(x=>x[0]!=='Dashboard');t.splice(1,0,['Contacts','users']);t.splice(4,0,['Requests','tag']);if(PAYMENTS)t.splice(5,0,['Billing','card']);return t;
+  const t=TABS.filter(x=>x[0]!=='Dashboard');t.splice(1,0,['Contacts','users']);t.splice(2,0,['Agency','users']);t.splice(5,0,['Requests','tag']);if(PAYMENTS)t.splice(6,0,['Billing','card']);return t;
 }
 function cnt(t){
   if(t==='Billing'&&user&&!isStaff()){const n=dueCount();return n?`<span class="cnt" title="Payment due">${n}</span>`:''}
@@ -1640,7 +1672,7 @@ function adminAct(op,d){
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
-  if(b.dataset.a==='stopImp'){if(adminUser){user=adminUser;adminUser=null;tab='Customers';renderUser();renderStatic();refresh();window.scrollTo(0,0)}return}
+  if(b.dataset.a==='stopImp'){if(LS.get('as_ag_back')){agStop();return}if(adminUser){user=adminUser;adminUser=null;tab='Customers';renderUser();renderStatic();refresh();window.scrollTo(0,0)}return}
   if(!isStaff())return;adminAct(b.dataset.a,b.dataset);
 });
 document.addEventListener('input',e=>{if(e.target.id==='admQ'&&isStaff()){fl.c=e.target.value;$('#admTable').innerHTML=custTable()}});
@@ -2302,7 +2334,7 @@ function ensureAgent(kind){
   const a={id:nid++,name:s.name,kind:s.kind,status:'active',d:s.d,n:0,r:100,kb:[],recs:[],slips:[],forms:[]};
   norm(a);agents.push(a);seeded=[...new Set([...seeded,kind])];return a;
 }
-function needsOnboard(){return !!(user&&!isStaff()&&!(wp&&wp.profile&&wp.profile.business))}
+function needsOnboard(){return !!(user&&!isStaff()&&!user.imp&&!(wp&&wp.profile&&wp.profile.business))}
 function showOnboard(){
   let el=document.getElementById('onboard');if(!el){el=document.createElement('div');el.id='onboard';document.body.appendChild(el)}
   const chips=Object.entries(VERTICALS).map(([k,v],i)=>`<button type="button" class="${i?'':'on'}" data-v="${k}">${esc(v.label)}</button>`).join('');
@@ -3038,6 +3070,108 @@ async function pbPage(){
     const lines=[].concat((c.workflows||[]).map(w=>'Workflow draft: '+w.name),(c.stages||[]).length?'Stages: '+(c.stages||[]).join(', '):'',(c.fields||[]).map(f=>'Field: '+f.label),(c.templates||[]).map(t=>'Template: '+t.name),(c.agents||[]).map(a=>'Agent notes: '+a.name)).filter(Boolean);
     host.innerHTML='<p><button type="button" class="btn gh sm" data-act="pbBack">All playbooks</button> <button type="button" class="btn dk sm" data-act="pbInstall" data-rid="'+esc(pbId)+'">Install</button></p><h3>'+esc((prev.playbook&&prev.playbook.name)||'Playbook')+'</h3><p class="muted">'+esc((prev.playbook&&prev.playbook.summary)||'')+' Preview only. '+esc(String(prev.moves||0))+' contacts would move to the first stage. Contacts are kept. Nothing is sent.</p><ul class="rows">'+lines.map(l=>'<li><div><b>'+esc(l)+'</b></div></li>').join('')+'</ul>';
   }catch(e){if(seq===pbSeq&&host)host.innerHTML='<div class="empty">'+esc(e.message||'Could not load playbooks.')+'</div>'}
+}
+let agSeq=0;
+async function agDownload(path, name){
+  const r=await fetch(path,{headers:{Authorization:'Bearer '+SYNC.token}});
+  if(!r.ok){let m='Could not download'; try{m=(await r.json()).message||m}catch(e){} throw new Error(m)}
+  const u=URL.createObjectURL(await r.blob()), a=document.createElement('a'); a.href=u; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(u),2000);
+}
+async function agView(email){
+  try{
+    const r=await SYNC.api('/api/agency/view-as',{email});
+    LS.set('as_ag_back', SYNC.token, false);
+    LS.set('as_ag_who', user.email, false);
+    LS.set('as_tok', r.token, true);
+    await SYNC.auth(r.token);
+    ST.set('as_session', r.user.email, true);
+    tab='My Workplace';
+    enter(sessionUser(r.user), false);
+    say('Viewing this client. Read only. Nothing is sent.');
+  }catch(e){say(e.message||'Could not open that client')}
+}
+async function agStop(){
+  const tok=LS.get('as_ag_back');
+  LS.del('as_ag_back'); LS.del('as_ag_who');
+  if(!tok){showAuth();return}
+  LS.set('as_tok', tok, true);
+  try{await SYNC.auth(tok)}catch(e){showAuth();return}
+  try{
+    const me=await SYNC.api('/api/auth/me');
+    ST.set('as_session', me.user.email, true);
+    tab='Agency';
+    enter(sessionUser(me.user), false);
+  }catch(e){showAuth()}
+}
+async function agSuspend(email, on){
+  try{await SYNC.api('/api/agency/clients/update',{email, suspended:!!on}); say(on?'Suspended.':'Active again.'); agPage()}catch(e){say(e.message||'Could not update')}
+}
+async function agRemove(email){
+  if(!confirm('Remove this client workspace? Their data is deleted. Nothing is sent.'))return;
+  try{await SYNC.api('/api/agency/clients/remove',{email}); say('Client removed.'); agPage()}catch(e){say(e.message||'Could not remove')}
+}
+async function agPage(){
+  const host=$('#agPage'); if(!host)return;
+  if(!SYNC.token){host.innerHTML='<div class="empty">Sign in to manage an agency.</div>';return}
+  if(user&&user.imp){host.innerHTML='<div class="empty">View-as is read only. Use Back to agency. This page cannot change the client.</div>';return}
+  const seq=++agSeq;
+  let d;
+  try{d=await SYNC.api('/api/agency')}
+  catch(e){
+    if(seq!==agSeq)return;
+    if(e.code==='not_agency'&&!(user&&user.kind==='client')){
+      host.innerHTML='<form class="card panel" id="agStart"><h3>Start an agency</h3><p class="muted">This turns your login into an agency owner. It does not email anyone and it does not take a payment.</p><label>Agency name<input name="name" required value="'+esc((user&&user.name)||'')+'"></label><button class="btn dk sm">Create agency</button></form>';
+      $('#agStart').onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); try{await SYNC.api('/api/agency',{name:String(fd.get('name')||'')}); user.kind='agency'; user.agencyRole='owner'; user.agency=user.email; say('Agency ready. No email was sent.'); renderStatic(); agPage()}catch(err){say(err.message||'Could not create')}};
+      return;
+    }
+    host.innerHTML='<div class="empty">'+esc(e.message||'Could not load the agency.')+'</div>';
+    return;
+  }
+  if(seq!==agSeq||tab!=='Agency')return;
+  const role=d.role||'member', owner=role==='owner', write=role==='owner'||role==='admin';
+  const brand=(d.agency&&d.agency.branding)||{};
+  const markup=d.agency&&d.agency.markup;
+  if(brand&&brand.name) applyBrand(brand);
+  const cap=v=>v==null?'no cap':String(v);
+  const clients=(d.clients||[]).map(c=>{
+    const u=c.usage||{}, lim=c.limits||{};
+    return '<li><div><b>'+esc(c.name)+'</b><small>'+esc(c.email)+(c.suspended?' · suspended':'')+' · AI '+(u.ai_calls||0)+' calls, $'+(u.ai_cost_usd||0)+' · '+(u.messages||0)+' messages · '+(u.leads||0)+' leads this month</small><small>Caps: AI '+esc(cap(lim.ai_calls))+', cost $'+esc(cap(lim.ai_cost_usd))+', messages '+esc(cap(lim.messages))+', leads '+esc(cap(lim.leads))+'</small></div>'
+      +(write?'<button type="button" class="btn gh sm" data-act="agView" data-em="'+esc(c.email)+'">View as</button><button type="button" class="btn gh sm" data-act="agSuspend" data-em="'+esc(c.email)+'" data-on="'+(c.suspended?'0':'1')+'">'+(c.suspended?'Reactivate':'Suspend')+'</button><button type="button" class="btn gh sm" data-act="agRemove" data-em="'+esc(c.email)+'">Remove</button>':'')
+      +'</li>';
+  }).join('');
+  const staff=(d.staff||[]).map(s=>'<li><div><b>'+esc(s.name||s.email)+'</b><small>'+esc(s.email)+' · '+esc(s.role)+'</small></div></li>').join('');
+  const pbs=(d.playbooks||[]).map(id=>'<option value="'+esc(id)+'">'+esc(id)+'</option>').join('');
+  const clientOpts=(d.clients||[]).map(c=>'<option value="'+esc(c.email)+'">'+esc(c.name)+' · '+esc(c.email)+'</option>').join('');
+  let dns='';
+  try{const g=await SYNC.api('/api/agency/dns'); if(seq!==agSeq||tab!=='Agency')return; dns=(g.steps||[]).map(s=>'<li>'+esc(s)+'</li>').join('')+(g.mail?'<p class="muted">'+esc(g.mail)+'</p>':'')}catch(e){dns='<li>'+esc(e.message||'DNS guide unavailable')+'</li>'}
+  host.innerHTML='<p class="muted">'+esc(d.mail||'')+' Your role is '+esc(role)+'. Nothing here takes a payment.</p>'
+    +'<h3 class="sh">Clients</h3>'+(clients?'<ul class="rows">'+clients+'</ul>':'<div class="empty">No client workspaces yet.</div>')
+    +(write?'<form class="card panel" id="agClient"><h3>New client</h3><p class="muted">No email is sent. Share the password yourself. Their contact mail uses only the Gmail they connect later.</p><label>Name<input name="name" required></label><label>Email<input name="email" type="email" required></label><label>Password<input name="password" type="password" required autocomplete="new-password"></label><button class="btn dk sm">Create client</button></form>':'')
+    +(write&&clientOpts?'<form class="card panel" id="agLim"><h3>Limits</h3><p class="muted">Leave a box empty for no cap. A full cap blocks new leads, messages or AI. Nothing is sent when the cap is hit.</p><label>Client<select name="email">'+clientOpts+'</select></label><label>AI calls<input name="ai_calls" inputmode="numeric"></label><label>AI cost USD<input name="ai_cost_usd" inputmode="decimal"></label><label>Messages<input name="messages" inputmode="numeric"></label><label>Leads<input name="leads" inputmode="numeric"></label><button class="btn gh sm">Save limits</button></form>':'')
+    +(write&&clientOpts?'<form class="card panel" id="agPb"><h3>Install a playbook</h3><p class="muted">Preview first. Install writes drafts only. It does not turn workflows on and it does not send.</p><label>Client<select name="email">'+clientOpts+'</select></label><label>Playbook<select name="id">'+pbs+'</select></label><button type="button" class="btn gh sm" id="agPbPrev">Preview</button> <button class="btn dk sm">Install</button><p id="agPbNote" class="muted"></p></form>':'')
+    +'<h3 class="sh">Staff</h3>'+(staff?'<ul class="rows">'+staff+'</ul>':'<p class="muted">Only the owner is on this agency so far.</p>')
+    +(write?'<form class="card panel" id="agStaff"><h3>Add staff</h3><p class="muted">No email is sent. An admin can add a member. Only the owner can add an admin.</p><label>Name<input name="name" required></label><label>Email<input name="email" type="email" required></label><label>Password<input name="password" type="password" required autocomplete="new-password"></label>'+(owner?'<label>Role<select name="role"><option value="member">Member</option><option value="admin">Admin</option></select></label>':'')+'<button class="btn gh sm">Add staff</button></form>':'')
+    +(owner?'<form class="card panel" id="agBrand"><h3>Branding</h3><p class="muted">Shown on the login page for your hostname, in this app after sign-in, on the website chat, and as the from-name on mail that already leaves from a connected Gmail. Saving a hostname does not change DNS or issue a certificate.</p><label>Name<input name="name" value="'+esc(brand.name||'')+'"></label><label>Logo https or small image<input name="logo" value="'+esc(brand.logo||'')+'"></label><label>Colour<input name="color" value="'+esc(brand.color||'')+'" placeholder="#1f6b4a"></label><label>Accent<input name="accent" value="'+esc(brand.accent||'')+'"></label><label>Support email<input name="support_email" value="'+esc(brand.support_email||'')+'"></label><label>Hostname<input name="domain" value="'+esc(brand.domain||'')+'" placeholder="app.youragency.com"></label><button class="btn dk sm">Save branding</button></form>':'')
+    +(owner&&markup?'<form class="card panel" id="agMark"><h3>Markup for the manual invoice</h3><p class="muted">Percent on AI cost (USD) and a rupee rate per message and per lead. The summary keeps USD and INR apart. This app does not take payment.</p><label>AI markup percent<input name="percent" value="'+esc(String(markup.percent))+'"></label><label>Per message INR<input name="message_inr" value="'+esc(String(markup.message_inr))+'"></label><label>Per lead INR<input name="lead_inr" value="'+esc(String(markup.lead_inr))+'"></label><button class="btn gh sm">Save markup</button></form>':'')
+    +(write?'<form class="card panel" id="agInv"><h3>Usage summary</h3><p class="muted">CSV or a printable page for the month. Raise your own invoice. This is not a tax invoice.</p><label>Month<input name="month" type="month"></label><button type="button" class="btn gh sm" id="agCsv">Download CSV</button> <button type="button" class="btn gh sm" id="agHtml">Printable page</button></form>':'')
+    +'<h3 class="sh">Custom domain</h3><ol>'+dns+'</ol>';
+  const note=t=>say(t);
+  const clientForm=$('#agClient'); if(clientForm) clientForm.onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); try{const r=await SYNC.api('/api/agency/clients',{name:fd.get('name'),email:fd.get('email'),password:fd.get('password')}); note(r.mailed===false?'Client created. No email was sent.':'Client created.'); agPage()}catch(e){note(e.message||'Could not create the client')}};
+  const lim=$('#agLim'); if(lim) lim.onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); const num=k=>{const v=String(fd.get(k)||'').trim(); return v===''?null:Number(v)}; try{await SYNC.api('/api/agency/clients/update',{email:fd.get('email'),limits:{ai_calls:num('ai_calls'),ai_cost_usd:num('ai_cost_usd'),messages:num('messages'),leads:num('leads')}}); note('Limits saved.'); agPage()}catch(e){note(e.message||'Could not save limits')}};
+  const pb=$('#agPb'); if(pb){
+    const show=async confirmInstall=>{const fd=new FormData(pb); try{const r=await SYNC.api('/api/agency/playbook',{email:fd.get('email'),id:fd.get('id'),confirm:confirmInstall===true}); const n=$('#agPbNote'); if(n) n.textContent=r.installed?'Installed as drafts. Nothing was sent.':'Preview only. Nothing was installed or sent.'; if(r.installed) agPage()}catch(e){const n=$('#agPbNote'); if(n) n.textContent=e.message||'Could not install'}};
+    const prev=$('#agPbPrev'); if(prev) prev.onclick=()=>show(false);
+    pb.onsubmit=ev=>{ev.preventDefault(); if(!confirm('Install this playbook into the client workspace? It stays a draft. Nothing is enabled or sent.'))return; show(true)};
+  }
+  const stf=$('#agStaff'); if(stf) stf.onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); try{const r=await SYNC.api('/api/agency/staff',{name:fd.get('name'),email:fd.get('email'),password:fd.get('password'),role:fd.get('role')||'member'}); note(r.mailed===false?'Staff added. No email was sent.':'Staff added.'); agPage()}catch(e){note(e.message||'Could not add staff')}};
+  const br=$('#agBrand'); if(br) br.onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); try{const r=await SYNC.api('/api/agency/branding',{name:fd.get('name'),logo:fd.get('logo'),color:fd.get('color'),accent:fd.get('accent'),support_email:fd.get('support_email'),domain:fd.get('domain')}); if(r.branding){user.brand=r.branding; applyBrand(r.branding)} note('Branding saved.'); agPage()}catch(e){note(e.message||'Could not save branding')}};
+  const mk=$('#agMark'); if(mk) mk.onsubmit=async ev=>{ev.preventDefault(); const fd=new FormData(ev.target); try{await SYNC.api('/api/agency/markup',{percent:Number(fd.get('percent')),message_inr:Number(fd.get('message_inr')),lead_inr:Number(fd.get('lead_inr'))}); note('Markup saved. No payment was taken.'); agPage()}catch(e){note(e.message||'Could not save markup')}};
+  const inv=$('#agInv');
+  if(inv){
+    const month=()=>{const v=new FormData(inv).get('month'); return v?String(v):''};
+    $('#agCsv').onclick=async()=>{try{const m=month(); await agDownload('/api/agency/invoice.csv'+(m?'?month='+encodeURIComponent(m):''), 'usage'+(m?'-'+m:'')+'.csv')}catch(e){note(e.message)}};
+    $('#agHtml').onclick=async()=>{try{const m=month(); const r=await fetch('/api/agency/invoice.html'+(m?'?month='+encodeURIComponent(m):''),{headers:{Authorization:'Bearer '+SYNC.token}}); if(!r.ok) throw new Error('Could not open the summary'); const w=window.open('','_blank'); if(w){w.document.write(await r.text()); w.document.close()} else note('Allow pop-ups to print the summary.')}catch(e){note(e.message)}};
+  }
 }
 // Leads CSV: export everything, import with a dry run first
 async function csvPanel(){const box=ovBox('csvOv','Leads: fields, stages, CSV');if(!SYNC.token){box('<p>Sign in first.</p>');return}
