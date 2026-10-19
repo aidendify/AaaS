@@ -35,7 +35,7 @@ Bad input gets `400 bad_lead` with a plain message.
 B=https://aidentify-demo.vercel.app
 TOKEN=$(curl -s -X POST $B/api/auth/login -H 'Content-Type: application/json' -d '{"email":"you@example.com","password":"…"}' | jq -r .token)
 curl -s -X POST $B/api/leads -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"name":"Ravi Kumar","email":"ravi@example.com","phone":"+91 90000 00000","source":"Website","notes":"3 listings in Baner","followUp":{"in_days":3,"message":"Check if Ravi saw the proposal"}}'
+  -d '{"name":"Ravi Kumar","email":"ravi@example.com","phone":"+91 90000 00000","source":"Website","notes":"Agency owner, wants WhatsApp lead follow-ups for 5 clients","followUp":{"in_days":3,"message":"Check if Ravi saw the proposal"}}'
 curl -s "$B/api/leads?status=new&limit=20" -H "Authorization: Bearer $TOKEN"
 curl -s -X PATCH $B/api/leads/1 -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"status":"Contacted","score":"Hot"}'
 curl -s -X DELETE $B/api/leads/1 -H "Authorization: Bearer $TOKEN"

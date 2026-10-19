@@ -27,14 +27,14 @@ test('POST/GET/PATCH/DELETE /api/leads: per-customer, deduped, visible in the wo
     const B = (await req(s, 'POST', '/api/auth/signup', { email: 'lb@example.com', name: 'LB', password: PW })).d.token;
     assert.equal((await req(s, 'POST', '/api/leads', { name: 'Ravi', email: 'ravi@example.com' })).status, 401);
     assert.equal((await req(s, 'POST', '/api/leads', { email: 'ravi@example.com' }, A)).status, 400);
-    const c = await req(s, 'POST', '/api/leads', { name: 'Ravi Kumar', email: 'ravi@example.com', phone: '+91 90000 00000', source: 'Website', notes: 'Wants 3 listings promoted', followUp: { in_days: 3, message: 'Check if Ravi saw the proposal' } }, A);
+    const c = await req(s, 'POST', '/api/leads', { name: 'Ravi Kumar', email: 'ravi@example.com', phone: '+91 90000 00000', source: 'Website', notes: 'Wants WhatsApp follow-ups for 5 agency clients', followUp: { in_days: 3, message: 'Check if Ravi saw the proposal' } }, A);
     assert.equal(c.status, 200); assert.equal(c.d.created, true); assert.equal(c.d.lead.id, 1); assert.equal(c.d.lead.status, 'New'); assert.equal(c.d.lead.name, 'Ravi Kumar');
     assert.ok(c.d.followUp.routine_id); assert.ok(c.d.followUp.next > Date.now() + 2.9 * 864e5);
     const rts = await req(s, 'GET', '/api/routines', undefined, A); assert.equal(rts.d.routines[0].every, 0); assert.match(rts.d.routines[0].prompt, /do not send/i);
     // dedupe on email (case-insensitive) and on phone digits
     const d1 = await req(s, 'POST', '/api/leads', { name: 'R', email: 'RAVI@example.com' }, A); assert.equal(d1.status, 409); assert.equal(d1.d.error, 'duplicate'); assert.equal(d1.d.lead.id, 1);
     const d2 = await req(s, 'POST', '/api/leads', { name: 'R', phone: '+919000000000' }, A); assert.equal(d2.status, 409);
-    const up = await req(s, 'POST', '/api/leads', { name: 'Ravi Kumar', email: 'ravi@example.com', score: 'Hot', upsert: true }, A); assert.equal(up.d.created, false); assert.equal(up.d.lead.score, 'Hot'); assert.equal(up.d.lead.notes, 'Wants 3 listings promoted');
+    const up = await req(s, 'POST', '/api/leads', { name: 'Ravi Kumar', email: 'ravi@example.com', score: 'Hot', upsert: true }, A); assert.equal(up.d.created, false); assert.equal(up.d.lead.score, 'Hot'); assert.equal(up.d.lead.notes, 'Wants WhatsApp follow-ups for 5 agency clients');
     await req(s, 'POST', '/api/leads', { name: 'Asha', email: 'asha@example.com', source: 'Referral' }, A);
     // the lead lives where the web app's CRM keeps it
     const kv = await req(s, 'GET', '/api/kv', undefined, A); const ws = JSON.parse(kv.d.items.find((i) => i.k === 'as_data:la@example.com').v);
