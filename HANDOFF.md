@@ -1,5 +1,11 @@
 # AIdentify handoff
 
+## v1.13.0 security: tenant isolation + remote browser lock-down (20 Oct 2026), staging only
+- Branch `security-v1.13.0` (on top of `agents-v1.12.0`), not pushed, not on prod.
+- Cross-tenant tests for every customer route: `test/tenant-isolation.test.mjs`.
+- `REMOTE_BROWSER=on` is now needed to use the remote browser on a self-hosted box (the owner's local box needs it added to `.env` after upgrading). It is always off on Vercel.
+- Billing/Razorpay shelved (no GSTIN). Early customers get manual invoices.
+
 ## v1.12.0 agent activity (20 Oct 2026, ~12:45 AM IST), staging only
 - Branch `agents-v1.12.0` (on top of `auth-v1.11.0`), not pushed, not on prod.
 - New `lib/activity.js`: live run record `as_run:<email>:<runId>` (10-minute life) and per-agent history `as_act:<email>` (last 10 runs, last 5 errors).
@@ -7,7 +13,7 @@
 - Tests: `test/activity.test.mjs`, plus an e2e check. Staging: https://aidentify-staging.vercel.app
 
 ## v1.11.0 sign-in fixes (19 Oct 2026, ~late night IST)
-- The owner decided we fix things ourselves instead of the team. Billing moves to v1.12.0.
+- The owner decided we fix things ourselves instead of the team. Billing is shelved (see v1.13.0 note).
 - Branch `auth-v1.11.0` (off v1.10.0 `dc3ed28`) is local only. It is deployed to **staging only**, not to `aidentify-demo`.
 - It adds one sign-in screen with tabs, show/hide on every password box, live password rules, friendlier lockout messages, and password reset (`lib/pwreset.js`, `POST /api/auth/forgot`, `POST /api/auth/reset-password`, links look like `/#as_reset=<token>`).
 - Reset emails go through `sendSystemEmail` (lib/mailer.js), which needs `GMAIL_USER` + `GMAIL_APP_PASSWORD` (optionally `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` for another provider) and `APP_URL` for the link. Neither the demo nor staging has these set, so the screen says reset emails aren't switched on yet.
@@ -119,7 +125,7 @@ These screenshots were taken from a local test server with made-up data (no real
 The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4 (storage and tests) in v1.5.0.
 
 - **Step 2, hosted demo:** **live** on Vercel Hobby (18 Oct 2026). Demo at https://aidentify-demo.vercel.app; marketing waitlist at https://aidentify.vercel.app. Neon schema `demo`; shared OpenRouter key with in-app $10 soft cap + customer BYOK; Google login hidden until OAuth is configured. Still open on this step: link the GitHub repo to Vercel (CLI deploy only today), and wire Google / email-code sign-in when ready.
-- **Step 3, payments (Razorpay):** waiting for Phanindra's inputs. A webhook signature checker (`lib/billing.js`) and its tests exist; no payment route yet.
+- **Step 3, payments (Razorpay):** shelved on 20 Oct 2026 (no GSTIN). Early customers are invoiced manually. `lib/billing.js` stays unused.
 - More of the launch list after the demo, such as onboarding polish and priced plans (not started).
 - Step 1 follow-ups: see "Known issues".
 

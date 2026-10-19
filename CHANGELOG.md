@@ -5,6 +5,18 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.13.0] - unreleased (on staging only)
+
+### Security
+- **Customers are kept strictly apart.** We checked every API route and added tests that sign in as one customer and try to read, change or delete another customer's leads, routines, approvals, memories, chats, activity and settings. All of it is refused.
+- **Shared admin settings are staff-only.** A customer could set the plans and payment-gateway name before an admin had saved them. Now a customer can only add their own payments.
+- **The owner's signed-in browser is only for the owner.** Before, another account's research or browser agent could use the owner's signed-in browser profile. Other accounts now always get a fresh, empty browser.
+- **The remote browser is off by default.** It needs `REMOTE_BROWSER=on` on a self-hosted server and is always off on the hosted version. It stays owner/admin only, with time limits and an audit log.
+- **Deleting an account also deletes its agent activity history.**
+
+### Changed
+- Billing (Razorpay and GST invoices) is shelved until there is a GSTIN. Early customers are invoiced manually.
+
 ## [1.12.0] - unreleased (on staging only)
 
 ### Added

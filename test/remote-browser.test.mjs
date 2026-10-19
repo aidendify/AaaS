@@ -8,6 +8,7 @@ import path from 'node:path';
 test('remote browser: hard max session, rate limit and audit log exist and are configurable', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aidentify-rb-'));
   process.env.AIDENTIFY_DATA_DIR = dir;
+  process.env.REMOTE_BROWSER = 'on';
   process.env.REMOTE_BROWSER_MAX_MIN = '30';
   process.env.REMOTE_BROWSER_OPENS_PER_HOUR = '1';
   process.env.REMOTE_BROWSER_TUNNEL = 'invalid-for-test'; // fails before any process is started
