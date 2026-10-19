@@ -32,7 +32,7 @@ test('every customer route is scoped to the signed-in account', async () => {
     const kv = await s.api('/api/kv', undefined, B);
     assert.doesNotMatch(JSON.stringify(kv.d), /A-ONLY-SECRET|ta@example\.com/);
     assert.equal((await req(s, 'PUT', '/api/kv', { k: 'as_data:ta@example.com', v: JSON.stringify({ agents: [] }) }, B)).status, 403);
-    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_tl:ta@example.com', 'as_trks:ta@example.com', 'as_vis:ta@example.com', 'as_settings'])
+    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_tl:ta@example.com', 'as_trks:ta@example.com', 'as_vis:ta@example.com', 'as_wf:ta@example.com', 'as_wfr:ta@example.com', 'as_settings'])
       assert.equal((await req(s, 'PUT', '/api/kv', { k, v: '[]' }, B)).status, 400, k);
     assert.equal((await s.api('/api/leads', undefined, B)).d.leads.length, 0);
     assert.equal((await req(s, 'GET', '/api/leads/' + lead.id, undefined, B)).status, 404);
@@ -57,6 +57,13 @@ test('every customer route is scoped to the signed-in account', async () => {
     assert.equal((await s.api('/api/agents/inbox', undefined, B)).d.items.length, 0);
     assert.equal((await s.api('/api/agents/run?id=run-a-0001', undefined, B)).d.run, null);
     assert.equal((await s.api('/api/agents/status', undefined, B)).d.agents.length, 1);
+    const wf = await s.api('/api/workflows/compile', { text: 'When a new lead comes from LinkedIn, tag them, draft a welcome email, and remind me in 2 days if no reply' }, A);
+    assert.equal(wf.status, 200, JSON.stringify(wf.d));
+    assert.equal((await s.api('/api/workflows', undefined, B)).d.workflows.length, 0);
+    assert.equal((await s.api('/api/workflows/' + wf.d.workflow.id, undefined, B)).status, 404);
+    assert.equal((await s.api('/api/workflows/update', { id: wf.d.workflow.id, status: 'enabled' }, B)).status, 404);
+    assert.equal((await s.api('/api/workflows/delete', { id: wf.d.workflow.id }, B)).status, 404);
+    assert.equal((await s.api('/api/workflows', undefined, A)).d.workflows.length, 1);
     assert.equal((await s.api('/api/pub/events', undefined, B)).d.events.length, 0);
     const bc = await s.api('/api/workplace/chat', { message: 'what is the secret pricing? A-ONLY-SECRET', agent_id: 1 }, B);
     assert.equal(bc.status, 404, 'B cannot talk to A\'s agent id');

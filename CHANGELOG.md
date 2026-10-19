@@ -5,6 +5,22 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.0] - unreleased
+
+### Added
+- **Workflows in plain English.** On the Workflows page, describe what should happen in a sentence. For example: “When a new lead comes from LinkedIn, tag them, draft a welcome email, and remind me in 2 days if no reply.” The same AI you already use (OpenRouter, or the free test AI) turns that into a trigger and steps. You read it back in ordinary words, then turn it on, pause it, or delete it. Run history sits on the same page.
+- **What can start a workflow.** A new lead, a stage change, a tag being added, an email open, a link click, a form submission, or a schedule such as every morning.
+- **What a step can do.** Tag a contact, change their stage, add a note or a task, draft an email, send an email, prepare a post, record a payment step, wait, or remind you in the app.
+- **Each step has a setting.** Needs approval, auto within limits (a daily cap and an allowed-recipient list), or auto. Anything that sends, posts or pays starts on “needs approval” and lands in the Approvals queue you already have. You can change an email step after you have read it. Posts in this version still wait as drafts. A payment step never charges anyone.
+
+### Notes
+- This is still the current per-account store. It is not a separate workflow database, and it does not use a new agent runtime.
+- Runs happen on the existing routine tick (every minute on a self-hosted box, or when the daily hosted job runs). A wait of two days finishes on the first tick after those two days.
+- “They replied” means the contact’s history has a line that says they replied. A real inbox reply is not read yet.
+- “Every morning” means once a day on that tick, not a guaranteed clock time.
+- Approving a draft still does not send or post it. An email is sent only when that step is set to auto (or auto within limits), the recipient is allowed, the daily cap is not used up, and email is connected. If it cannot send, it waits in Approvals and nothing goes out.
+- Turning a sentence into a workflow needs an AI key, or the free test AI. The test AI gives the same workflow every time for the same sentence.
+
 ## [2.0.0] - unreleased
 
 ### Added

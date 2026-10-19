@@ -1,5 +1,22 @@
 # AIdentify handoff
 
+## v2.1.0 plain-English workflows (19 Oct 2026), not deployed
+- Branch `cursor/plain-english-workflows-b818`, based on `cursor/v2-timeline-tracking-e476`. package.json version is 2.1.0. Not on staging or prod. Do not merge to main from this branch.
+- This is pillar 3 of the AI-first plan, on the current per-account store. It is not the v2.1 queue-and-worker from docs/TEAM-HANDOVER.md, and it is not a LangGraph engine. The existing OpenRouter path (and the mock AI path) compiles the sentence. Runs go through the existing routines tick.
+- **Workflows.** `lib/workflows.js`. `POST /api/workflows/compile`, `GET /api/workflows`, `GET /api/workflows/:id`, `POST /api/workflows/update`, `POST /api/workflows/delete`. The Workflows page lets a customer write a sentence, read the steps in plain words, set each step to needs approval / auto within limits / auto, then enable, pause, or delete it, and see run history.
+- **Triggers.** New lead (optional source, such as LinkedIn), stage change, tag added, email open, email click, form submit, schedule.
+- **Steps.** Tag, stage, note, task, draft email, send email, post, payment, wait, remind the owner in the app. Send, post and pay start as needs approval and use the existing Approvals queue. A payment is never taken. A post in this version is a draft. An email is sent only after the customer changes that step and the limits pass, and only if email is connected.
+- Storage: `as_wf:<email>` (the workflows) and `as_wfr:<email>` (the runs). Both are removed when the account is deleted, and neither is readable through `/api/kv`.
+- A run writes a workflow line on the contact timeline and a Workflows row in agent activity.
+- Tests: `test/v210-workflows.test.mjs`, plus workflow checks in `test/tenant-isolation.test.mjs`. Customer B cannot read or change customer A’s workflows. The mock AI path returns the same workflow for the same sentence. `npm test`: 65 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- No LangGraph, no separate job queue, no “wait until they click” beyond the simple “no reply” check (a history line that says they replied).
+- The hosted tick is still once a day unless an outside pinger is set, so a two-day wait finishes on the next tick after it is due, not at that minute.
+- “Every morning” is once per day on that tick, not a clock time.
+- Tracking is still not added to an email by itself. Opens and clicks start a workflow only after tracking was put on a draft.
+- Auto-send needs the customer to change the step. If email is not connected, the step waits in Approvals and nothing is sent.
+
 ## v2.0.0 timeline + tracking (19 Oct 2026), not deployed
 - Branch `cursor/v2-timeline-tracking-e476`, based on `deploy-v1.15.0`. package.json version is 2.0.0. Not on staging or prod.
 - This slice is pillars 1 and 2 of the AI-first plan, on the current per-account store. It is not the full v2.0 in docs/TEAM-HANDOVER.md (organisations, memberships, relational tables, row-level security, blob migration, dual-read, typed CRM tools).

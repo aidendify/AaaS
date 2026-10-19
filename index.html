@@ -682,6 +682,9 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
 .crm-tl{list-style:none;margin:8px 0 0;padding:0}.crm-tl li{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .crm-k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
 .crm-form{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.crm-form input,.crm-form select{flex:1;min-width:140px}
+.wf-box{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}.wf-box textarea{width:100%;min-height:96px;font:inherit;padding:10px 12px}
+.wf-step{display:grid;grid-template-columns:1fr minmax(200px,280px);gap:10px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+@media(max-width:700px){.wf-step{grid-template-columns:1fr}}
 @media(max-width:900px){
   .side{background:var(--page)!important;border-bottom:1px solid var(--line)}
   .nav-i.on{box-shadow:none!important}
@@ -922,7 +925,7 @@ function renderTab(){
   if(isStaff())h=adminHtml();
   else if(tab==='Agents')h=`<div class="sec first"><h2>Agents</h2><button class="btn dk" data-act="newAgent">${ic('plus',18)} New agent</button></div>${cards()}`;
   else if(tab==='Groups')h=`<iframe src="/board.html" title="Groups and task boards" style="width:100%;height:calc(100vh - 140px);border:0;border-radius:12px;background:#fff"></iframe>`;
-  else if(tab==='Workflows')h=`<div class="sec first"><h2>Workflows</h2></div>`+(tasks.length?`<ul class="rows">${tasks.map(t=>`<li><div><b>${esc(t.p)}</b><small>${esc(t.a)}${t.w?' · '+new Date(t.w).toLocaleString():''}</small></div><span class="pill ${tPill(t)}">${tLabel(t)}</span><time>${ago(t.at)}</time>${t.out||t.err?`<button class="btn dk sm" data-act="tview" data-rid="${t.id}">View result</button>`:''}<button class="btn gh sm" data-act="trerun" data-rid="${t.id}">Run again</button><button class="btn gh sm dnb" data-act="tdel" data-rid="${t.id}">Delete</button></li>`).join('')}</ul>`:'<div class="empty">No workflows yet. Run or schedule a task from the Dashboard.</div>');
+  else if(tab==='Workflows')h=`<div class="sec first"><h2>Workflows</h2><p class="muted">Describe what should happen, in one sentence. You read it back in plain words before it runs. Anything that sends, posts or pays waits in Approvals.</p></div><div id="wfPage"><p class="muted">Loading…</p></div>`+(tasks.length?`<h3 class="sh">Scheduled tasks</h3><ul class="rows">${tasks.map(t=>`<li><div><b>${esc(t.p)}</b><small>${esc(t.a)}${t.w?' · '+new Date(t.w).toLocaleString():''}</small></div><span class="pill ${tPill(t)}">${tLabel(t)}</span><time>${ago(t.at)}</time>${t.out||t.err?`<button class="btn dk sm" data-act="tview" data-rid="${t.id}">View result</button>`:''}<button class="btn gh sm" data-act="trerun" data-rid="${t.id}">Run again</button><button class="btn gh sm dnb" data-act="tdel" data-rid="${t.id}">Delete</button></li>`).join('')}</ul>`:'');
   else if(tab==='Requests'||tab==='Quotes'){loadReqs();loadA();const team=isTeam();const L=reqs.filter(r=>team||r.by===user.email);
     h=`<div class="sec first"><h2>${team?'Quote requests':'My requests'}</h2>${team?'':`<button class="btn dk" data-act="newReq">${ic('plus',18)} New request</button>`}</div>`+(L.length?`<div class="reqs">${L.map(r=>reqCard(r,team)).join('')}</div>`:`<div class="empty">${team?'No requests yet.':'No requests yet. Use “Request custom agent” to send your first one.'}</div>`)}
   else if(tab==='Billing'){loadReqs();loadA();h=billHtml()}
@@ -933,6 +936,7 @@ function renderTab(){
   else h=`<div class="sec first"><h2>${tab}</h2></div><div class="empty">${tab} isn’t set up yet.</div>`;
   $('#otherView').innerHTML=h;if(document.body.classList.contains('anim'))countUp();
   if(tab==='Contacts'&&!isStaff())crmPage();
+  if(tab==='Workflows'&&!isStaff())wfPage();
   if(tab==='My Workplace'&&!isStaff()){wpBind();wpSetBind();if(wlKeep!=null)$('#wpLog').scrollTop=wlKeep;
     if(wfo&&wfo.n){const el=$('#wpEd [name='+wfo.n+']');if(el){el.focus({preventScroll:true});try{if(wfo.st!=null)el.setSelectionRange(wfo.st,wfo.en)}catch(x){}}}}
 }
@@ -987,6 +991,9 @@ document.addEventListener('click',e=>{
   if(act==='close')$('#modal').innerHTML='';
   else if(act==='crmOpen'){crmId=Number(t.dataset.rid);renderTab();return}
   else if(act==='crmBack'){crmId=null;renderTab();return}
+  else if(act==='wfOpen'){wfId=String(t.dataset.rid||'');renderTab();return}
+  else if(act==='wfBack'){wfId=null;renderTab();return}
+  else if(act==='wfEnable'||act==='wfPause'){wfSet(String(t.dataset.rid||''),act==='wfEnable'?'enabled':'paused');return}
   else if(act==='newAgent')newAgent();
   else if(act==='sugg')runTask(t.dataset.p);
   else if(act==='profile'){$('#userPop').classList.add('hide');profile()}
@@ -1052,7 +1059,7 @@ const submitPrompt=()=>{const i=$('#promptIn');if(!i.value.trim())return i.focus
 $('#promptForm').onsubmit=e=>{e.preventDefault();submitPrompt()};
 $('#promptIn').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitPrompt()}};
 $('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();if(tab!=='Dashboard'&&tab!=='Agents'){tab='Agents';renderStatic()}refresh()};
-setInterval(()=>{renderBell();if(tab==='Analytics'||tab==='Workflows')renderTab()},60000);
+setInterval(()=>{renderBell();if(tab==='Analytics')renderTab()},60000);
 (function(){
   const bb=$('#bubble');let T=[];
   window.perform=function(name,task,id){
@@ -1384,7 +1391,7 @@ const fmt=(v,c)=>new Intl.NumberFormat(c==='USD'?'en-US':'en-IN',{style:'currenc
 const PAGES={admin:null,pricing:['Overview','Quote requests','Plans & pricing','Settings']};
 const ATABS=[['Overview','grid'],['Customers','users'],['Quote requests','tag'],['Plans & pricing','target'],['Payments','card'],['Agents & usage','bot'],['Support','chat'],['Team & roles','users'],['Settings','gear']];
 // customers: Dashboard and My Workplace stay in the sidebar; the other pages live in the profile menus
-const SIDE_KEEP=['Dashboard','My Workplace','Contacts'];
+const SIDE_KEEP=['Dashboard','My Workplace','Contacts','Workflows'];
 const sideTabs=()=>isStaff()?tabsFor():tabsFor().filter(t=>SIDE_KEEP.includes(t[0]));
 const menuTabs=()=>isStaff()?[]:tabsFor().filter(t=>t[0]!=='Settings');
 const navGridHtml=(act,skip)=>{const L=menuTabs().filter(t=>t[0]!==skip);return L.length?`<div class="nav-grid" role="group" aria-label="Pages">${L.map(([t,i])=>`<button type="button" role="menuitem" class="${t===tab?'on':''}" data-act="${act}" data-go="${t}">${ic(i,16)}<span>${t}</span>${cnt(t)}</button>`).join('')}</div>`:''};
@@ -2846,8 +2853,8 @@ async function apprPanel(){const box=ovBox('apprOv','Approvals');box('<p>Loading
     const c=o.querySelector('[data-clear]');if(c)c.onclick=async()=>{if(!confirm('Clear decided items from history? Waiting items stay.'))return;try{const r=await SYNC.api('/api/agents/approvals/clear',{});say(r.cleared+' cleared')}catch(e){say(e.message)}load()}};
   load()}
 // Contacts: one timeline per lead, plus a small dashboard (leads by source, stage conversion). Nothing here sends.
-let crmId=null,crmSeq=0;
-const CRM_KIND={history:'Update',note:'Note',stage:'Stage',email:'Email',draft:'Draft',approval:'Approval',agent:'Agent',task:'Task',visit:'Visit',open:'Opened',click:'Click',form:'Form'};
+let crmId=null,crmSeq=0,wfId=null,wfSeq=0;
+const CRM_KIND={history:'Update',note:'Note',stage:'Stage',email:'Email',draft:'Draft',approval:'Approval',agent:'Agent',task:'Task',visit:'Visit',open:'Opened',click:'Click',form:'Form',workflow:'Workflow'};
 function crmWhen(t){try{return new Date(t).toLocaleString()}catch(e){return ''}}
 function crmCards(d){
   const top=(d.by_source&&d.by_source[0])||{source:'—',count:0};
@@ -2888,6 +2895,42 @@ async function crmPage(){
     $('#crmNote').onsubmit=async e=>{e.preventDefault();const text=String(new FormData(e.target).get('text')||'').trim();if(!text)return;try{await SYNC.api('/api/leads/'+crmId+'/notes',{text});say('Note saved');await SYNC.reload();crmPage()}catch(err){say(err.message||'Could not save the note')}};
     $('#crmTask').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);try{await SYNC.api('/api/leads/'+crmId+'/tasks',{title:fd.get('title'),due:fd.get('due')||undefined});say('Task added. Nothing was sent.');await SYNC.reload();crmPage()}catch(err){say(err.message||'Could not add the task')}};
   }catch(e){if(seq===crmSeq&&host)host.innerHTML='<div class="empty">'+esc(e.message||'Could not load contacts.')+'</div>'}
+}
+const WF_AUTO={needs_approval:'Needs approval',auto_within_limits:'Auto within limits',auto:'Auto'};
+function wfLimits(step){
+  if(!step||step.autonomy!=='auto_within_limits')return '';
+  const lim=step.limits||{daily_cap:10,allowed_recipients:['lead']};
+  return '<label class="muted">Daily cap <input data-cap="'+esc(step.id)+'" type="number" min="0" max="500" value="'+(Number(lim.daily_cap)||0)+'" aria-label="Daily cap for '+esc(step.type)+'"></label><label class="muted">Allowed recipients <input data-rec="'+esc(step.id)+'" value="'+esc((lim.allowed_recipients||[]).join(', '))+'" aria-label="Allowed recipients" placeholder="lead, @youragency.com"></label>';
+}
+async function wfSet(id,status){try{await SYNC.api('/api/workflows/update',{id,status});say(status==='enabled'?'Workflow on':'Workflow paused');wfPage()}catch(e){say(e.message||'Could not update the workflow')}}
+async function wfPage(){
+  const host=$('#wfPage');if(!host)return;
+  if(!SYNC.token){host.innerHTML='<div class="empty">Sign in to build a workflow.</div>';return}
+  const seq=++wfSeq;
+  try{
+    if(!wfId){
+      const list=await SYNC.api('/api/workflows');
+      if(seq!==wfSeq||tab!=='Workflows')return;
+      const rows=(list.workflows||[]).map(w=>'<li><div><b>'+esc(w.name)+'</b><small>'+esc(String(w.plain||'').split('\n')[0])+'</small></div><span class="pill">'+esc(w.status)+'</span><button type="button" class="btn gh sm" data-act="wfOpen" data-rid="'+esc(w.id)+'">Review</button>'+(w.status==='enabled'?'<button type="button" class="btn gh sm" data-act="wfPause" data-rid="'+esc(w.id)+'">Pause</button>':'<button type="button" class="btn dk sm" data-act="wfEnable" data-rid="'+esc(w.id)+'">Enable</button>')+'</li>').join('');
+      host.innerHTML='<form class="wf-box" id="wfNew"><label for="wfText">Describe a workflow</label><textarea id="wfText" name="text" required maxlength="2000" placeholder="When a new lead comes from LinkedIn, tag them, draft a welcome email, and remind me in 2 days if no reply"></textarea><p class="muted">For agencies and email marketers. Example: a new LinkedIn lead is tagged, a welcome email is drafted for your approval, and you are reminded if they do not reply.</p><button class="btn dk">Turn this into a workflow</button></form>'+(rows?'<ul class="rows">'+rows+'</ul>':'<div class="empty">No workflows yet. Try the LinkedIn welcome sentence above.</div>');
+      const form=$('#wfNew');if(form)form.onsubmit=async e=>{e.preventDefault();const text=$('#wfText').value.trim();if(!text)return;try{const r=await SYNC.api('/api/workflows/compile',{text});say('Read it back, then enable it');wfId=r.workflow&&r.workflow.id;wfPage()}catch(err){say(err.message||'Could not read that sentence')}};
+      return}
+    const one=await SYNC.api('/api/workflows/'+encodeURIComponent(wfId));
+    if(seq!==wfSeq||tab!=='Workflows')return;
+    const w=one.workflow||{}, runs=one.runs||[];
+    const steps=(w.steps||[]).map(s=>'<div class="wf-step"><div><b>'+esc(s.plain||s.type)+'</b></div><div><label class="muted">Autonomy <select data-auto="'+esc(s.id)+'" aria-label="Autonomy for '+esc(s.type)+'">'+['needs_approval','auto_within_limits','auto'].map(k=>'<option value="'+k+'"'+(s.autonomy===k?' selected':'')+'>'+WF_AUTO[k]+'</option>').join('')+'</select></label>'+wfLimits(s)+'</div></div>').join('');
+    const hist=runs.map(r=>'<li><div><span class="crm-k">'+esc(r.status)+'</span><br><small class="muted">'+esc(crmWhen(r.at))+'</small></div><div><b>'+esc(r.event||r.name||'')+'</b><div class="muted">'+esc((r.log||[]).map(l=>l.detail||l.result).filter(Boolean).join(' · '))+'</div></div></li>').join('');
+    host.innerHTML='<p><button type="button" class="btn gh sm" data-act="wfBack">All workflows</button> '+(w.status==='enabled'?'<button type="button" class="btn gh sm" data-act="wfPause" data-rid="'+esc(w.id)+'">Pause</button>':'<button type="button" class="btn dk sm" data-act="wfEnable" data-rid="'+esc(w.id)+'">Enable</button>')+' <button type="button" class="btn gh sm" id="wfDel">Delete</button></p><h3>'+esc(w.name||'Workflow')+'</h3><p class="muted">Status: '+esc(w.status||'')+'. You wrote: '+esc(w.prompt||'')+'</p><div class="card" style="white-space:pre-wrap;padding:14px">'+esc(w.plain||'')+'</div><h3 class="sh">Steps</h3>'+steps+'<h3 class="sh">Run history</h3>'+(hist?'<ul class="crm-tl">'+hist+'</ul>':'<p class="muted">No runs yet. Enable it, then it runs on the next routine tick after the trigger.</p>');
+    host.querySelectorAll('[data-auto]').forEach(sel=>sel.onchange=async()=>{
+      const stepId=sel.getAttribute('data-auto'), autonomy=sel.value, step=(w.steps||[]).find(x=>x.id===stepId)||{};
+      if((step.type==='send_email'||step.type==='social_post'||step.type==='pay')&&autonomy!=='needs_approval'&&!confirm('This can send, post or pay. Payments are never charged from here, and posts still wait in Approvals. Continue?')){sel.value=step.autonomy||'needs_approval';return}
+      try{await SYNC.api('/api/workflows/update',{id:w.id,step:{id:stepId,autonomy}});say('Step updated');wfPage()}catch(err){say(err.message||'Could not update the step')}});
+    host.querySelectorAll('[data-cap],[data-rec]').forEach(inp=>inp.onchange=async()=>{
+      const id=inp.getAttribute('data-cap')||inp.getAttribute('data-rec');
+      const cap=host.querySelector('[data-cap="'+id+'"]'), rec=host.querySelector('[data-rec="'+id+'"]');
+      try{await SYNC.api('/api/workflows/update',{id:w.id,step:{id,limits:{daily_cap:cap?Number(cap.value):10,allowed_recipients:rec?rec.value:'lead'}}});say('Limits saved');wfPage()}catch(err){say(err.message||'Could not save the limits')}});
+    const del=$('#wfDel');if(del)del.onclick=async()=>{if(!confirm('Delete this workflow and its run history?'))return;try{await SYNC.api('/api/workflows/delete',{id:w.id});say('Workflow deleted');wfId=null;wfPage()}catch(err){say(err.message||'Could not delete the workflow')}};
+  }catch(e){if(seq===wfSeq&&host)host.innerHTML='<div class="empty">'+esc(e.message||'Could not load workflows.')+'</div>'}
 }
 // Leads CSV: export everything, import with a dry run first
 async function csvPanel(){const box=ovBox('csvOv','Leads: fields, stages, CSV');if(!SYNC.token){box('<p>Sign in first.</p>');return}
