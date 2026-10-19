@@ -165,6 +165,9 @@ body.locked .topbar,body.locked .shell{display:none}
 .pop.um button{display:flex;align-items:center;gap:10px;background:none;border:0;padding:9px 10px;border-radius:8px;text-align:left}.pop.um button:hover{background:var(--soft)}.pop.um .dn{color:var(--err)}
 .pw{position:relative;display:block}.pw input{padding-right:42px!important}.pw .ib{position:absolute;right:4px;top:50%;transform:translateY(-50%)}
 .chk{display:flex!important;align-items:center;gap:8px!important;font-weight:400!important;font-size:13px}
+.atabs{display:flex;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--bd)}.atabs button{flex:1;padding:8px 0;background:none;border:0;border-bottom:2px solid transparent;font-size:13px;color:var(--mute2,#666)}.atabs button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.pwrules{list-style:none;margin:8px 0 0;padding:0;font-size:12.5px;color:#666}.pwrules li::before{content:'○ ';}.pwrules li.ok{color:#1B7F3B}.pwrules li.ok::before{content:'✓ '}.pwrules li.bad{color:#B3262A}.pwrules li.bad::before{content:'✗ '}
+.okmsg{margin:0;color:#1B5E20;font-size:13px;background:#EAF6EC;border:1px solid #C6E6CC;padding:8px 10px;border-radius:8px}
 .err{margin:0;color:#B3262A;font-size:13px;background:#FDECEC;border:1px solid #F4C7C9;padding:8px 10px;border-radius:8px}
 .auth{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:20px;background:var(--page);overflow:auto}
 .ms-card{width:100%;max-width:440px;background:var(--bg);padding:44px;box-shadow:0 2px 6px rgba(0,0,0,.2);min-height:300px}
@@ -734,6 +737,7 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
   <div class="ms-card">
     <div class="ms-logo"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.5"/><ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.5" transform="rotate(-32 16 16)"/><circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/></svg><span>AIdentify</span></div>
     <form id="authForm" novalidate>
+      <div class="atabs" id="aTabs" role="tablist" aria-label="Account"><button type="button" role="tab" data-t="in">Sign in</button><button type="button" role="tab" data-t="up">Create account</button><button type="button" role="tab" data-t="fp">Forgot password</button></div>
       <div id="stepEmail">
         <div class="seg" id="roleSeg" role="group" aria-label="Sign in as"><button type="button" class="on" data-r="user">User</button><button type="button" data-r="admin">Admin</button></div>
         <h2 id="aTitle">Sign in</h2>
@@ -757,7 +761,19 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
         <input id="aName" class="ms-in hide" autocomplete="name" placeholder="Full name" aria-label="Full name">
         <input id="aBiz" class="ms-in hide" autocomplete="organization" maxlength="300" placeholder="Your business in one line (optional), e.g. Social media for Pune realtors" aria-label="Your business in one line (optional)">
         <span class="pw"><input id="aPass" type="password" class="ms-in" autocomplete="current-password" placeholder="Password" aria-label="Password"><button type="button" class="ib" id="pwBtn" aria-label="Show password"></button></span>
+        <ul class="pwrules hide" id="aRules" aria-live="polite"><li data-r="len">At least 8 characters</li><li data-r="easy">Not a common or easy-to-guess password (like password123)</li></ul>
+        <p class="ms-sm" id="aForgotLine"><button type="button" class="link" id="aForgot">Forgot password?</button></p>
         <label class="chk"><input type="checkbox" id="aRem" checked> Keep me signed in</label>
+      </div>
+      <div id="stepSent" class="hide">
+        <h2>Check your email</h2>
+        <p class="okmsg" id="aSentMsg" role="status"></p>
+        <p class="ms-sm"><button type="button" class="link" id="aSentBack">Back to sign in</button></p>
+      </div>
+      <div id="stepReset" class="hide">
+        <h2>Set a new password</h2>
+        <span class="pw"><input id="aNew" type="password" class="ms-in" autocomplete="new-password" placeholder="New password" aria-label="New password"><button type="button" class="ib" id="pwBtn2" aria-label="Show password"></button></span>
+        <ul class="pwrules" id="aRules2" aria-live="polite"><li data-r="len">At least 8 characters (12 for staff accounts)</li><li data-r="easy">Not a common or easy-to-guess password (like password123)</li></ul>
       </div>
       <p class="err hide" id="aErr" role="alert"></p>
       <div class="ms-act"><button class="btn dk" id="aBtn">Next</button></div>
@@ -1184,21 +1200,22 @@ function signOut(){
 function setMode(m){
   mode=m;const up=m==='up';
   if(up)loginAs='user';setSeg();
-  $('#aSwapLine').innerHTML=up?'Already have an account? <button type="button" class="link" id="aSwap">Sign in</button>':'No account? <button type="button" class="link" id="aSwap">Create one!</button>';
-  $('#aSwap').onclick=()=>setMode(mode==='in'?'up':'in');
+  document.querySelectorAll('#aTabs button').forEach(b=>{b.classList.toggle('on',b.dataset.t===m);b.setAttribute('aria-selected',b.dataset.t===m)});
+  $('#aSwapLine').innerHTML='';
   setStep(1);
 }
 function setSeg(){
   const up=mode==='up';$('#roleSeg').classList.toggle('hide',up);
   document.querySelectorAll('#roleSeg button').forEach(b=>b.classList.toggle('on',b.dataset.r===loginAs));
-  $('#aTitle').textContent=up?'Create account':(loginAs==='admin'?'Admin sign in':'Sign in');
+  const fp=mode==='fp';$('#roleSeg').classList.toggle('hide',up||fp);
+  $('#aTitle').textContent=up?'Create account':fp?'Reset your password':(loginAs==='admin'?'Admin sign in':'Sign in');
   $('#aSwapLine').style.display=(!up&&loginAs==='admin')?'none':'';
   altShow();
 }
 // Google / email-code sign-in (customers, server mode only)
 let authProv=null;
 async function altShow(){const box=$('#aAlt');if(!box)return;
-  if(loginAs==='admin'||(await SYNC.mode())!=='server'){box.classList.add('hide');return}
+  if(loginAs==='admin'||mode==='fp'||(await SYNC.mode())!=='server'){box.classList.add('hide');return}
   if(!authProv){try{authProv=await SYNC.api('/api/auth/providers')}catch(e){authProv={google:false,email:false}}}
   // only the methods that are set up on this server: no dead "Continue with Google" before GOOGLE_CLIENT_ID is configured
   $('#aGoogle').classList.toggle('hide',!authProv.google);$('#aCodeBtn').classList.toggle('hide',!authProv.email);
@@ -1229,8 +1246,11 @@ async function authDone(r,email,rem){
 $('#roleSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;loginAs=b.dataset.r;setSeg();err('')};
 function setStep(n){
   step=n;const up=mode==='up';err('');
-  $('#stepEmail').classList.toggle('hide',n!==1);$('#stepPass').classList.toggle('hide',n!==2);$('#stepCode').classList.toggle('hide',n!==3);
-  $('#aBtn').textContent=n===1?'Next':n===3?'Verify':(up?'Create account':'Sign in');
+  $('#stepEmail').classList.toggle('hide',n!==1);$('#stepPass').classList.toggle('hide',n!==2);$('#stepCode').classList.toggle('hide',n!==3);$('#stepSent').classList.toggle('hide',n!==4);$('#stepReset').classList.toggle('hide',n!==5);
+  $('#aTabs').classList.toggle('hide',n===5);$('#aBtn').classList.toggle('hide',n===4);
+  $('#aBtn').textContent=n===1?(mode==='fp'?'Send reset link':'Next'):n===3?'Verify':n===5?'Save new password':(up?'Create account':'Sign in');
+  $('#aRules').classList.toggle('hide',!(n===2&&up));$('#aForgotLine').classList.toggle('hide',up);pwRules($('#aPass'),$('#aRules'));
+  if(n===5)setTimeout(()=>$('#aNew').focus(),0);if(n===4||n===5)return;
   if(n===3)setTimeout(()=>$('#aCode').focus(),0);
   if(n===2){
     $('#aWho').textContent=$('#aEmail').value.trim();$('#aTitle2').textContent=up?'Create your account':'Enter password';
@@ -1246,11 +1266,37 @@ function profile(){
 }
 $('#pwBtn').innerHTML=ic('eye',18);
 $('#pwBtn').onclick=()=>{const i=$('#aPass'),show=i.type==='password';i.type=show?'text':'password';$('#pwBtn').innerHTML=ic(show?'eyeoff':'eye',18);$('#pwBtn').setAttribute('aria-label',show?'Hide password':'Show password')};
+// password rules: same as the server (min 8 for customers, no common/easy ones); the server has the final say
+const PW_COMMON=/^(password|passw0rd|qwerty|qwertyuiop|letmein|welcome|changeme|admin|team|demo|iloveyou|aidentify|abc|12345678|123456789|1234567890|11111111|00000000)\d*$/i;
+function pwRules(inp,ul){if(!inp||!ul)return true;const v=inp.value,len=v.length>=8,easy=!(PW_COMMON.test(v)||/^(.)\1+$/.test(v)||/^\d+$/.test(v));
+  ul.querySelectorAll('li').forEach(li=>{const ok=li.dataset.r==='len'?len:easy;li.classList.toggle('ok',!!v&&ok);li.classList.toggle('bad',!!v&&!ok)});return len&&easy}
+$('#aPass').addEventListener('input',()=>{if(mode==='up')pwRules($('#aPass'),$('#aRules'))});
+$('#aNew').addEventListener('input',()=>pwRules($('#aNew'),$('#aRules2')));
+$('#aTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;loginAs='user';setMode(b.dataset.t)};
+$('#aForgot').onclick=()=>{setMode('fp')};
+$('#aSentBack').onclick=()=>setMode('in');
+let resetTok='';
+$('#pwBtn2').innerHTML=ic('eye',18);
+$('#pwBtn2').onclick=()=>{const i=$('#aNew'),show=i.type==='password';i.type=show?'text':'password';$('#pwBtn2').innerHTML=ic(show?'eyeoff':'eye',18);$('#pwBtn2').setAttribute('aria-label',show?'Hide password':'Show password')};
+// show/hide toggle on every other password field (settings modals, change password, delete account)
+function pwEyes(root){(root||document).querySelectorAll('input[type=password]:not([data-eye])').forEach(i=>{i.dataset.eye=1;if(i.closest('.pw'))return;
+  const w=document.createElement('span');w.className='pw';i.parentNode.insertBefore(w,i);w.appendChild(i);
+  const b=document.createElement('button');b.type='button';b.className='ib';b.setAttribute('aria-label','Show password');b.innerHTML=ic('eye',18);w.appendChild(b);
+  b.onclick=()=>{const show=i.type==='password';i.type=show?'text':'password';b.innerHTML=ic(show?'eyeoff':'eye',18);b.setAttribute('aria-label',show?'Hide password':'Show password')}})}
+new MutationObserver(()=>pwEyes()).observe(document.body,{childList:true,subtree:true});pwEyes();
 $('#aBack').innerHTML=ic('arrow',18);
 $('#aBack').onclick=()=>setStep(1);
 $('#authForm').onsubmit=async e=>{
   e.preventDefault();err('');
   const email=$('#aEmail').value.trim().toLowerCase();
+  if(step===5){const pw=$('#aNew').value;if(!pwRules($('#aNew'),$('#aRules2')))return err('Choose a password that meets the rules below.');
+    $('#aBtn').disabled=true;try{const r=await SYNC.api('/api/auth/reset-password',{token:resetTok,password:pw});resetTok='';$('#aNew').value='';$('#aBtn').disabled=false;setMode('in');$('#aErr').classList.add('hide');
+      say(r.message||'Password changed. Sign in with the new one.');err('');$('#aSwapLine').innerHTML='<span class="okmsg" style="display:block">'+esc(r.message||'Password changed. Sign in with the new one.')+'</span>'}
+    catch(x){$('#aBtn').disabled=false;err(x.message||'Couldn’t change the password.')}return}
+  if(step===1&&mode==='fp'){if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return err('Enter a valid email address.');
+    if(await SYNC.mode()!=='server')return err('Password reset needs the hosted or server version. In browser-only mode, ask the admin to reset it.');
+    $('#aBtn').disabled=true;try{const r=await SYNC.api('/api/auth/forgot',{email});$('#aSentMsg').textContent=r.message;$('#aSentMsg').className=r.mail==='off'?'err':'okmsg';setStep(4)}
+    catch(x){err(x.message||'Couldn’t send the reset link.')}$('#aBtn').disabled=false;return}
   if(step===3){const code=$('#aCode').value.replace(/\D/g,'');if(code.length!==6)return err('Enter the 6-digit code from the email.');
     $('#aBtn').disabled=true;try{const r=await SYNC.api('/api/auth/email/verify',{email,code});await authDone(r,email,$('#aRem').checked)}catch(x){$('#aBtn').disabled=false;err(x.message||'That code didn’t work.')}return}
   if(step===1){
@@ -1270,7 +1316,8 @@ $('#authForm').onsubmit=async e=>{
   }
   const pw=$('#aPass').value,name=$('#aName').value.trim();
   if(mode==='up'&&!name)return err('Enter your full name.');
-  if(pw.length<8)return err(mode==='up'?'Password must be at least 8 characters.':'Your password is incorrect. Try again.');
+  if(mode==='up'&&!pwRules($('#aPass'),$('#aRules')))return err('Choose a password that meets the rules below.');
+  if(!pw)return err('Enter your password.');
   if(await SYNC.mode()==='server'){
     $('#aBtn').disabled=true;
     try{
@@ -1292,6 +1339,8 @@ $('#authForm').onsubmit=async e=>{
   if(await SYNC.mode()==='server'){
     try{const su=await fetch('/api/setup').then(r=>r.json());if(su&&su.needed){location.href='/setup';return}}catch(x){}
     const hp=new URLSearchParams(location.hash.slice(1));
+    if(/^#(signup|forgot)$/.test(location.hash)&&!LS.get('as_tok')){const m=location.hash==='#signup'?'up':'fp';history.replaceState(null,'',location.pathname+location.search);showAuth();setMode(m);return}
+    if(hp.get('as_reset')){resetTok=hp.get('as_reset');history.replaceState(null,'',location.pathname+location.search);LS.del('as_tok');showAuth();setStep(5);return}
     if(hp.get('as_autherr')){history.replaceState(null,'',location.pathname+location.search);LS.del('as_tok');showAuth();err(hp.get('as_autherr'));return}
     if(hp.get('as_auth')){history.replaceState(null,'',location.pathname+location.search);
       try{const t=hp.get('as_auth'),em=String(hp.get('em')||'').toLowerCase();await SYNC.auth(t);const me=await SYNC.api('/api/auth/me');await authDone({token:t,user:me.user},em,hp.get('rem')!=='0');return}

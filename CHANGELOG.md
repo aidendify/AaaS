@@ -5,6 +5,18 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-10-19
+
+### Changed
+- **One sign-in screen.** Sign in, Create account and Forgot password are now three tabs on the same screen. Old links like `/login`, `/signin`, `/signup`, `/register`, `/forgot-password` and `/reset-password` all lead there. Admins still sign in from the same screen with the User / Admin switch, and `/setup` still creates the first admin. Google sign-in stays hidden until it's set up.
+- **Clear password rules.** When you create an account or set a new password, the rules show under the box and tick off as you type: at least 8 characters (12 for staff), and not a common or easy-to-guess password. The server checks the same rules.
+- **Friendlier lockouts.** The limits are unchanged: 10 wrong passwords per email and 50 per network in 15 minutes, and only wrong passwords count. When you have 3 tries or fewer left, the message tells you how many. When sign-in is paused, it tells you how many minutes to wait and points you to "Forgot password?".
+
+### Added
+- **Show/hide password** on every password box: sign-in, new password, change password, delete account, and the API key boxes.
+- **Password reset.** "Forgot password?" emails you a link that works once and expires after 30 minutes. Only a scrambled (hashed) copy of the link's code is stored, and asking again cancels the old link. After a reset, the old password stops working and every other session is signed out. The screen never says whether an email has an account. Requests are rate-limited to 3 per email and 20 per network every 15 minutes. If the server has no email sender, the screen says so plainly instead of pretending an email went out. New endpoints: `POST /api/auth/forgot` and `POST /api/auth/reset-password`.
+- Tests: unit tests for password rules, the reset link's life cycle and the lockout messages. There's also a new end-to-end scenario **f**: a weak password is refused, a strong one works, then reset, the old password is refused and the new one works. On mock-AI servers only, the reset reply includes the code for throwaway `e2e-*@example.com` accounts so the test can finish the flow. It never does this on the live demo.
+
 ## [1.10.0] - 2026-10-19
 
 ### Added

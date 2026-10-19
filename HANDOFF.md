@@ -1,5 +1,12 @@
 # AIdentify handoff
 
+## v1.11.0 sign-in fixes (19 Oct 2026, ~late night IST)
+- The owner decided we fix things ourselves instead of the team. Billing moves to v1.12.0.
+- Branch `auth-v1.11.0` (off v1.10.0 `dc3ed28`) is local only. It is deployed to **staging only**, not to `aidentify-demo`.
+- It adds one sign-in screen with tabs, show/hide on every password box, live password rules, friendlier lockout messages, and password reset (`lib/pwreset.js`, `POST /api/auth/forgot`, `POST /api/auth/reset-password`, links look like `/#as_reset=<token>`).
+- Reset emails go through `sendSystemEmail` (lib/mailer.js), which needs `GMAIL_USER` + `GMAIL_APP_PASSWORD` (optionally `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` for another provider) and `APP_URL` for the link. Neither the demo nor staging has these set, so the screen says reset emails aren't switched on yet.
+- `npm test`: 46 passed, 2 skipped. Staging e2e: 6/6 scenarios passed (mock AI), including the new scenario f.
+
 ## Staging + stress testing (19 Oct 2026)
 - Staging: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`; Neon schema `staging`; $2 AI budget; mock AI on by default). How it works: `docs/STAGING.md`.
 - Staging secrets (admin password, cron secret, session secret) live only in Vercel and in `/workspace/aaas-run/staging.env.local` on the box (chmod 600), never in git.

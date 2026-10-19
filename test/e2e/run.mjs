@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -302,7 +302,42 @@ async function scenarioE(S) {
 }
 
 // ---------- main ----------
-const SC = { a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE] };
+// ---------- scenario f: sign-in fixes (v1.11.0): password rules, reset link, old password stops working ----------
+async function scenarioF(S) {
+  const email = `e2e-${TS}-f@example.com`, NEW = 'E2e-new-' + crypto.randomBytes(6).toString('base64url') + '-9z';
+  let cur = PW, token = '';
+  S.cleanup.push(async () => {
+    const lg = await call('POST', '/api/auth/login', { body: { email, password: cur } }); const t = (lg.d && lg.d.token) || token; if (!t) return;
+    const del = await call('POST', '/api/auth/delete', { token: t, body: { password: cur } });
+    S.check('account deleted at the end', del.status === 200, short(del));
+  });
+  const weak = await call('POST', '/api/auth/signup', { body: { email, name: 'E2E F', password: 'password123' } });
+  S.check('sign up with a weak password is refused with a clear reason', weak.status === 400 && weak.d && weak.d.error === 'weak_password', short(weak));
+  const ok = await call('POST', '/api/auth/signup', { body: { email, name: 'E2E F', password: PW } });
+  token = (ok.d && ok.d.token) || ''; S.check('sign up with a strong password works', ok.status === 200 && !!token, short(ok));
+  const unk = await call('POST', '/api/auth/forgot', { body: { email: `e2e-${TS}-nobody@example.com` } });
+  const fg = await call('POST', '/api/auth/forgot', { body: { email } });
+  S.check('reset request answers the same for known and unknown emails', fg.status === 200 && unk.status === 200 && fg.d.message.replace(email, '') === unk.d.message.replace(`e2e-${TS}-nobody@example.com`, ''), short(fg));
+  S.note('mail sender on this server: ' + (fg.d && fg.d.mail));
+  const tok = fg.d && fg.d.testToken;
+  if (!S.check('mock server gives the e2e test hook a reset token', !!tok, 'no testToken (is AI_MOCK on?)')) return;
+  const bad = await call('POST', '/api/auth/reset-password', { body: { token: tok, password: 'short' } });
+  S.check('new password must follow the rules too', bad.status === 400 && bad.d.error === 'weak_password', short(bad));
+  const rs = await call('POST', '/api/auth/reset-password', { body: { token: tok, password: NEW } });
+  if (S.check('set a new password with the reset link', rs.status === 200, short(rs))) cur = NEW;
+  const again = await call('POST', '/api/auth/reset-password', { body: { token: tok, password: NEW + 'x' } });
+  S.check('the reset link works only once', again.status === 400 && again.d.error === 'reset_invalid', short(again));
+  const old = await call('POST', '/api/auth/login', { body: { email, password: PW } });
+  S.check('old password no longer works', old.status === 401, short(old));
+  const sess = await call('GET', '/api/auth/me', { token });
+  S.check('sessions from before the reset are signed out', sess.status === 401, short(sess));
+  const nw = await call('POST', '/api/auth/login', { body: { email, password: NEW } });
+  S.check('new password signs in', nw.status === 200 && nw.d.token, short(nw)); token = (nw.d && nw.d.token) || '';
+  const pg = await call('GET', '/signup');
+  S.check('/signup sends people to the one sign-in screen', (pg.status === 307 || pg.status === 308 || pg.status === 302) , 'HTTP ' + pg.status);
+}
+
+const SC = { a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);

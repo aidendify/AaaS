@@ -48,6 +48,8 @@ async function serve(req, res) {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
     }
+    { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
+      if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
     if (req.method === 'GET' && (url.pathname === '/setup' || url.pathname === '/setup.html')) { // first-run admin setup
       return send(res, 200, await fs.readFile(path.join(dir, 'setup.html')), 'text/html; charset=utf-8');
     }

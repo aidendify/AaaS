@@ -141,6 +141,19 @@ flowchart LR
 
 ## 5. Roadmap to build (v1.10 → v2.8)
 
+> **Update 19 Oct 2026:** v1.11.0 is now the **sign-in fixes** release (one sign-in screen, show/hide password, password rules, password reset, friendlier lockouts), taken from the team review. **Billing (Razorpay + GST) moves to v1.12.0.** Read every "v1.11" billing reference below as v1.12.
+
+### AI-first direction (the 8 pillars)
+We don't copy GoHighLevel feature for feature. Agents do the agency's work, the CRM is what they run on, and a person approves.
+1. **CRM first:** contacts, companies, deals and one timeline per contact (clicks, visits, forms, emails, chats). Every agent reads and writes it.
+2. **Tracking everywhere:** per-contact short links, a site snippet and campaign tags. A click updates the timeline and wakes the right agent.
+3. **Plain-English agent workflows on LangGraph:** "when a lead fills the form, reply on WhatsApp in 2 minutes and book a call". Each step is set to need approval, run within limits, or run on its own.
+4. **A Chief of Staff that learns:** weekly suggestions from CRM results that you install with one approval, plus A/B tests of follow-ups that keep the winners.
+5. **Agent Playbooks marketplace:** packaged agents, workflows, pipelines and templates that install in one click. Agencies build and sell them.
+6. **White-label from v2:** agency accounts with client sub-accounts, the agency's own branding and domain, a dashboard across clients, and Razorpay rebilling with the agency's markup.
+7. **India-first channels:** WhatsApp first, then email, then SMS (because of DLT registration).
+8. **AI front desk:** an always-on chat and WhatsApp agent per client that answers, qualifies and books calls. Voice comes later.
+
 Effort: **S** ≤ 3 days, **M** 1–2 weeks, **L** 3–5 weeks (for one engineer; parallelise where noted). Owners: **LG** = LangGraph engineers (agents, orchestrator, workflows, self-learning); **FS** = AI/full-stack engineers (data model, tenancy, tracking, billing, white-label).
 
 **Order:** v1.10 → v1.11 → v2.0 → v2.1 → v2.2 → v2.3 → {v2.4, v2.5} → v2.6 → v2.7 → v2.8. Path A can sell after v1.11 + v2.0 + v2.2; path B after v2.6.

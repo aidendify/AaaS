@@ -77,5 +77,37 @@
       "path": "/api/cron/tick",
       "schedule": "30 2 * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/signin",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/signup",
+      "destination": "/#signup",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "/#signup",
+      "permanent": false
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/#forgot",
+      "permanent": false
+    },
+    {
+      "source": "/reset-password",
+      "destination": "/#forgot",
+      "permanent": false
+    }
   ]
 }
