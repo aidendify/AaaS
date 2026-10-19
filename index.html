@@ -2759,6 +2759,8 @@ function wpHtml(){
         <div class="wp-um-sub" role="menu" aria-label="Help">
           <button type="button" role="menuitem" data-act="wpUmTour">${ic('spark',16)}<span>Take the product tour</span></button>
           <button type="button" role="menuitem" data-act="wpUmVoice">${ic('mic',16)}<span>Ask the voice assistant</span></button>
+          <button type="button" role="menuitem" data-act="wpUmAppr">${ic('check',16)}<span>Approvals</span></button>
+          <button type="button" role="menuitem" data-act="wpUmCsv">${ic('book',16)}<span>Leads: import / export CSV</span></button>
           <button type="button" role="menuitem" data-act="wpUmActv">${ic('bot',16)}<span>Agent activity</span></button>
           <button type="button" role="menuitem" data-act="wpUmGo" data-go="Knowledge">${ic('book',16)}<span>Knowledge base</span></button>
           <button type="button" role="menuitem" data-act="wpUmReq">${ic('chat',16)}<span>Contact our team</span></button>
@@ -2817,6 +2819,32 @@ function wpAppend(m){const log=$('#wpLog');if(!log)return;if(log.querySelector('
 function wpPaint(m){const el=$('#wpm-'+m.id);if(!el){return}const log=$('#wpLog'),stick=log.scrollHeight-log.scrollTop-log.clientHeight<80;el.outerHTML=wpMsg(m);if(stick)log.scrollTop=log.scrollHeight}
 function wpStream(m){const el=$('#wpm-'+m.id+' .wp-b');if(!el)return;const log=$('#wpLog'),stick=log.scrollHeight-log.scrollTop-log.clientHeight<80;el.innerHTML=wpBody(m);if(stick)log.scrollTop=log.scrollHeight}
 // Agent activity: what each agent is doing, its last run and steps, routines and recent errors (GET /api/agents/status)
+function ovBox(id,title){let o=$('#'+id);if(!o){o=document.createElement('div');o.id=id;o.setAttribute('role','dialog');o.setAttribute('aria-label',title);o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center';o.addEventListener('click',e=>{if(e.target===o||e.target.dataset.x)o.remove()});document.body.appendChild(o)}
+  return h=>{o.innerHTML='<div style="background:var(--bg,#fff);color:inherit;max-width:680px;width:94%;max-height:84vh;overflow:auto;border-radius:14px;padding:18px"><div style="display:flex;justify-content:space-between;align-items:center"><b>'+esc(title)+'</b><button type="button" class="ib" data-x="1" aria-label="Close">✕</button></div>'+h+'</div>';return o}}
+// Approvals: approve / edit / reject inline, batch, history, clear (nothing is sent until you approve that item)
+async function apprPanel(){const box=ovBox('apprOv','Approvals');box('<p>Loading…</p>');if(!SYNC.token){box('<p>Sign in to see approvals.</p>');return}
+  const load=async()=>{let j;try{j=await SYNC.api('/api/agents/approvals?limit=100')}catch(e){box('<p>'+esc(e.message)+'</p>');return}
+    const P=j.items.filter(a=>a.status==='pending'),H=j.items.filter(a=>a.status!=='pending');
+    const ed=a=>a.kind==='email'?'<input data-f="to" value="'+esc(a.to||'')+'" aria-label="To" style="width:100%"><input data-f="subject" value="'+esc(a.subject||'')+'" aria-label="Subject" style="width:100%"><textarea data-f="body" rows="4" style="width:100%" aria-label="Body">'+esc(a.body||'')+'</textarea>':a.kind==='social'?'<textarea data-f="text" rows="3" style="width:100%" aria-label="Post text">'+esc(a.text||'')+'</textarea>':a.kind==='draft'?'<textarea data-f="request" rows="3" style="width:100%" aria-label="Draft">'+esc(a.request||'')+'</textarea>':'';
+    const o=box((P.length?'<p><small>'+P.length+' waiting. Tick several to decide them together.</small></p>'+P.map(a=>'<div class="ap" data-id="'+esc(a.id)+'" style="border-top:1px solid rgba(127,127,127,.25);padding:10px 0"><label><input type="checkbox" class="apck"> <b>'+esc(a.summary||a.app)+'</b></label> <small>'+esc(a.kind)+'</small>'+ed(a)+'<div style="margin-top:6px;display:flex;gap:6px"><button type="button" class="btn" data-ap="approve">Approve</button><button type="button" class="btn ghost" data-ap="reject">Reject</button></div></div>').join('')+'<div style="margin:10px 0;display:flex;gap:6px"><button type="button" class="btn" data-batch="approve">Approve ticked</button><button type="button" class="btn ghost" data-batch="reject">Reject ticked</button></div>':'<p>Nothing is waiting for you.</p>')
+      +'<p style="margin-top:14px"><b>History</b> <button type="button" class="btn ghost" data-clear="1">Clear history</button></p>'+(H.length?H.map(a=>'<div style="padding:4px 0"><small>'+new Date(a.done||a.at).toLocaleString()+' · '+esc(a.status)+(a.edited?' · edited':'')+' · '+esc(a.summary)+(a.result?' · '+esc(a.result):'')+(a.note?' · note: '+esc(a.note):'')+'</small></div>').join(''):'<p><small>No history.</small></p>'));
+    o.querySelectorAll('[data-ap]').forEach(b=>b.onclick=async()=>{const row=b.closest('.ap'),id=row.dataset.id,edit={};row.querySelectorAll('[data-f]').forEach(f=>edit[f.dataset.f]=f.value);
+      const body={id,decision:b.dataset.ap};if(b.dataset.ap==='approve')body.edit=edit;else{const n=prompt('Why reject? (optional)');if(n)body.note=n}
+      b.disabled=true;try{const r=await SYNC.api('/api/agents/approval',body);say(r.approval.status==='done'?'Approved':r.approval.status==='declined'?'Rejected':'Approval '+r.approval.status)}catch(e){say(e.message)}load()});
+    o.querySelectorAll('[data-batch]').forEach(b=>b.onclick=async()=>{const ids=[...o.querySelectorAll('.apck:checked')].map(c=>c.closest('.ap').dataset.id);if(!ids.length){say('Tick at least one item');return}
+      if(b.dataset.batch==='approve'&&!confirm('Approve '+ids.length+' item'+(ids.length===1?'':'s')+'? Approved emails and posts go out as shown.'))return;
+      try{const r=await SYNC.api('/api/agents/approvals/batch',{ids,decision:b.dataset.batch});say(r.results.length+' decided')}catch(e){say(e.message)}load()});
+    const c=o.querySelector('[data-clear]');if(c)c.onclick=async()=>{if(!confirm('Clear decided items from history? Waiting items stay.'))return;try{const r=await SYNC.api('/api/agents/approvals/clear',{});say(r.cleared+' cleared')}catch(e){say(e.message)}load()}};
+  load()}
+// Leads CSV: export everything, import with a dry run first
+async function csvPanel(){const box=ovBox('csvOv','Leads: import / export CSV');if(!SYNC.token){box('<p>Sign in first.</p>');return}
+  const o=box('<p><button type="button" class="btn" data-exp="1">Download leads.csv</button></p><p><small>Import: the first row must have a Name (or First name) column. Email, Phone, Company, Source, Stage, Tags (separated by ;) and your custom fields are read by their names. Leads with an email or phone you already have are skipped unless you tick Update.</small></p><input type="file" accept=".csv,text/csv" id="csvIn"> <label><input type="checkbox" id="csvUp"> Update existing</label><div id="csvRes"></div>');
+  o.querySelector('[data-exp]').onclick=async()=>{try{const r=await fetch('/api/leads/export.csv',{headers:{Authorization:'Bearer '+SYNC.token}});if(!r.ok)throw new Error('Export failed');const u=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=u;a.download='leads.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){say(e.message)}};
+  o.querySelector('#csvIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;const csv=await f.text(),up=o.querySelector('#csvUp').checked,res=o.querySelector('#csvRes');
+    try{const d=await SYNC.api('/api/leads/import',{csv,upsert:up,dry_run:true});
+      res.innerHTML='<p>Check: '+d.created+' new, '+d.updated+' updated, '+d.skipped+' skipped, '+d.errors.length+' with problems.</p>'+d.errors.slice(0,10).map(x=>'<div><small>Row '+x.row+': '+esc(x.error)+'</small></div>').join('')+'<p><button type="button" class="btn" id="csvGo">Import now</button></p>';
+      res.querySelector('#csvGo').onclick=async()=>{try{const r=await SYNC.api('/api/leads/import',{csv,upsert:up});say(r.created+' leads imported');res.innerHTML='<p>Done: '+r.created+' new, '+r.updated+' updated. Reload the page to see them in the CRM.</p>'}catch(er){say(er.message)}}}
+    catch(er){res.innerHTML='<p>'+esc(er.message)+'</p>'}}}
 async function agActivity(){
   let o=$('#agAct');if(!o){o=document.createElement('div');o.id='agAct';o.setAttribute('role','dialog');o.setAttribute('aria-label','Agent activity');o.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center';o.addEventListener('click',e=>{if(e.target===o||e.target.dataset.x)o.remove()});document.body.appendChild(o)}
   const box=h=>{o.innerHTML='<div style="background:var(--bg,#fff);color:inherit;max-width:640px;width:92%;max-height:80vh;overflow:auto;border-radius:14px;padding:18px"><div style="display:flex;justify-content:space-between;align-items:center"><b>Agent activity</b><button type="button" class="ib" data-x="1" aria-label="Close">✕</button></div>'+h+'</div>'};
@@ -3005,7 +3033,7 @@ function wpLogo(x,sz,dot){const src=x.img||WP_LOGOS[x.id];
   return `<span class="wp-ctw"><span class="wp-ct${sz>30?' lg':''}${sz<20?' xs':''}" style="--h:${x.hue}">${src?`<img src="${esc(src)}" alt="" width="${sz}" height="${sz}">`:ic(x.icon,sz)}</span>${dot?`<i class="wp-cdot ${dot}" aria-hidden="true"></i>`:''}</span>`}
 function wpCnRow(x){const st=wpCnState(x.id),on=!!st;
   return `<div class="wp-mi wp-cn" data-act="wpCnOpen" data-k="${esc(x.id)}">${wpLogo(x,22,st)}<div class="wp-mit"><b>${esc(x.name)}</b><small>${esc(x.sd)}</small></div>${on
-    ?`<span class="wp-conntag ${st}"><i class="wp-cdot ${st}"></i>${st==='on'?'Connected':'Signed in'}</span>`
+    ?(wpCnSrv&&wpCnSrv.on.get(x.id)&&wpCnSrv.on.get(x.id).status==='error'?`<span class="wp-conntag err" title="${esc(wpCnSrv.on.get(x.id).error||'')}" style="color:#c0392b">Reconnect needed</span>`:`<span class="wp-conntag ${st}"><i class="wp-cdot ${st}"></i>${st==='on'?'Connected':'Signed in'}</span>`)
     :`<button type="button" class="wp-pill" data-act="wpCnOpen" data-k="${esc(x.id)}" aria-label="Add ${esc(x.name)}">Add</button>`}</div>`}
 function wpConnBody(){
   const C=wpCnAll(),cats=['All','Connected',...[...new Set(C.map(x=>x.cat))]],cat=wpMk.ccat;
@@ -3934,6 +3962,8 @@ function wpAct(act,t){
   if(act==='wpUmReq'){wpUmShow(false);newRequest();return}
   if(act==='wpUmOut'){wpUmShow(false);signOut();return}
   if(act==='wpUmActv'){wpUmShow(false);agActivity();return}
+  if(act==='wpUmAppr'){wpUmShow(false);apprPanel();return}
+  if(act==='wpUmCsv'){wpUmShow(false);csvPanel();return}
   const id=+t.dataset.id;
   if(act==='wpNew'){wpView=null;wp.cur=null;wpDraft='';wpFocus=true;$('#wp')&&$('#wp').classList.remove('side-open');renderTab()}
   else if(act==='wpOpen'){wpView=null;wp.cur=id;wpFocus=true;$('#wp').classList.remove('side-open');renderTab()}

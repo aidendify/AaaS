@@ -27,7 +27,7 @@ async function inner(req, res) {
     const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await rawBody(req);
     const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
     if (out && out.__redirect) { res.setHeader('Location', out.__redirect); return res.status(302).end(); }
-    if (out && out.__bytes) { res.setHeader('Content-Type', out.__type || 'application/octet-stream'); return res.status(200).send(out.__bytes); }
+    if (out && out.__bytes) { if (out.__name) res.setHeader('Content-Disposition', 'attachment; filename="' + out.__name + '"'); res.setHeader('Content-Type', out.__type || 'application/octet-stream'); return res.status(200).send(out.__bytes); }
     if (out && out.__html) { res.setHeader('Content-Type', 'text/html; charset=utf-8'); return res.status(200).send(out.__html); }
     if (url.pathname === '/api/health') { out.ai = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY); out.byok = true; out.aiCap = Number(process.env.PLATFORM_AI_BUDGET_USD) > 0; out.aiMock = mockOn() || undefined; }
     return res.status(200).json(out);

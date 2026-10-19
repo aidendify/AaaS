@@ -299,3 +299,8 @@ From `/api/admin/metrics?minutes=60` and REPORT.md: requests, error rate, p50/p9
   - The owner's signed-in browser profile could be used by any customer's research or browser agent.
   - Activity rows from v1.12 were not removed when an account was deleted, and were not marked server-only.
 - Remote browser: off unless `REMOTE_BROWSER=on`, always off on Vercel, owner/admin only (see SECURITY.md).
+
+## Finding #4 status (v1.14.0, staging)
+- Gmail/Slack: per-account status (connected / error + reason / reconnect), an on-demand check, and clearer disconnect. Slack and Google OAuth checks need those apps registered on the server to try for real; the Gmail app-password path is tested end to end.
+- Approvals: edit inline, reject with a note, batch (max 25), history and clear. Approval-first is unchanged.
+- CRM groundwork for v2: custom fields, custom stages, bulk tags, CSV import (dry run first) and export. Lead `hist` is the seed of the v2 contact timeline. Data still lives in `as_data:<email>` on the CRM agent (`db.lead`, `db.leadFields`, `db.stages`); v2 moves this to real tables.

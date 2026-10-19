@@ -73,6 +73,7 @@ async function serve(req, res) {
       }
       const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
       if (out && out.__redirect) { res.writeHead(302, { Location: out.__redirect, 'Cache-Control': 'no-store' }); return res.end(); }
+      if (out && out.__bytes && out.__name) res.setHeader('Content-Disposition', 'attachment; filename="' + out.__name + '"');
       if (out && out.__bytes) return send(res, 200, out.__bytes, out.__type || 'application/octet-stream');
       if (out && out.__html) return send(res, 200, out.__html, 'text/html; charset=utf-8');
       return send(res, 200, out);

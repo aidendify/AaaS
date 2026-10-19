@@ -1,5 +1,12 @@
 # AIdentify handoff
 
+## v1.14.0 integrations, approvals, flexible CRM (20 Oct 2026), staging only
+- Branch `integrations-v1.14.0` (on top of `security-v1.13.0`), not pushed, not on prod.
+- Connectors: `GET /api/connectors` now returns status/error/reconnect; `POST /api/connectors/check {c}`; disconnect returns `was`. Live reads that fail with expired access mark the app "error".
+- Approvals (`lib/approvals.js`): `GET /api/agents/approvals?status=`, `POST /api/agents/approval/edit`, `POST /api/agents/approval {id, decision, edit?, note?}`, `POST /api/agents/approvals/batch {ids, decision}` (max 25), `POST /api/agents/approvals/clear {older_than_days?}`.
+- CRM (`lib/leads.js`): `GET/PUT /api/leads/fields`, `GET/PUT /api/leads/stages {stages, move_to?}`, `POST /api/leads/tags {ids, add, remove}`, `GET /api/leads/export.csv`, `POST /api/leads/import {csv, upsert?, dry_run?}` (max 2000 rows). Leads accept `stage` and `fields`; list filters `?tag=&stage=`.
+- Tests: `test/integrations-v1140.test.mjs` (per-account checks throughout).
+
 ## v1.13.0 security: tenant isolation + remote browser lock-down (20 Oct 2026), staging only
 - Branch `security-v1.13.0` (on top of `agents-v1.12.0`), not pushed, not on prod.
 - Cross-tenant tests for every customer route: `test/tenant-isolation.test.mjs`.

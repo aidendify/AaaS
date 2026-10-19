@@ -5,6 +5,25 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.0] - unreleased (on staging only)
+
+### Added
+- **Connection status for your apps.** Each connected app now shows Connected or Reconnect needed. A new "check" tests Gmail and Slack right away (Gmail app passwords over SMTP, Google sign-in, and Slack). When an app stops working, for example an expired sign-in, it's flagged with a plain reason. To reconnect, connect it again; disconnecting tells you whether anything was actually removed.
+- **Smoother approvals.** A new Approvals screen (account menu):
+  - Edit an email (to, subject, body), a post or a draft before approving it.
+  - Reject with an optional reason.
+  - Tick several items to approve or reject them together (up to 25, with a confirm step).
+  - See the full history: what was approved, rejected or edited, and the result.
+  - Clear decided items; anything still waiting is kept.
+  - Nothing is sent, posted or paid until you approve that exact item.
+- **A more flexible CRM.**
+  - Your own custom fields: text, number, date, a pick-list, or a checkbox.
+  - Your own pipeline stages. Removing a stage moves its leads to another stage and records it.
+  - Add or remove tags on many leads at once, and filter by tag or stage.
+  - CSV import with a check step first. It shows new, updated, skipped and problem rows before anything is saved, and duplicates are skipped unless you choose Update.
+  - CSV export, made safe to open in spreadsheets.
+  - Every change goes into the lead's history, ready for the contact timeline in v2.
+
 ## [1.13.0] - unreleased (on staging only)
 
 ### Security
