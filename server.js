@@ -38,7 +38,7 @@ async function readBody(req, max = 4 * 1024 * 1024) {
 
 const server = http.createServer((req, res) => obsScope(() => { // one JSON log line per API request (lib/obs.js)
   const t0 = Date.now(), store = obs(), pth = new URL(req.url, 'http://x').pathname;
-  if (pth.startsWith('/api/') || pth.startsWith('/p/')) res.on('finish', () => { try { obsDone({ method: req.method, pathname: pth, status: res.statusCode, ms: Date.now() - t0, store }); } catch { /* never break a response */ } });
+  if (pth.startsWith('/api/') || pth.startsWith('/p/') || pth.startsWith('/t/')) res.on('finish', () => { try { obsDone({ method: req.method, pathname: pth, status: res.statusCode, ms: Date.now() - t0, store }); } catch { /* never break a response */ } });
   return serve(req, res);
 }));
 async function serve(req, res) {
@@ -65,7 +65,7 @@ async function serve(req, res) {
     if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
       return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
     }
-    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/api/')) {
       const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
       if (url.pathname === '/api/health') {
         const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });

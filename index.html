@@ -677,6 +677,11 @@ h1,h2,h3,.greet h1,.hero h1,.wp-hello h3,.stat b,.price,.kpi b,.intro-name{font-
 .nn{opacity:.28}
 .bggrid{background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px)!important}
 :root[data-theme="light"] .bggrid{background-image:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px)!important}
+.crm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 16px}
+.crm-cards .card{padding:14px 16px}.crm-cards b{display:block;font-size:22px;font-weight:500;margin-top:4px}
+.crm-tl{list-style:none;margin:8px 0 0;padding:0}.crm-tl li{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.crm-k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+.crm-form{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}.crm-form input,.crm-form select{flex:1;min-width:140px}
 @media(max-width:900px){
   .side{background:var(--page)!important;border-bottom:1px solid var(--line)}
   .nav-i.on{box-shadow:none!important}
@@ -922,10 +927,12 @@ function renderTab(){
     h=`<div class="sec first"><h2>${team?'Quote requests':'My requests'}</h2>${team?'':`<button class="btn dk" data-act="newReq">${ic('plus',18)} New request</button>`}</div>`+(L.length?`<div class="reqs">${L.map(r=>reqCard(r,team)).join('')}</div>`:`<div class="empty">${team?'No requests yet.':'No requests yet. Use “Request custom agent” to send your first one.'}</div>`)}
   else if(tab==='Billing'){loadReqs();loadA();h=billHtml()}
   else if(tab==='Analytics')h=`<div class="sec first"><h2>Analytics</h2></div><div class="two"><section class="card panel today"><h2>Today</h2><div class="stats">${statsHtml()}</div></section><section class="card panel feed"><div class="bh"><h2>What’s happening</h2></div><ul>${feedHtml(6)}</ul></section></div>`;
+  else if(tab==='Contacts')h=`<div class="sec first"><h2>Contacts</h2><p class="muted">One timeline per lead: notes, stages, emails, visits and agent runs. Nothing is sent from this page.</p></div><div id="crmPage"><p class="muted">Loading…</p></div>`;
   else if(tab==='My Workplace')h=wpHtml();
   else if(tab==='Settings'&&user)h=settingsHtml();
   else h=`<div class="sec first"><h2>${tab}</h2></div><div class="empty">${tab} isn’t set up yet.</div>`;
   $('#otherView').innerHTML=h;if(document.body.classList.contains('anim'))countUp();
+  if(tab==='Contacts'&&!isStaff())crmPage();
   if(tab==='My Workplace'&&!isStaff()){wpBind();wpSetBind();if(wlKeep!=null)$('#wpLog').scrollTop=wlKeep;
     if(wfo&&wfo.n){const el=$('#wpEd [name='+wfo.n+']');if(el){el.focus({preventScroll:true});try{if(wfo.st!=null)el.setSelectionRange(wfo.st,wfo.en)}catch(x){}}}}
 }
@@ -978,6 +985,8 @@ document.addEventListener('click',e=>{
   const id=+t.dataset.id,a=agents.find(x=>x.id===id),act=t.dataset.act;menu=null;
   if(act&&(act.indexOf('wp')===0||act.indexOf('bp')===0)){e.preventDefault();wpAct(act,t);return}
   if(act==='close')$('#modal').innerHTML='';
+  else if(act==='crmOpen'){crmId=Number(t.dataset.rid);renderTab();return}
+  else if(act==='crmBack'){crmId=null;renderTab();return}
   else if(act==='newAgent')newAgent();
   else if(act==='sugg')runTask(t.dataset.p);
   else if(act==='profile'){$('#userPop').classList.add('hide');profile()}
@@ -1375,14 +1384,14 @@ const fmt=(v,c)=>new Intl.NumberFormat(c==='USD'?'en-US':'en-IN',{style:'currenc
 const PAGES={admin:null,pricing:['Overview','Quote requests','Plans & pricing','Settings']};
 const ATABS=[['Overview','grid'],['Customers','users'],['Quote requests','tag'],['Plans & pricing','target'],['Payments','card'],['Agents & usage','bot'],['Support','chat'],['Team & roles','users'],['Settings','gear']];
 // customers: Dashboard and My Workplace stay in the sidebar; the other pages live in the profile menus
-const SIDE_KEEP=['Dashboard','My Workplace'];
+const SIDE_KEEP=['Dashboard','My Workplace','Contacts'];
 const sideTabs=()=>isStaff()?tabsFor():tabsFor().filter(t=>SIDE_KEEP.includes(t[0]));
 const menuTabs=()=>isStaff()?[]:tabsFor().filter(t=>t[0]!=='Settings');
 const navGridHtml=(act,skip)=>{const L=menuTabs().filter(t=>t[0]!==skip);return L.length?`<div class="nav-grid" role="group" aria-label="Pages">${L.map(([t,i])=>`<button type="button" role="menuitem" class="${t===tab?'on':''}" data-act="${act}" data-go="${t}">${ic(i,16)}<span>${t}</span>${cnt(t)}</button>`).join('')}</div>`:''};
 const PAYMENTS=false;
 function tabsFor(){
   if(isStaff()){const pg=user.role in PAGES?PAGES[user.role]:['Overview'];return ATABS.filter(t=>!pg||pg.includes(t[0])).filter(t=>PAYMENTS||t[0]!=='Payments')}
-  const t=TABS.filter(x=>x[0]!=='Dashboard');t.splice(3,0,['Requests','tag']);if(PAYMENTS)t.splice(4,0,['Billing','card']);return t;
+  const t=TABS.filter(x=>x[0]!=='Dashboard');t.splice(1,0,['Contacts','users']);t.splice(4,0,['Requests','tag']);if(PAYMENTS)t.splice(5,0,['Billing','card']);return t;
 }
 function cnt(t){
   if(t==='Billing'&&user&&!isStaff()){const n=dueCount();return n?`<span class="cnt" title="Payment due">${n}</span>`:''}
@@ -2836,6 +2845,50 @@ async function apprPanel(){const box=ovBox('apprOv','Approvals');box('<p>Loading
       try{const r=await SYNC.api('/api/agents/approvals/batch',{ids,decision:b.dataset.batch});say(r.results.length+' decided')}catch(e){say(e.message)}load()});
     const c=o.querySelector('[data-clear]');if(c)c.onclick=async()=>{if(!confirm('Clear decided items from history? Waiting items stay.'))return;try{const r=await SYNC.api('/api/agents/approvals/clear',{});say(r.cleared+' cleared')}catch(e){say(e.message)}load()}};
   load()}
+// Contacts: one timeline per lead, plus a small dashboard (leads by source, stage conversion). Nothing here sends.
+let crmId=null,crmSeq=0;
+const CRM_KIND={history:'Update',note:'Note',stage:'Stage',email:'Email',draft:'Draft',approval:'Approval',agent:'Agent',task:'Task',visit:'Visit',open:'Opened',click:'Click',form:'Form'};
+function crmWhen(t){try{return new Date(t).toLocaleString()}catch(e){return ''}}
+function crmCards(d){
+  const top=(d.by_source&&d.by_source[0])||{source:'—',count:0};
+  const rate=d.conversion?Math.round(d.conversion.rate*100):0;
+  const src=(d.by_source||[]).map(s=>esc(s.source)+' '+s.count).join(' · ')||'No leads yet';
+  const st=(d.by_stage||[]).map(s=>esc(s.stage)+' '+s.count).join(' · ');
+  return `<div class="crm-cards"><section class="card"><span class="crm-k">Leads</span><b>${d.leads||0}</b><small class="muted">${d.opted_out||0} opted out</small></section>
+    <section class="card"><span class="crm-k">Won</span><b>${rate}%</b><small class="muted">${d.conversion?d.conversion.won:0} of ${d.leads||0}</small></section>
+    <section class="card"><span class="crm-k">Top source</span><b>${esc(top.source)}</b><small class="muted">${top.count}</small></section>
+    <section class="card"><span class="crm-k">Tracking</span><b>${(d.tracking&&d.tracking.page_views)||0}</b><small class="muted">${(d.tracking&&d.tracking.opens)||0} opens · ${(d.tracking&&d.tracking.clicks)||0} clicks</small></section></div>
+    <p class="muted">By source: ${src}</p><p class="muted">By stage: ${st||'—'}</p>`}
+async function crmPage(){
+  const host=$('#crmPage');if(!host)return;
+  if(!SYNC.token){host.innerHTML='<div class="empty">Sign in to see your contacts.</div>';return}
+  const seq=++crmSeq;
+  try{
+    const dash=await SYNC.api('/api/crm/dashboard');
+    if(seq!==crmSeq||tab!=='Contacts')return;
+    if(!crmId){
+      const list=await SYNC.api('/api/leads?limit=100');
+      if(seq!==crmSeq||tab!=='Contacts')return;
+      const rows=(list.leads||[]).map(l=>`<tr><td><b>${esc(l.name||l.email||('#'+l.id))}</b></td><td>${esc(l.email||'')}</td><td>${esc(l.source||'')}</td><td><span class="pill">${esc(l.stage||l.status||'')}</span></td><td><button type="button" class="btn gh sm" data-act="crmOpen" data-rid="${l.id}">Open</button></td></tr>`).join('');
+      host.innerHTML=crmCards(dash)+`<form class="crm-form" id="crmNew"><input name="name" required placeholder="Name" aria-label="Name"><input name="email" type="email" required placeholder="Email" aria-label="Email"><input name="company" placeholder="Company" aria-label="Company"><input name="source" placeholder="Source, e.g. LinkedIn" aria-label="Source"><button class="btn dk">Add contact</button></form>`
+        +(rows?`<div class="card tw"><table class="tbl"><thead><tr><th>Contact</th><th>Email</th><th>Source</th><th>Stage</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">No contacts yet. Add one here, from a form, or from the leads API.</div>');
+      const f=$('#crmNew');if(f)f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f);try{const r=await SYNC.api('/api/leads',{name:fd.get('name'),email:fd.get('email'),company:fd.get('company')||undefined,source:fd.get('source')||undefined});say('Contact added');await SYNC.reload();crmId=r.lead&&r.lead.id;crmPage()}catch(err){say(err.message||'Could not add the contact')}};
+      return}
+    const tl=await SYNC.api('/api/leads/'+crmId+'/timeline');
+    if(seq!==crmSeq||tab!=='Contacts')return;
+    const L=tl.lead,tr=tl.tracking||{};
+    const events=(tl.events||[]).map(e=>`<li><div><span class="crm-k">${esc(CRM_KIND[e.kind]||e.kind)}</span><br><small class="muted">${esc(crmWhen(e.at))}</small></div><div><b>${esc(e.title||'')}</b>${e.detail?`<div class="muted">${esc(e.detail)}</div>`:''}</div></li>`).join('');
+    host.innerHTML=`<p><button type="button" class="btn gh sm" data-act="crmBack">All contacts</button></p>
+      <div class="req-h"><div><b>${esc(L.name||L.email||('Contact #'+L.id))}</b><div class="muted">${esc(L.email||'')} ${L.company?'· '+esc(L.company):''}</div></div><span class="pill">${esc(L.stage||L.status||'')}</span></div>
+      <p class="muted">Source ${esc(L.source||'—')} · Consent ${esc(L.consent||'Unknown')}${L.first_touch&&L.first_touch.utm&&L.first_touch.utm.utm_campaign?' · Campaign '+esc(L.first_touch.utm.utm_campaign):''}</p>
+      ${tr.opted_out?'<p>This contact opted out. Opens, clicks and visit tracking stay off.</p>':`<p class="muted">Page visit link (add it to a page or email you send yourself). Opens and clicks are recorded only after you put tracking on a draft and approve that draft.</p><input readonly value="${esc(location.origin+(tr.visit_path||''))}" aria-label="Page visit link" style="width:100%">`}
+      <h3 class="sh">Timeline</h3>${events?'<ul class="crm-tl">'+events+'</ul>':'<p class="muted">Nothing on this timeline yet.</p>'}
+      <form class="crm-form" id="crmNote"><input name="text" required placeholder="Add a note" aria-label="Note" maxlength="2000"><button class="btn dk">Save note</button></form>
+      <form class="crm-form" id="crmTask"><input name="title" required placeholder="Task, e.g. Send the nurture plan" aria-label="Task"><input name="due" type="date" aria-label="Due date"><button class="btn gh">Add task</button></form>`;
+    $('#crmNote').onsubmit=async e=>{e.preventDefault();const text=String(new FormData(e.target).get('text')||'').trim();if(!text)return;try{await SYNC.api('/api/leads/'+crmId+'/notes',{text});say('Note saved');await SYNC.reload();crmPage()}catch(err){say(err.message||'Could not save the note')}};
+    $('#crmTask').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);try{await SYNC.api('/api/leads/'+crmId+'/tasks',{title:fd.get('title'),due:fd.get('due')||undefined});say('Task added. Nothing was sent.');await SYNC.reload();crmPage()}catch(err){say(err.message||'Could not add the task')}};
+  }catch(e){if(seq===crmSeq&&host)host.innerHTML='<div class="empty">'+esc(e.message||'Could not load contacts.')+'</div>'}
+}
 // Leads CSV: export everything, import with a dry run first
 async function csvPanel(){const box=ovBox('csvOv','Leads: fields, stages, CSV');if(!SYNC.token){box('<p>Sign in first.</p>');return}
   let F=[],S=[];try{F=(await SYNC.api('/api/leads/fields')).fields;S=(await SYNC.api('/api/leads/stages')).stages}catch(e){}

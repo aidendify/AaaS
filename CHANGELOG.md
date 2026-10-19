@@ -5,6 +5,21 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - unreleased
+
+### Added
+- **One timeline per contact.** Open Contacts, pick a lead, and you see one list in time order: history, notes, stage changes, tasks, emails and drafts that are waiting for approval, agent runs that named that contact, form submissions, and page visits. Add a note or a task from the same page. Nothing on this page sends, posts, or pays.
+- **A small dashboard.** The Contacts page shows how many leads you have, where they came from, how they sit in the pipeline, and how many have reached Won. It also counts email opens, link clicks, and page views for your account only.
+- **Email open and click tracking.** You can put a tracking image and rewritten links on an email that is still waiting for approval. Approving that email is still a separate step. Opens and clicks show up on that contact’s timeline. A contact marked Opted out is not tracked, and new tracking links are refused for them.
+- **Where a lead came from.** A public form records the campaign tags on the link (source, medium, campaign, and the usual ad click ids) and adds a visit plus the form submission to that contact’s timeline. A page-visit link does the same for a page you share yourself.
+
+### Notes
+- This is still the existing per-account store, not separate database tables, organisations, or row-level security. Those stay on the later v2 plan.
+- Tracking is not added to an email by itself. You add it to a draft, then you approve the draft before anything is sent.
+- An open, a click, or a visit does not start an agent. Older chats are not copied onto the timeline; only a new chat that includes the contact’s email is recorded, and the prompt text is not stored.
+- The open image is a rough signal (many mail apps block images). Plain-text emails get rewritten links only.
+- There is no site snippet, consent banner, or download/delete-my-data flow in this release.
+
 ## [1.15.0] - unreleased (on staging only)
 
 ### Added

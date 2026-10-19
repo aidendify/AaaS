@@ -32,12 +32,21 @@ test('every customer route is scoped to the signed-in account', async () => {
     const kv = await s.api('/api/kv', undefined, B);
     assert.doesNotMatch(JSON.stringify(kv.d), /A-ONLY-SECRET|ta@example\.com/);
     assert.equal((await req(s, 'PUT', '/api/kv', { k: 'as_data:ta@example.com', v: JSON.stringify({ agents: [] }) }, B)).status, 403);
-    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_settings'])
+    for (const k of ['as_rt:ta@example.com', 'as_mem:ta@example.com', 'as_appr:ta@example.com', 'as_act:ta@example.com', 'as_run:ta@example.com', 'as_tl:ta@example.com', 'as_trks:ta@example.com', 'as_vis:ta@example.com', 'as_settings'])
       assert.equal((await req(s, 'PUT', '/api/kv', { k, v: '[]' }, B)).status, 400, k);
     assert.equal((await s.api('/api/leads', undefined, B)).d.leads.length, 0);
     assert.equal((await req(s, 'GET', '/api/leads/' + lead.id, undefined, B)).status, 404);
     assert.equal((await req(s, 'PATCH', '/api/leads/' + lead.id, { notes: 'hacked' }, B)).status, 404);
     assert.equal((await req(s, 'DELETE', '/api/leads/' + lead.id, undefined, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/leads/' + lead.id + '/notes', { text: 'A-ONLY-NOTE nurture plan' }, A)).status, 200);
+    assert.equal((await req(s, 'GET', '/api/leads/' + lead.id + '/timeline', undefined, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/leads/' + lead.id + '/notes', { text: 'hacked' }, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/leads/' + lead.id + '/tasks', { title: 'hack the send' }, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/tracking/link', { lead_id: lead.id, url: 'https://example.com/a' }, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/tracking/email', { lead_id: lead.id, html: '<p>x</p>' }, B)).status, 404);
+    assert.equal((await req(s, 'POST', '/api/tracking/apply', { lead_id: lead.id, approval_id: appr.id }, B)).status, 404);
+    assert.doesNotMatch(JSON.stringify((await s.api('/api/crm/dashboard', undefined, B)).d), /A-ONLY-NOTE|nurture plan/);
+    assert.match(JSON.stringify((await s.api('/api/leads/' + lead.id + '/timeline', undefined, A)).d), /A-ONLY-NOTE/);
     assert.equal((await s.api('/api/routines', undefined, B)).d.routines.length, 0);
     assert.notEqual((await s.api('/api/routines/pause', { id: rt.id }, B)).status, 200);
     await s.api('/api/agents/routine/delete', { id: rt.id }, B);
@@ -60,7 +69,7 @@ test('every customer route is scoped to the signed-in account', async () => {
       assert.ok([401, 403, 404].includes((await req(s, m, p, b, B)).status), m + ' ' + p);
 
     // ---- A's things are all still there and unchanged ----
-    assert.equal((await req(s, 'GET', '/api/leads/' + lead.id, undefined, A)).d.lead.notes ?? '', '');
+    assert.equal((await req(s, 'GET', '/api/leads/' + lead.id, undefined, A)).d.lead.notes, 'A-ONLY-NOTE nurture plan');
     const as = (await s.api('/api/agents/state', undefined, A)).d;
     assert.equal(as.routines.length, 1); assert.equal(as.approvals.length, 1); if (memId) assert.equal(as.memories.length, 1);
     assert.ok((await s.api('/api/agents/run?id=run-a-0001', undefined, A)).d.run);

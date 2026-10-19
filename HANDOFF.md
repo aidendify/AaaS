@@ -1,5 +1,21 @@
 # AIdentify handoff
 
+## v2.0.0 timeline + tracking (19 Oct 2026), not deployed
+- Branch `cursor/v2-timeline-tracking-e476`, based on `deploy-v1.15.0`. package.json version is 2.0.0. Not on staging or prod.
+- This slice is pillars 1 and 2 of the AI-first plan, on the current per-account store. It is not the full v2.0 in docs/TEAM-HANDOVER.md (organisations, memberships, relational tables, row-level security, blob migration, dual-read, typed CRM tools).
+- **Timeline.** `lib/timeline.js`. `GET /api/leads/:id/timeline`, `POST /api/leads/:id/notes`, `POST /api/leads/:id/tasks`, `GET /api/crm/dashboard`. The customer UI has a Contacts tab: dashboard, contact list, and one timeline. Notes and tasks are records only.
+- **Tracking.** `lib/tracking.js`. `POST /api/tracking/link`, `POST /api/tracking/email` (preview), `POST /api/tracking/apply` (writes the pending email; does not approve or send). Public: `GET /t/o/:token.gif` (open), `GET /t/c/:token` (click, destination stored on the server), `GET /t/v/:token` (page visit). Public form pages record campaign tags and copy the submission onto the CRM lead. Opted out means consent is exactly "Opted out".
+- Storage: `as_tl:<email>` (opens, clicks, visits, agent runs), `as_trk:<token>` and `as_trks:<email>` (tracking tokens; deleted with the account), `as_vis:<email>` (anonymous page views for the dashboard). Lead history, tasks, and approvals stay where they were and are joined when the timeline is read.
+- Tests: `test/v200-timeline.test.mjs` and extra cases in `test/tenant-isolation.test.mjs`. Customer B cannot read or change customer A's timeline, notes, tasks, tracking, or dashboard. `npm test`: 63 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- No site snippet (`t.js`), consent banner, erasure/export, or retention jobs.
+- Tracking is not injected when an email is sent. The owner applies it to a pending draft. Approval is still required to send.
+- A click, open, or visit does not wake an agent. Past chats are not backfilled.
+- The dashboard is counts (source, stage, won, opens, clicks, page views), not a full analytics product.
+- An anonymous form view is counted on the dashboard. It is attached to a contact when the form is submitted, or when someone opens that contact’s visit link.
+- Email opens are approximate. Plain-text mail gets click rewrites only.
+
 ## v1.15.0 deployment basics (20 Oct 2026), staging only
 - Branch `deploy-v1.15.0` (on top of `integrations-v1.14.0`), not pushed, not on prod. package.json version is now 1.15.0.
 - Backups: `scripts/db-backup.mjs` (backup/verify/restore/drill), docs/BACKUPS.md (drill log). Box copies are in /workspace/aaas-run/backups (git-ignored, mode 600). Set `BACKUP_KEY` before backing up prod.

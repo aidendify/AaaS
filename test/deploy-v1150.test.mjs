@@ -29,7 +29,7 @@ test('/api/health/deep: db, version, ai, cron; no customer data', async () => {
   const s = await startServer({ AI_PROVIDER: 'mock', AI_MOCK: 'on', CRON_SECRET: 'c'.repeat(32) });
   try {
     let h = await s.api('/api/health/deep');
-    assert.equal(h.status, 200); assert.equal(h.d.ok, true); assert.equal(h.d.db.ok, true); assert.equal(h.d.version, '1.15.0'); assert.equal(h.d.cron, null);
+    assert.equal(h.status, 200); assert.equal(h.d.ok, true); assert.equal(h.d.db.ok, true); assert.equal(h.d.version, '2.0.0'); assert.equal(h.d.cron, null);
     const t = await fetch(s.base + '/api/cron/tick', { headers: { authorization: 'Bearer ' + 'c'.repeat(32) } }); assert.equal(t.status, 200);
     h = await s.api('/api/health/deep'); assert.equal(h.d.cron.ok, true); assert.equal(h.d.cron.hoursAgo, 0);
     assert.doesNotMatch(JSON.stringify(h.d), /@|token|key/i);

@@ -20,6 +20,10 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/t/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/setup",
       "destination": "/setup.html"
     },
@@ -48,6 +52,15 @@
     },
     {
       "source": "/p/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/t/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
