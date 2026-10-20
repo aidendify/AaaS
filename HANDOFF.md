@@ -1,6 +1,12 @@
 # AIdentify handoff
 
-## v2.4.0 agency white-label (19 Oct 2026), not deployed
+## Release v2.4.0 (20 Oct 2026, ~9:45 AM IST)
+- v1.11.0 through v2.4.0 were merged to `main` in one release, approved by Phanindra, tagged `v2.4.0`, and deployed to `aidentify-demo`.
+- Before deploying, the prod `demo` schema was backed up to /workspace/aaas-run/backups (not encrypted: `BACKUP_KEY` was not set). The store is key/value rows, so no schema migration was needed.
+- `REMOTE_BROWSER` stays off on prod. Reset/sign-in emails still need `GMAIL_USER`, `GMAIL_APP_PASSWORD` and `APP_URL`.
+- The branch notes below ("do not merge to main") are historical. Everything is on `main` now.
+
+## v2.4.0 agency white-label (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `cursor/agency-whitelabel-5dc2`, based on `cursor/india-channels-frontdesk-108b` (includes merge `06c0b1c` and e2e scenario k `bd03b8c`). package.json version is 2.4.0. Not on staging or prod. Do not merge this line to main.
 - This is pillar 6 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.6 slice (no relational organisations, no row-level security, no Razorpay Route). v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is inbox + front desk. v2.4 is this slice.
 - **Agency.** `lib/agency.js`. `POST /api/agency` turns a direct customer into the owner. Clients and staff cannot. `GET /api/agency` lists staff and clients with counts only. `POST /api/agency/clients`, `/clients/update`, `/clients/remove`, `GET /api/agency/clients/usage`. `POST /api/agency/staff`, `/staff/role`, `/staff/remove`. Owner, admin, member. A member cannot change clients, view-as, or open the invoice. An admin cannot change branding, markup, or other admins. Platform staff get 403.
@@ -22,7 +28,7 @@
 - Caps are not a cross-process lock. The widget rate limit is still per process. The hosted tick is still often once a day.
 - View-as is read-only. It is not a way to send or to change the client.
 
-## v2.3.0 India-first channels + AI front desk (19 Oct 2026), not deployed
+## v2.3.0 India-first channels + AI front desk (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `cursor/india-channels-frontdesk-108b`, based on `cursor/learning-cos-playbooks-c27f`. package.json version is 2.3.0. Not on staging or prod. Do not merge to main from this branch.
 - This is pillars 7 and 8 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.4 owned-channels slice (no Embedded Signup, no campaign email, no DLT registration) and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is this slice.
 - **Inbox.** `lib/channels.js`. `GET /api/channels`, `POST /api/channels/whatsapp`, `POST /api/channels/sms`, `POST /api/channels/disconnect`, `POST /api/channels/email/sync`, `GET /api/channels/conversations/:id`, `POST /api/channels/send`. The Inbox page lists threads and the connect forms. Secrets are encrypted with `SESSION_SECRET` (same idea as BYOK). `GET /api/channels` returns a last-four hint. The verify token is returned once, on save.
@@ -43,7 +49,7 @@
 - Voice is not included. A booking without a connected calendar is still stored. It is not written to Google until Calendar is connected (or the mock switch is on).
 - Inbound email sync reads recent Gmail. It does not send, and it is not a full mailbox.
 
-## v2.2.0 learning chief of staff + playbooks (19 Oct 2026), not deployed
+## v2.2.0 learning chief of staff + playbooks (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `cursor/learning-cos-playbooks-c27f`, based on `cursor/plain-english-workflows-b818` (includes review commits ab66f8e, 5546b0f, 829f425: auto-email caps, no platform mailbox, HTML send). package.json version is 2.2.0. Not on staging or prod. Do not merge to main from this branch.
 - This is pillars 4 and 5 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.2 tracking/consent slice, not the v2.5 marketplace or v2.7 self-learning numbering, and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is this slice.
 - **Suggestions.** `lib/cos.js`. The routines tick calls `runDueCos`. The first tick for an account only schedules the next review (7 days). A later tick, when that time has passed, reads that account’s timeline, workflow runs and approvals and stores up to 5 open suggestions. `GET /api/cos`, `POST /api/cos/suggestions/apply`, `POST /api/cos/suggestions/dismiss`, `POST /api/cos/confirm`. The Suggestions page has Apply, Dismiss and Confirm.
@@ -63,7 +69,7 @@
 - Suggestions are per account only. Playbooks are the three starters plus that account’s own exports, not a paid public marketplace.
 - Installed workflows are not enabled. Installing does not send.
 
-## v2.1.0 plain-English workflows (19 Oct 2026), not deployed
+## v2.1.0 plain-English workflows (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `cursor/plain-english-workflows-b818`, based on `cursor/v2-timeline-tracking-e476`. package.json version is 2.1.0. Not on staging or prod. Do not merge to main from this branch.
 - This is pillar 3 of the AI-first plan, on the current per-account store. It is not the v2.1 queue-and-worker from docs/TEAM-HANDOVER.md, and it is not a LangGraph engine. The existing OpenRouter path (and the mock AI path) compiles the sentence. Runs go through the existing routines tick.
 - **Workflows.** `lib/workflows.js`. `POST /api/workflows/compile`, `GET /api/workflows`, `GET /api/workflows/:id`, `POST /api/workflows/update`, `POST /api/workflows/delete`. The Workflows page lets a customer write a sentence, read the steps in plain words, set each step to needs approval / auto within limits / auto, then enable, pause, or delete it, and see run history.
@@ -80,7 +86,7 @@
 - Tracking is still not added to an email by itself. Opens and clicks start a workflow only after tracking was put on a draft.
 - Auto-send needs the customer to change the step. If email is not connected, the step waits in Approvals and nothing is sent.
 
-## v2.0.0 timeline + tracking (19 Oct 2026), not deployed
+## v2.0.0 timeline + tracking (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `cursor/v2-timeline-tracking-e476`, based on `deploy-v1.15.0`. package.json version is 2.0.0. Not on staging or prod.
 - This slice is pillars 1 and 2 of the AI-first plan, on the current per-account store. It is not the full v2.0 in docs/TEAM-HANDOVER.md (organisations, memberships, relational tables, row-level security, blob migration, dual-read, typed CRM tools).
 - **Timeline.** `lib/timeline.js`. `GET /api/leads/:id/timeline`, `POST /api/leads/:id/notes`, `POST /api/leads/:id/tasks`, `GET /api/crm/dashboard`. The customer UI has a Contacts tab: dashboard, contact list, and one timeline. Notes and tasks are records only.
@@ -96,7 +102,7 @@
 - An anonymous form view is counted on the dashboard. It is attached to a contact when the form is submitted, or when someone opens that contact’s visit link.
 - Email opens are approximate. Plain-text mail gets click rewrites only.
 
-## v1.15.0 deployment basics (20 Oct 2026), staging only
+## v1.15.0 deployment basics (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `deploy-v1.15.0` (on top of `integrations-v1.14.0`), not pushed, not on prod. package.json version is now 1.15.0.
 - Backups: `scripts/db-backup.mjs` (backup/verify/restore/drill), docs/BACKUPS.md (drill log). Box copies are in /workspace/aaas-run/backups (git-ignored, mode 600). Set `BACKUP_KEY` before backing up prod.
 - Monitoring: `/api/health/deep`. Cron runs are recorded in `as_sys_cron`. Plan in docs/MONITORING.md (monitors not created yet; they need the owner's email/account).
@@ -104,20 +110,20 @@
 - AWS: docs/DEPLOY-AWS.md (plan only).
 - Staging e2e scenario `g` covers v1.14 features.
 
-## v1.14.0 integrations, approvals, flexible CRM (20 Oct 2026), staging only
+## v1.14.0 integrations, approvals, flexible CRM (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `integrations-v1.14.0` (on top of `security-v1.13.0`), not pushed, not on prod.
 - Connectors: `GET /api/connectors` now returns status/error/reconnect; `POST /api/connectors/check {c}`; disconnect returns `was`. Live reads that fail with expired access mark the app "error".
 - Approvals (`lib/approvals.js`): `GET /api/agents/approvals?status=`, `POST /api/agents/approval/edit`, `POST /api/agents/approval {id, decision, edit?, note?}`, `POST /api/agents/approvals/batch {ids, decision}` (max 25), `POST /api/agents/approvals/clear {older_than_days?}`.
 - CRM (`lib/leads.js`): `GET/PUT /api/leads/fields`, `GET/PUT /api/leads/stages {stages, move_to?}`, `POST /api/leads/tags {ids, add, remove}`, `GET /api/leads/export.csv`, `POST /api/leads/import {csv, upsert?, dry_run?}` (max 2000 rows). Leads accept `stage` and `fields`; list filters `?tag=&stage=`.
 - Tests: `test/integrations-v1140.test.mjs` (per-account checks throughout).
 
-## v1.13.0 security: tenant isolation + remote browser lock-down (20 Oct 2026), staging only
+## v1.13.0 security: tenant isolation + remote browser lock-down (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
 - Branch `security-v1.13.0` (on top of `agents-v1.12.0`), not pushed, not on prod.
 - Cross-tenant tests for every customer route: `test/tenant-isolation.test.mjs`.
 - `REMOTE_BROWSER=on` is now needed to use the remote browser on a self-hosted box (the owner's local box needs it added to `.env` after upgrading). It is always off on Vercel.
 - Billing/Razorpay shelved (no GSTIN). Early customers get manual invoices.
 
-## v1.12.0 agent activity (20 Oct 2026, ~12:45 AM IST), staging only
+## v1.12.0 agent activity (20 Oct 2026, ~12:45 AM IST), released in v2.4.0 (20 Oct 2026)
 - Branch `agents-v1.12.0` (on top of `auth-v1.11.0`), not pushed, not on prod.
 - New `lib/activity.js`: live run record `as_run:<email>:<runId>` (10-minute life) and per-agent history `as_act:<email>` (last 10 runs, last 5 errors).
 - New routes: `GET /api/agents/status`, `GET /api/agents/run?id=`. Chat accepts `run_id`; the page polls every 1.5 s and shows steps.

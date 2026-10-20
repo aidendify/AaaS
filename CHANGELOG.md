@@ -5,7 +5,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [2.4.0] - unreleased
+## [2.4.0] - 2026-10-20
 
 ### Added
 - **Agency workspaces.** A customer can turn their login into an agency and add client workspaces and staff. Each client is still their own account, so one client cannot read another, and one agency cannot read another agency’s clients. Staff roles are owner, admin, and member.
@@ -22,7 +22,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - A cap is checked when the action runs. It is not a lock across every process. The website chat rate limit is still per process. The hosted routine tick is still often once a day.
 - View-as cannot send, change, or open the agency. A member cannot view-as. The Back to agency bar stays on screen, and the business-setup form does not open.
 
-## [2.3.0] - unreleased
+## [2.3.0] - 2026-10-20
 
 ### Added
 - **One inbox per account.** WhatsApp, SMS and email sit on the Inbox page, matched to a CRM contact and written onto that contact’s timeline. Credentials are stored encrypted, the same way a bring-your-own AI key is stored. The page and `GET /api/channels` show a hint, not the secret.
@@ -49,7 +49,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Playbook export: emails and phone numbers in prompts/templates replaced with "[contact removed]".
 - Tests: test/review-pr3.test.mjs; e2e scenario j (weekly review on the test clock, apply, export/import preview/install, cross-account 404).
 
-## [2.2.0] - unreleased
+## [2.2.0] - 2026-10-20
 
 ### Added
 - **Weekly suggestions.** On the same routine tick as workflows, each account is reviewed about once a week. The review reads only that account’s timeline, email opens and clicks, workflow runs and approvals, and writes 3 to 5 plain sentences. For example: “Emails sent on Tuesday get about 2× the opens of other days” or “Leads from LinkedIn convert best.” Open them on the Suggestions page.
@@ -68,7 +68,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Suggestions are for this account only. A playbook you export is visible only to this account. The starters are built in. This is not a public marketplace.
 - Nothing in Apply, Confirm, auto-pick or Install sends an email.
 
-## [2.1.0] - unreleased
+## [2.1.0] - 2026-10-20
 
 ### Added
 - **Workflows in plain English.** On the Workflows page, describe what should happen in a sentence. For example: “When a new lead comes from LinkedIn, tag them, draft a welcome email, and remind me in 2 days if no reply.” The same AI you already use (OpenRouter, or the free test AI) turns that into a trigger and steps. You read it back in ordinary words, then turn it on, pause it, or delete it. Run history sits on the same page.
@@ -84,7 +84,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - Approving a draft still does not send or post it. An email is sent only when that step is set to auto (or auto within limits), the recipient is allowed, the daily cap is not used up, and email is connected. If it cannot send, it waits in Approvals and nothing goes out.
 - Turning a sentence into a workflow needs an AI key, or the free test AI. The test AI gives the same workflow every time for the same sentence.
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2026-10-20
 
 ### Added
 - **One timeline per contact.** Open Contacts, pick a lead, and you see one list in time order: history, notes, stage changes, tasks, emails and drafts that are waiting for approval, agent runs that named that contact, form submissions, and page visits. Add a note or a task from the same page. Nothing on this page sends, posts, or pays.
@@ -99,7 +99,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - The open image is a rough signal (many mail apps block images). Plain-text emails get rewritten links only.
 - There is no site snippet, consent banner, or download/delete-my-data flow in this release.
 
-## [1.15.0] - unreleased (on staging only)
+## [1.15.0] - 2026-10-20
 
 ### Added
 - **CRM settings screen.** Account menu → "Leads: fields, stages, CSV". Set your pipeline stages and your own lead fields there, without the API. The CRM refreshes by itself after an import or a settings change.
@@ -109,7 +109,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Cost notes** (docs/MONITORING.md) and an **AWS deployment plan** in Mumbai, inside a private network (docs/DEPLOY-AWS.md). These are documents only; nothing was created on AWS.
 - Staging tests now also cover app connections, approvals (edit, reject with a note, batch, history, clear) and the CRM (fields, stages, CSV import and export, tags), each checked against a second account.
 
-## [1.14.0] - unreleased (on staging only)
+## [1.14.0] - 2026-10-20
 
 ### Added
 - **Connection status for your apps.** Each connected app now shows Connected or Reconnect needed. A new "check" tests Gmail and Slack right away (Gmail app passwords over SMTP, Google sign-in, and Slack). When an app stops working, for example an expired sign-in, it's flagged with a plain reason. To reconnect, connect it again; disconnecting tells you whether anything was actually removed.
@@ -128,7 +128,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
   - CSV export, made safe to open in spreadsheets.
   - Every change goes into the lead's history, ready for the contact timeline in v2.
 
-## [1.13.0] - unreleased (on staging only)
+## [1.13.0] - 2026-10-20
 
 ### Security
 - **Customers are kept strictly apart.** We checked every API route and added tests that sign in as one customer and try to read, change or delete another customer's leads, routines, approvals, memories, chats, activity and settings. All of it is refused.
@@ -140,7 +140,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 ### Changed
 - Billing (Razorpay and GST invoices) is shelved until there is a GSTIN. Early customers are invoiced manually.
 
-## [1.12.0] - unreleased (on staging only)
+## [1.12.0] - 2026-10-20
 
 ### Added
 - **Agent activity.** A new "Agent activity" item in the account menu shows every agent (Chief of Staff first): whether it's ready, waiting for your approval, or its last run failed; when it last ran and how long it took; the steps it took; its routines and next run time; and its recent errors in plain words.
