@@ -3,6 +3,19 @@
 All notable changes to AIdentify are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/).
 
+## [2.5.0] - 2026-10-20
+
+### Added
+- **Telegram.** Each account pastes a BotFather token on the Inbox page. The webhook URL has a hook id and no token in it. `X-Telegram-Bot-Api-Secret-Token` must match the secret stored for that account. The owner’s private messages go to the Chief of Staff. Customers reach the front desk only if the owner turns that on. Those replies start as needs approval. The front desk still cannot be set to full auto. There is no per-message fee.
+- **Slack, per account.** A bot token and a signing secret, separate from the server-wide Socket Mode bot. The raw body is checked with `X-Slack-Signature` and the timestamp before the event is trusted, including the URL-verification challenge. DMs and mentions from the owner go to the Chief. Customers reach the front desk only when that is turned on.
+- **WhatsApp QR (beta, owner only).** Off unless `WHATSAPP_QR=on`. The linked number is the only number that can talk to the Chief, in the chat with itself. Other people, groups and broadcasts are ignored. It cannot message customers or send a broadcast. The Inbox page shows that this is unofficial and that WhatsApp can restrict the number. On Vercel and other serverless hosts it does not open a socket, and the rest of the app keeps working. It needs a server that stays running.
+- **Encrypted per account.** Tokens and the WhatsApp QR session sit in the same sealed channel credentials as the Cloud API token. Logs and `GET /api/channels` show a hint, not the secret. Webhook ids are not written into the request log.
+
+### Notes
+- A Chief reply in the owner’s own Telegram, Slack or WhatsApp QR chat is delivered, because that is the conversation. A message to a customer still waits in Approvals.
+- `mock_` tokens and `CHANNELS_MOCK` with `AI_MOCK` let the tests run without Telegram, Slack or WhatsApp. The signature check still runs.
+- This build does not deploy the change. Setup steps are in `docs/CHANNELS.md`.
+
 ## [Unreleased]
 
 ### Added

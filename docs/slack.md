@@ -2,6 +2,8 @@
 
 AIdentify can run a Slack bot in **Socket Mode**, so it works from a laptop or a private server with no public URL.
 
+This page is the one server-wide bot (environment variables, one owner). A business that wants its own Slack app, with a bot token and signing secret saved on the Inbox page, uses the per-account channel in `docs/CHANNELS.md`. That one checks Slack’s request signature and can optionally hand customer messages to the front desk.
+
 What it does:
 
 - Obeys **one owner** (`SLACK_OWNER_USER_ID`). Messages from anyone else are ignored.

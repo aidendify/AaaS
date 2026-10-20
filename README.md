@@ -178,7 +178,8 @@ Everything can be set in `.env` (copy of [`.env.example`](.env.example), which d
 | `BUFFER_API_KEY` | social posting through Buffer |
 | `COMPOSIO_API_KEY` | managed sign-in for many connectors |
 | `<PROVIDER>_CLIENT_ID` / `_SECRET` | your own OAuth app per provider (Google, Microsoft, GitHub, Slack, Notion, …) |
-| `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_OWNER_USER_ID`, `SLACK_ACCOUNT_EMAIL` | Slack bot (all four required) |
+| `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_OWNER_USER_ID`, `SLACK_ACCOUNT_EMAIL` | Server-wide Slack bot (all four required). A customer’s own Slack app is saved on the Inbox page |
+| `WHATSAPP_QR` | `on` enables the beta owner-only WhatsApp QR channel. Off by default. Needs a persistent server; it does not run on Vercel |
 | `SLACK_NOTIFY_CHANNEL` | channel for review cards, failures and briefs |
 | `GITHUB_TOKEN`, `GITHUB_OWNER`, `GUMROAD_ACCESS_TOKEN` | Factory publishing (approval-gated) |
 | `BROWSER_PROFILE_DIR`, `BROWSER_HEADLESS` | agents' persistent browser profile |

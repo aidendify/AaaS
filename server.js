@@ -120,6 +120,7 @@ async function shutdown(sig) {
   server.close();
   await Promise.allSettled([
     slackMod && slackMod.stopSlack ? slackMod.stopSlack() : null,
+    import('./lib/waqr.js').then((m) => m.stopAllWaqr()).catch(() => {}),
     import('./lib/browser.js').then((m) => m.closeBrowsers()).catch(() => {}),
     import('./lib/remote-browser.js').then((m) => m.closeRemoteBrowser('server shutdown')).catch(() => {}),
   ]);
@@ -161,6 +162,7 @@ server.listen(PORT, HOST, async () => {
   timers.push(setInterval(() => { if (working) return; working = true; runBoardWorker().then((r) => { if (r.started) console.log('Board tasks started:', r.started); }).catch((e) => console.error('Board worker:', e.message)).finally(() => { working = false; }); }, 20000));
   // Slack bot in Socket Mode (lib/slack.js); stays off without its tokens
   import('./lib/slack.js').then((m) => { slackMod = m; return m.startSlack(); }).catch((e) => console.error('Slack bot failed to start:', e.message));
+  import('./lib/freech.js').then((m) => m.bootFreeChannels()).catch((e) => console.error('Free channels:', String(e && e.message || e).slice(0, 200)));
   }
   // Demo account only when DEMO_MODE=1 (previews and local try-outs). The password is never printed.
   if (process.env.DEMO_MODE === '1') {
