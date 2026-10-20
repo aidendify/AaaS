@@ -10,7 +10,7 @@ This is the product to deploy and test. Phone and Windows are windows onto **one
 - **Browser.** Research Agent and Browser Agent can open public sites in a real Chromium. Paying, buying, submitting, or typing a password waits for Approve. This needs Playwright on a VPS or a PC (`npx playwright install chromium`). It will not run on Vercel serverless. Set `BROWSER_EXECUTABLE` if Chromium is installed somewhere else.
 - **Safety already in this build:** `/api/ai` needs a signed-in user. Signing out or changing a password ends old sessions. Public form answers are saved on the server even if the owner’s tab is closed. A second device cannot silently overwrite the workspace. Page reads, the agent browser, and live-app addresses refuse private and metadata hosts. The demo FormFirst key is not sent to the browser.
 - **Windows and Android are not in this package.** This folder is the hosted web app only. Phone and desktop, when you build them, are just windows onto this same site.
-- **First customers (India):** clinic/dentist, real estate, e-commerce, coaching, and digital marketing agencies (and their clients). Onboarding picks the agent pack for that kind of business.
+- **First customers (India):** private clinics (enquiries and appointments only), coaches and consultants, real estate brokers, interior designers and home services, coaching institutes, salons/gyms/studios, and agencies as white-label resellers. Onboarding picks the agent pack for that kind of business.
 
 ## Quick start (local, 3 commands)
 
