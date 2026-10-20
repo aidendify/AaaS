@@ -177,6 +177,24 @@ test('telegram and slack route the owner to the chief and customers to a draft',
   } finally { await s.stop(); }
 });
 
+test('mock telegram and slack tokens are rejected unless CHANNELS_MOCK is on', { timeout: 60000 }, async () => {
+  const s = await startServer({ RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' });
+  try {
+    const A = (await req(s, 'POST', '/api/auth/signup', { email: 'mock-off@example.com', name: 'Off', password: PW })).d.token;
+    const tg = await req(s, 'POST', '/api/channels/telegram', { bot_token: 'mock_tg_owner_aaa', owner_user_id: '424242' }, A);
+    assert.equal(tg.status, 400, JSON.stringify(tg.d));
+    assert.equal(tg.d.error, 'bad_channel');
+    const sl = await req(s, 'POST', '/api/channels/slack', { bot_token: 'mock_sl_owner_aaa', signing_secret: 'slack-signing-secret-a', owner_user_id: 'U0OWNER1' }, A);
+    assert.equal(sl.status, 400, JSON.stringify(sl.d));
+    assert.equal(sl.d.error, 'bad_channel');
+    const view = await req(s, 'GET', '/api/channels', undefined, A);
+    assert.equal(view.d.channels.telegram.connected, false);
+    assert.equal(view.d.channels.slack.connected, false);
+    assert.equal(s.log().includes('mock_tg_owner_aaa'), false);
+    assert.equal(s.log().includes('mock_sl_owner_aaa'), false);
+  } finally { await s.stop(); }
+});
+
 test('whatsapp qr stays owner-only and refuses a serverless host', { timeout: 120000 }, async () => {
   const on = await startServer({ ...MOCK, WHATSAPP_QR: 'on' });
   const offHost = await startServer({ ...MOCK, WHATSAPP_QR: 'on', VERCEL: '1', ALLOW_FILE_STORE: '1' });

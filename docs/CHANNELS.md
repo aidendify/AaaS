@@ -164,7 +164,7 @@ Anything that messages a customer starts as **needs approval**. The front desk s
    `https://<your-app>/api/channels/telegram/webhook/<hook>`
 
    The hook id only chooses the account. The `X-Telegram-Bot-Api-Secret-Token` header must match the secret stored for that account. A body field that names another email is ignored.
-4. If `APP_URL` is a public http(s) address, saving a real token also calls Telegram `setWebhook`. A token that starts with `mock_` does not call Telegram. `mock_` is for tests.
+4. If `APP_URL` is a public http(s) address, saving a real token also calls Telegram `setWebhook`. A token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`. When that switch is on, `mock_` does not call Telegram. `mock_` is for tests.
 5. A private message from the linked owner goes to the Chief of Staff. Other people are ignored unless you tick **Let customers reach the front desk**. Those messages use the same front desk as WhatsApp. Group chats are ignored.
 
 ### Slack (per account)
@@ -173,7 +173,7 @@ This is separate from the server-wide Socket Mode bot in `docs/slack.md`.
 
 1. Create a Slack app. Add a bot token (`xoxb-…`) with `chat:write`, `im:history`, `im:read`, and `app_mentions:read`. Turn on Event Subscriptions for `message.im` and `app_mention`.
 2. Copy the signing secret.
-3. On the Inbox page, paste the bot token and the signing secret. Paste your member id (`U…`), or DM the bot `link` plus the code shown once after you save.
+3. On the Inbox page, paste the bot token and the signing secret. Paste your member id (`U…`), or DM the bot `link` plus the code shown once after you save. A bot token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`.
 4. Set the request URL to:
 
    `https://<your-app>/api/channels/slack/webhook/<hook>`

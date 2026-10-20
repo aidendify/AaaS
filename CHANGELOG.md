@@ -13,7 +13,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ### Notes
 - A Chief reply in the owner’s own Telegram, Slack or WhatsApp QR chat is delivered, because that is the conversation. A message to a customer still waits in Approvals.
-- `mock_` tokens and `CHANNELS_MOCK` with `AI_MOCK` let the tests run without Telegram, Slack or WhatsApp. The signature check still runs.
+- A Telegram or Slack token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`. With that switch and `AI_MOCK`, tests run without Telegram, Slack or WhatsApp. The signature check still runs.
 - This build does not deploy the change. Setup steps are in `docs/CHANNELS.md`.
 
 ## [Unreleased]
