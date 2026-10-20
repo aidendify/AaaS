@@ -29,16 +29,16 @@ These beats are what a recording can show today. `docs/demo-scripts-check.md` is
 
 - **Saturday hours.** Front desk has a checkbox and times for each weekday. The form sends `by_day`. Saturday-only hours, and a different Monday window, are used for the reply and the slots.
 - **“Is Saturday free for laser?”** returns the saved price and that day’s hours, and offers Saturday times in the same draft. Nothing is sent until Approve.
-- **Website chat history.** Opening the chat page still does not load earlier messages. The approved reply appears when the visitor sends the next message. Until then the box is empty.
-- **10:47pm** is still a caption. The widget stores the server’s clock.
+- **Website chat history.** Opening the chat loads this visitor’s earlier messages, including replies that were approved. Another visitor’s thread stays empty. Drafts stay hidden until Approve.
+- **10:47pm** is the message’s own time in the account timezone. `DEMO_SEED=1` lets the owner store one website-chat line at a chosen `at`. The public widget ignores `createdAt`.
 - **Chief replies** on this mock server are canned sentences for the message, not a `[mock …]` line. The mock does not call a model. Customer sends still sit in Approvals until Approve. An owner’s own Telegram or Slack chat is delivered, because that chat is the owner talking to the Chief.
 - **Approve on a channel reply.** The button sends `edit: {}`. An empty edit is ignored, and the reply is sent only after Approve.
 - **“Evening before”** is 18:00 on the day before the appointment (or the time named in the sentence). The reminder is drafted when a tick reaches that time. It stays in Approvals.
 - **“Every Friday, remind people with bookings tomorrow”** told to the Chief saves a weekly draft. Turning it on and ticking that time drafts one reminder per booking tomorrow. The WhatsApp stays on needs approval. “Every fortnight” is refused with a clear error.
 - **“Slot at 6?”** is read as 18:00. With hours 10:00–19:30, the offer is 18:00 rather than the first opening of the day.
 - **3BHK.** The answer comes from this account’s listings (title, type, location, price, status, notes), including a CSV import. It is not a saved FAQ.
-- **Qualify.** The built-in questions are still ads, email, the website, or a retainer, then budget, then an email. A fee answer does not also qualify.
-- **Website chat names.** The lead is “Website visitor” until someone sets a name. The broker shot sets Ananya Rao on the contact before opening the timeline.
+- **Qualify.** Questions follow the business type: coach or consultant, clinic, real estate, salon or gym, and agency. The seeded coach uses the coach set. Front desk can pick another set, or replace the lines. A fee answer does not also qualify.
+- **Website chat names.** The chat asks for a name. A phone or email is optional, and “My name is …” is saved on the lead. The broker shot still sets Ananya Rao on the contact before the timeline, after that ask.
 - **Monday suggestion.** It appears after a weekly review of this account’s own email opens (four Monday sends opened, four mid-week sends not opened). Apply saves a draft. It does not send.
 - **Silent-lead follow-up.** Creating the lead only queues the workflow. The draft appears in Approvals after the routine tick (`GET /api/cron/tick`). The row is titled “Email: Following up”, and approving a draft does not send it.
 - **Agency.** A client is created without an email. Branding a hostname does not change DNS. Playbooks install as drafts. View-as is read only for about two hours. The usage page is a summary with markup, not a tax invoice and not a payment.

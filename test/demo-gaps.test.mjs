@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { interpret, normalizeCompiled, nextFire, eveningBeforeAt, SCHEDULE_ERROR } from '../lib/workflows.js';
-import { hoursForDay, upcomingSlots, wantedClock } from '../lib/frontdesk.js';
+import { hoursForDay, upcomingSlots, wantedClock, formatMessageTime, todayAt, resolveQualify, contactFromText, demoSeedOn } from '../lib/frontdesk.js';
 import { parseListingCsv, matchListings, listingAnswer } from '../lib/listings.js';
 import { mockChatReply } from '../lib/llm.js';
 import { STARTERS } from '../lib/playbooks.js';
@@ -150,6 +150,36 @@ test('mock chat is a canned sentence, stable, and does not call a model', () => 
     assert.match(mockChatReply('Hello there'), /drafted/i);
     assert.equal(called, 0);
   } finally { globalThis.fetch = real; }
+});
+
+test('message clocks, qualify sets, and a visitor name', () => {
+  const evening = Date.parse('2026-10-17T22:47:00+05:30');
+  assert.equal(formatMessageTime(evening, 'Asia/Kolkata'), '10:47pm');
+  assert.equal(formatMessageTime(todayAt(22, 47, 'Asia/Kolkata'), 'Asia/Kolkata'), '10:47pm');
+  assert.match(resolveQualify({ vertical: 'coach' })[0].ask, /pipeline/);
+  assert.match(resolveQualify({ vertical: 'consultant' })[0].ask, /pipeline/);
+  assert.match(resolveQualify({ vertical: 'clinic_skin' })[0].ask, /consultation/);
+  assert.match(resolveQualify({ vertical: 'realestate' })[0].ask, /buy, rent, or sell/);
+  assert.match(resolveQualify({ vertical: 'gym' })[0].ask, /cut, a class, or a trial/);
+  assert.match(resolveQualify({ vertical: 'agency' })[0].ask, /this client/);
+  assert.match(resolveQualify({ qualify_set: 'clinic', vertical: 'coach' })[0].ask, /consultation/);
+  assert.equal(resolveQualify({ qualify_questions: [{ ask: 'Who referred you?' }] })[0].ask, 'Who referred you?');
+  assert.match(resolveQualify({})[0].ask, /ads, email, the website, or a retainer/);
+  const who = contactFromText('My name is Priya Shah. Phone 9845011122. Email priya.shah@example.com');
+  assert.equal(who.name, 'Priya Shah');
+  assert.equal(who.phone, '+919845011122');
+  assert.equal(who.email, 'priya.shah@example.com');
+  assert.equal(contactFromText('My name is Priya Shah').phone, '');
+  assert.equal(contactFromText('Is Saturday free for laser?').name, '');
+  const prevSeed = process.env.DEMO_SEED;
+  const prevMode = process.env.DEMO_MODE;
+  delete process.env.DEMO_SEED;
+  delete process.env.DEMO_MODE;
+  assert.equal(demoSeedOn(), false);
+  process.env.DEMO_SEED = '1';
+  assert.equal(demoSeedOn(), true);
+  if (prevSeed == null) delete process.env.DEMO_SEED; else process.env.DEMO_SEED = prevSeed;
+  if (prevMode == null) delete process.env.DEMO_MODE; else process.env.DEMO_MODE = prevMode;
 });
 
 test('starter playbooks still compile, including the weekly reminder', () => {

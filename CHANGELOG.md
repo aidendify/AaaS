@@ -28,6 +28,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Evening-before reminders.** “The evening before” is a real time (18:00 the day before the appointment, unless a time was named). It is drafted for approval when that time arrives. Nothing is sent before Approve.
 - **Demo-mode chat.** With `AI_MOCK=on`, chat replies are canned sentences chosen from the message. They are not the old `[mock …]` line. The mock still never calls a model.
 - **Demo script check.** `docs/demo-scripts-check.md` records PASS or FAIL for each step of the five demo stories. `test/demo-stories.test.mjs` is the check. No demo video is recorded by that test.
+- **Widget clock and history.** Each website-chat line shows that message’s time in the account timezone. Opening the chat loads that visitor’s earlier messages, including approved replies. `DEMO_SEED=1` (or `DEMO_MODE=1`) lets the owner seed one message at a chosen time. A visitor cannot set `createdAt`.
+- **Qualify questions by business.** Coach, clinic, real estate, salon/gym, and agency each have a built-in set. Front desk can pick a set or type custom questions. A coach account asks the coach questions.
+- **Website chat name.** The chat asks for the visitor’s name. A phone or email is optional. The answer is saved on the lead.
 - **Local demo recordings.** `scripts/demo-videos` drives five Playwright walkthroughs against a mock server and builds a 16:9 and a 9:16 cut with ffmpeg. The videos themselves are not part of this repo.
 - **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
 

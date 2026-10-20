@@ -1,6 +1,7 @@
 // Seeds five fictional businesses into the local mock server. No live data, no phone numbers.
 import fs from 'node:fs';
 import { api, signup, setupDesk, workspace, PW, CRON, BASE } from './lib.mjs';
+import { todayAt } from '../../lib/frontdesk.js';
 
 const DAY = 864e5;
 // Past days, so the open pixels (recorded at the wall clock) still fall after the send.
@@ -137,6 +138,13 @@ export async function seedAll() {
     }],
     days: [6], start: '11:00', end: '13:00',
   });
+  await api(clinic.token, 'POST', '/api/frontdesk/demo-message', {
+    visitor: 'clinicclock1', text: 'Is Saturday free for laser?', at: todayAt(22, 47, 'Asia/Kolkata'),
+  });
+  const clockDrafts = (await api(clinic.token, 'GET', '/api/agents/approvals?status=pending&limit=20')).items || [];
+  for (const item of clockDrafts) {
+    await api(clinic.token, 'POST', '/api/agents/approval', { id: item.id, decision: 'reject', note: 'Clock seed only' });
+  }
 
   const coach = await signup('ravi.menon@northstar-coach.example', 'Ravi Menon');
   await profile(coach.token, {

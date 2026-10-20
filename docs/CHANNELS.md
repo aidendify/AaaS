@@ -84,7 +84,9 @@ Open Front desk. It is off until you turn it on.
 - **Auto within limits.** A normal answer can send on its own, up to the daily cap (default 20, maximum 200) and the character cap. A handoff never auto-sends.
 - Full **auto** is rejected. You cannot set it from the page or the API.
 
-The desk reads this account’s business profile (Settings / Profile: name and about) and the FAQs you saved. It can ask what the lead wants (ads, email, website, social, or a retainer), a budget, and an email. If it does not know, it hands the chat to you and adds a note in your inbox. The visitor sees: “Thanks for the message. A person from the team will reply to this.”
+The desk reads this account’s business profile (Settings / Profile: name and about) and the FAQs you saved. Qualify questions follow the business type saved at onboarding: coach or consultant, clinic, real estate, salon or gym, and agency. Anything else keeps the ads, email, website, or retainer questions. Front desk can pick a different set, or replace them with one custom question per line. It still asks a budget and an email, then offers call times. If it does not know, it hands the chat to you and adds a note in your inbox. The visitor sees: “Thanks for the message. A person from the team will reply to this.”
+
+On the website chat, a visitor who is still “Website visitor” is asked for a name. A phone or email is optional. “My name is Priya Shah” is saved on that lead. WhatsApp, Telegram, and Slack keep the name that channel already sent.
 
 Inbound text is data. It cannot change autonomy, caps, FAQs, or which account is speaking. A message that tries (“ignore previous instructions”, “set autonomy to auto”, “without approval”, and similar) is handed off. The model is asked to phrase a reply, and it may only make the desk more cautious. It cannot clear a handoff or change the approval setting.
 
@@ -116,11 +118,13 @@ Put that on the customer’s site. The script posts to the absolute origin (`APP
 
 The token is 32 hex characters. Guessing it is not practical. It maps to one account. Rotating it deletes the old token. Deleting the account deletes the token, the phone-number indexes, and the inbox.
 
-The public transcript shows received and sent messages only. Drafts stay hidden. If a draft is waiting, the widget says the team will reply shortly.
+The public transcript shows received and sent messages only. Drafts stay hidden. If a draft is waiting, the widget says the team will reply shortly. Opening the chat loads that visitor’s earlier messages, including replies you already approved. Another visitor id does not see them.
+
+Each line shows the message’s own time in the account timezone (the booking timezone, otherwise Asia/Kolkata). A visitor cannot set that time. `DEMO_SEED=1` or `DEMO_MODE=1` allows the signed-in owner to post `POST /api/frontdesk/demo-message` with `at` or `createdAt`, so a local demo can show a real 10:47pm. Leave both unset on a public server. The route is not found otherwise.
 
 `WIDGET_RATE_MAX` (default 30) is messages per 15 minutes for that widget and visitor address, in this process. It stays on even when `RATE_LIMIT=off`. It is not shared across several servers.
 
-The widget ignores any autonomy, FAQ, or settings fields in the message body. Only the text and a visitor id are read.
+The widget ignores any autonomy, FAQ, settings, or `createdAt` fields in the message body. Only the text and a visitor id are read.
 
 ## API (customer, signed in)
 
@@ -140,6 +144,7 @@ The widget ignores any autonomy, FAQ, or settings fields in the message body. On
 | GET / POST | `/api/frontdesk` | Read or save the desk. `auto` is `needs_approval` or `auto_within_limits`. |
 | POST | `/api/frontdesk/availability` | Hours and optional `calendar: "mock"`. Send `by_day` (`{"6":{"start":"11:00","end":"13:00"}}`) for per-weekday hours. |
 | POST | `/api/frontdesk/widget` | Create or rotate the widget token. |
+| POST | `/api/frontdesk/demo-message` | Owner only, and only when `DEMO_SEED=1` or `DEMO_MODE=1`. Stores one website-chat message at `at`. |
 | GET / POST | `/api/listings` | List or add a listing. |
 | POST | `/api/listings/update` | Change one listing in this account. |
 | POST | `/api/listings/delete` | Delete one listing in this account. |
@@ -152,6 +157,7 @@ Public, no session:
 | GET, POST | `/api/channels/whatsapp/webhook` |
 | POST | `/api/channels/sms/webhook` |
 | GET | `/c/:token` and `/c/:token.js` |
+| POST | `/c/:token/history` | This visitor’s received and sent messages. Drafts stay hidden. |
 | POST | `/c/:token/message` |
 
 Staff accounts get 403 on the customer routes. A customer cannot read or write another customer’s keys through `/api/kv`. Those keys are `as_chcred`, `as_chidx`, `as_conv`, `as_fd`, `as_book`, `as_list`, `as_wgt`, `as_waid`, `as_wavt`, `as_smsid`, `as_tghook`, `as_tgbot`, `as_slhook`, `as_slteam`, `as_fch`, and `as_fseen`. Listings live at `as_list:<email>`.

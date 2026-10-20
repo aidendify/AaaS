@@ -7,12 +7,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startServer } from './helpers.mjs';
 import { eveningBeforeAt } from '../lib/workflows.js';
+import { todayAt } from '../lib/frontdesk.js';
 import { slackSignature } from '../lib/freech.js';
 
 const DOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../docs/demo-scripts-check.md');
 const PW = 'Story-pass-123!';
 const CRON = 'c'.repeat(32);
-const ENV = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CHANNELS_MOCK: 'on', CRON_SECRET: CRON, APP_TIMEZONE: 'Asia/Kolkata' };
+const ENV = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CHANNELS_MOCK: 'on', CRON_SECRET: CRON, APP_TIMEZONE: 'Asia/Kolkata', DEMO_SEED: '1' };
 const DAY = 864e5;
 const reports = [];
 let tail = Promise.resolve();
@@ -85,6 +86,11 @@ async function signup(s, email, name) {
   assert.equal(out.status, 200, JSON.stringify(out.d));
   return out.d.token;
 }
+async function history(s, token, visitor) {
+  const r = await fetch(s.base + '/c/' + token + '/history', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ visitor }) });
+  const d = await r.json().catch(() => ({}));
+  return { status: r.status, d };
+}
 async function say(s, token, text, visitor) {
   const r = await fetch(s.base + '/c/' + token + '/message', {
     method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, visitor }),
@@ -149,17 +155,27 @@ story('clinic laser Saturday', 'Clinic · Saturday laser', async (steps) => {
     const sentBefore = thread && (thread.messages || []).some((m) => m.dir === 'out' && m.status === 'sent');
     check(steps, 'Saturday laser question is drafted with Saturday slots', asked.status === 200 && !!hold && hold.status === 'pending' && /book 1/.test(draftBody) && /Sat /.test(draftBody) && !/Mon /.test(draftBody) && bookingsBefore.length === 0 && !sentBefore, 'The draft has the price, Saturday 11:00–13:00, and Saturday times. Nothing is booked or sent.');
 
-    const html = await (await fetch(s.base + '/c/' + desk.widget)).text();
     const script = await (await fetch(s.base + '/c/' + desk.widget + '.js')).text();
-    const inboundAt = (asked.d.messages || []).find((m) => m.dir === 'in');
-    const clockReal = html.includes('10:47') || script.includes('10:47');
-    check(steps, 'Widget shows 10:47pm', clockReal, clockReal ? 'The page shows 10:47.' : 'The chat page has no 10:47pm clock. The message time is the server clock (' + (inboundAt ? 'stored on the message' : 'missing') + ').', false);
+    const at = todayAt(22, 47, 'Asia/Kolkata');
+    const seeded = await req(s, 'POST', '/api/frontdesk/demo-message', { visitor: 'clinicclock1', text: 'Is Saturday free for laser?', at }, token);
+    const seededHist = await history(s, desk.widget, 'clinicclock1');
+    const seededIn = (seededHist.d.messages || []).find((m) => m.dir === 'in');
+    const spoofAt = Date.now() - 5 * DAY;
+    const spoof = await fetch(s.base + '/c/' + desk.widget + '/message', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'hello there', visitor: 'clinicspoof1', createdAt: spoofAt, at: spoofAt }) });
+    const spoofJson = await spoof.json().catch(() => ({}));
+    const spoofIn = (spoofJson.messages || []).find((m) => m.dir === 'in');
+    const clockReal = seeded.status === 200 && seeded.d.time === '10:47pm' && seededIn && seededIn.at === at && seededIn.time === '10:47pm' && script.includes('m.time') && spoofIn && spoofIn.at !== spoofAt && Math.abs(spoofIn.at - Date.now()) < 120000;
+    check(steps, 'Widget shows 10:47pm', clockReal, clockReal ? 'A demo-seeded message at 22:47 Asia/Kolkata is shown as 10:47pm. The public widget ignores a createdAt in the body.' : 'Seed status ' + seeded.status + ', shown ' + (seededIn && seededIn.time) + ', spoof at ' + (spoofIn && spoofIn.at) + '.');
 
-    const approved = await approveWhere(s, token, /Saturday is open from 11:00/);
-    const pageAfter = await (await fetch(s.base + '/c/' + desk.widget)).text();
-    const showsOnOpen = /₹4,500|Saturday is open/.test(pageAfter);
-    const scriptFetchesOnLoad = script.indexOf('fetch(') > -1 && script.indexOf('fetch(') < script.indexOf('form.onsubmit');
-    check(steps, 'Opening the chat shows the approved reply', showsOnOpen || scriptFetchesOnLoad, showsOnOpen ? 'The chat page HTML includes the approved reply.' : 'Opening the chat page does not load earlier messages. The script fetches only after the visitor submits.', false);
+    const approved = hold
+      ? { item: hold, res: await req(s, 'POST', '/api/agents/approval', { id: hold.id, decision: 'approve', edit: {} }, token) }
+      : null;
+    const opened = await history(s, desk.widget, 'clinicvis01');
+    const other = await history(s, desk.widget, 'clinicother1');
+    const scriptFetchesOnLoad = script.includes('/history') && script.indexOf('fetch(') < script.indexOf('form.onsubmit');
+    const sawApprovedOnOpen = (opened.d.messages || []).some((m) => m.dir === 'out' && /₹4,500|Saturday is open/.test(m.body || ''));
+    const draftsHidden = !(opened.d.messages || []).some((m) => m.status === 'draft');
+    check(steps, 'Opening the chat shows the approved reply', opened.status === 200 && scriptFetchesOnLoad && sawApprovedOnOpen && draftsHidden && (other.d.messages || []).length === 0, sawApprovedOnOpen ? 'Opening the chat fetches this visitor’s history, including the approved Saturday reply. Another visitor’s history is empty. Drafts stay hidden.' : 'History did not include the approved reply.');
 
     const next = await say(s, desk.widget, 'thanks', 'clinicvis01');
     const sawApproved = (next.d.messages || []).some((m) => m.dir === 'out' && /₹4,500|Saturday is open/.test(m.body || ''));
@@ -200,6 +216,7 @@ story('coach fees and follow-up', 'Coach · Fees, discovery call, follow-up', as
   try {
     const token = await signup(s, 'ravi.menon@northstar-coach.example', 'Ravi Menon');
     await req(s, 'POST', '/api/profile', { name: 'Northstar Coaching', location: 'Bengaluru', about: 'A fictional coach for consultants.', offer: 'A discovery call' }, token);
+    await req(s, 'PUT', '/api/kv', { k: 'as_data:ravi.menon@northstar-coach.example', v: JSON.stringify({ agents: [], wp: { profile: { vertical: 'coach', verticalLabel: 'Coach / consultant', business: 'Northstar Coaching', city: 'Bengaluru' } }, rev: 0 }), at: Date.now() }, token);
     const tg = await req(s, 'POST', '/api/channels/telegram', { bot_token: 'mock_tg_coach_story', owner_user_id: '424242', customers: true }, token);
     const hook = (tg.d.telegram.webhook_url || '').split('/').pop();
     const secret = tg.d.telegram.secret_token;
@@ -222,8 +239,11 @@ story('coach fees and follow-up', 'Coach · Fees, discovery call, follow-up', as
     check(steps, 'Approving the fee delivers it and does not book a call', feeOk && /Sent/.test(feeOk.res.d.approval.result || '') && ((await req(s, 'GET', '/api/frontdesk', undefined, token)).d.bookings || []).length === 0, 'The fee reply is sent only after Approve. No appointment is stored.');
 
     const hello = await say(s, desk.widget, 'Hello', 'coachvis01');
-    const qualify = (await pending(s, token)).find((a) => /ads, email, the website, or a retainer/.test(blob(a)));
-    check(steps, 'Qualify questions are specific to a coach', false, qualify ? 'The next question is still the built-in ads, email, website, or retainer prompt.' : 'A coach-specific qualify question was drafted. Hello status ' + hello.status + '.', false);
+    const helloThread = ((await req(s, 'GET', '/api/channels', undefined, token)).d.conversations || []).find((c) => c.peer === 'coachvis01');
+    const helloBody = ((helloThread && helloThread.messages) || []).map((m) => m.body || '').join('\n');
+    const coachQ = /your offer, your pipeline, or how you close clients/.test(helloBody);
+    const genericQ = /ads, email, the website, or a retainer/.test(helloBody);
+    check(steps, 'Qualify questions are specific to a coach', hello.status === 200 && coachQ && !genericQ, coachQ ? 'Hello drafts the coach question about the offer, the pipeline, or closing clients. It does not ask about ads, email, the website, or a retainer.' : 'Hello status ' + hello.status + '. The draft was: ' + helloBody.slice(0, 180));
 
     await say(s, desk.widget, 'I want help with email. Budget 20000. Email meera.shah@example.com', 'coachvis01');
     const leads = (await req(s, 'GET', '/api/leads?limit=20', undefined, token)).d.leads || [];
@@ -276,9 +296,13 @@ story('broker 3BHK and Monday', 'Broker · 3BHK, site visit, Monday suggestion',
     await approveWhere(s, token, /Lakeview Residency/);
 
     const leads = (await req(s, 'GET', '/api/leads?limit=20', undefined, token)).d.leads || [];
-    const visitor = leads.find((l) => /website visitor/i.test(l.name || ''));
-    const askedName = (await pending(s, token)).some((a) => /your name/i.test(blob(a)));
-    check(steps, 'Website chat asks for a name', !!visitor && askedName && !/website visitor/i.test((visitor && visitor.name) || ''), visitor ? 'The lead is still “Website visitor”. The chat did not ask for a name.' : 'No website lead was created.', false);
+    const visitor = leads.find((l) => l.web_visitor === 'brokervis01');
+    const thread = ((await req(s, 'GET', '/api/channels', undefined, token)).d.conversations || []).find((c) => c.peer === 'brokervis01');
+    const askedName = ((thread && thread.messages) || []).some((m) => m.dir === 'out' && /your name/i.test(m.body || '') && /optional/i.test(m.body || ''));
+    const introduced = await say(s, desk.widget, 'My name is Priya Shah. Phone 9845011122. Email priya.shah@example.com', 'brokervis01');
+    const savedLead = ((await req(s, 'GET', '/api/leads?limit=20', undefined, token)).d.leads || []).find((l) => visitor && l.id === visitor.id);
+    const savedName = !!(visitor && /website visitor/i.test(visitor.name || '') && askedName && introduced.status === 200 && savedLead && savedLead.name === 'Priya Shah' && String(savedLead.phone || '').includes('9845011122') && savedLead.email === 'priya.shah@example.com');
+    check(steps, 'Website chat asks for a name', savedName, savedName ? 'The 3BHK reply asks for a name and says a phone or email is optional. “My name is Priya Shah…” saves Priya Shah, the phone, and the email.' : 'Lead ' + (visitor && visitor.name) + ', saved ' + (savedLead && savedLead.name) + ' ' + (savedLead && savedLead.phone) + ' ' + (savedLead && savedLead.email) + ', asked ' + askedName + '.');
     if (!visitor) throw new Error('Web chat lead missing');
 
     await say(s, desk.widget, 'Please book a Saturday site visit', 'brokervis01');
@@ -474,8 +498,6 @@ after(() => {
     '',
     'Checked by `node --test test/demo-stories.test.mjs` against a local server with `AI_PROVIDER=mock`, `AI_MOCK=on`, and `CHANNELS_MOCK=on`. No video was recorded.',
     '',
-    'A FAIL below is a step the app still does not do: the widget clock is the server clock, opening the chat page does not show earlier messages, qualify questions stay the built-in ads/email/website/retainer prompt, and website chat does not ask for a name. Every other step passed in that run.',
-    '',
   ];
   let pass = 0, fail = 0;
   for (const story of reports) {
@@ -487,6 +509,7 @@ after(() => {
     lines.push('');
   }
   if (!reports.length) lines.push('No story finished, so there is no result to record.', '');
+  lines.splice(4, 0, fail ? 'A FAIL is a step that did not pass in this run.' : 'Every step passed. The widget shows each message’s own time in the account timezone, reopening the chat loads that visitor’s history, qualify questions follow the business type, and website chat saves the visitor’s name.', '');
   lines.push('Totals: ' + pass + ' passed, ' + fail + ' failed.', '');
   fs.mkdirSync(path.dirname(DOC), { recursive: true });
   fs.writeFileSync(DOC, lines.join('\n'));

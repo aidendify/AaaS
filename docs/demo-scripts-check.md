@@ -2,7 +2,7 @@
 
 Checked by `node --test test/demo-stories.test.mjs` against a local server with `AI_PROVIDER=mock`, `AI_MOCK=on`, and `CHANNELS_MOCK=on`. No video was recorded.
 
-A FAIL below is a step the app still does not do: the widget clock is the server clock, opening the chat page does not show earlier messages, qualify questions stay the built-in ads/email/website/retainer prompt, and website chat does not ask for a name. Every other step passed in that run.
+Every step passed. The widget shows each message’s own time in the account timezone, reopening the chat loads that visitor’s history, qualify questions follow the business type, and website chat saves the visitor’s name.
 
 ## Clinic · Saturday laser
 
@@ -12,8 +12,8 @@ A FAIL below is a step the app still does not do: the widget clock is the server
 | Weekday hours picker is on Front desk | PASS | The served page builds a checkbox and time for each day, including Saturday, and posts by_day. An empty week is rejected. |
 | Different hours per day are used in replies | PASS | Monday is offered 10:00–12:00. Tuesday is closed, in those words. |
 | Saturday laser question is drafted with Saturday slots | PASS | The draft has the price, Saturday 11:00–13:00, and Saturday times. Nothing is booked or sent. |
-| Widget shows 10:47pm | FAIL | The chat page has no 10:47pm clock. The message time is the server clock (stored on the message). |
-| Opening the chat shows the approved reply | FAIL | Opening the chat page does not load earlier messages. The script fetches only after the visitor submits. |
+| Widget shows 10:47pm | PASS | A demo-seeded message at 22:47 Asia/Kolkata is shown as 10:47pm. The public widget ignores a createdAt in the body. |
+| Opening the chat shows the approved reply | PASS | Opening the chat fetches this visitor’s history, including the approved Saturday reply. Another visitor’s history is empty. Drafts stay hidden. |
 | The approved reply is delivered, and booking still needs a second approval | PASS | Approve with an empty edit delivers the Saturday reply. It is visible on the visitor’s next message. |
 | The first slot is a second draft | PASS | book 1 drafts a confirmation. The appointment is not stored yet. |
 | The appointment is stored only after the confirmation is approved | PASS | The booking appears after Approve, with a mock calendar id. |
@@ -26,7 +26,7 @@ A FAIL below is a step the app still does not do: the widget clock is the server
 | Telegram owner message reaches the Chief as a real sentence | PASS | The owner chat is delivered. The reply is a canned sentence, not a [mock] line. |
 | The fee answer is drafted and held | PASS | “What are your fees?” waits in Approvals. |
 | Approving the fee delivers it and does not book a call | PASS | The fee reply is sent only after Approve. No appointment is stored. |
-| Qualify questions are specific to a coach | FAIL | The next question is still the built-in ads, email, website, or retainer prompt. |
+| Qualify questions are specific to a coach | PASS | Hello drafts the coach question about the offer, the pipeline, or closing clients. It does not ask about ads, email, the website, or a retainer. |
 | Interest, budget, and email are stored | PASS | The contact keeps interest email, budget 20000, and the example.com address. |
 | The discovery call is booked only after approval | PASS | book 1 stays a draft. The booking exists after that confirmation is approved. |
 | A quiet-lead follow-up is drafted by the tick, and approving it does not send | PASS | The cron tick queues “Following up”. Approving that draft does not send it. |
@@ -38,7 +38,7 @@ A FAIL below is a step the app still does not do: the widget clock is the server
 | Chief answers the listing goal in plain English | PASS | The Chief reply is a sentence and does not contain a [mock] line. |
 | Listings support add, edit, delete, and CSV import | PASS | CSV import stored the 3BHK and kept a formula cell as text. Edit and delete work. The other account cannot see or change the row. |
 | “3BHK still available?” is answered from the listing and held | PASS | The draft quotes Lakeview Residency and does not offer slots. Nothing is sent. |
-| Website chat asks for a name | FAIL | The lead is still “Website visitor”. The chat did not ask for a name. |
+| Website chat asks for a name | PASS | The 3BHK reply asks for a name and says a phone or email is optional. “My name is Priya Shah…” saves Priya Shah, the phone, and the email. |
 | Saturday site-visit times are offered | PASS | The visit draft offers Saturday 11:00–13:00 only. |
 | The site visit is confirmed only after approval | PASS | The confirmation stays a draft until Approve. |
 | Owner sets Ananya Rao and the timeline shows the visit | PASS | The contact name is Ananya Rao. The timeline includes Call booked. |
@@ -70,4 +70,4 @@ A FAIL below is a step the app still does not do: the widget clock is the server
 | View-as is read only | PASS | The view-as session can read the draft workflow and cannot turn it on. |
 | The usage summary is not a payment | PASS | The invoice route sets payment false. The printable page says it is not a tax invoice and does not take payment. |
 
-Totals: 37 passed, 4 failed.
+Totals: 41 passed, 0 failed.

@@ -53,12 +53,13 @@ async function clinicShot(page, caps, acc) {
   await askChief(page, 'Answer Saturday laser questions with the price, offer a slot, and wait for my approval.');
   await beat(page, caps, 'The local mock model marks this as a draft. A customer message still waits for Approve.', 3200);
 
+  await page.evaluate((key) => localStorage.setItem(key, 'clinicclock1'), 'aidc-' + acc.widgetToken);
   await widgetSay(page, acc.widget, 'Is Saturday free for laser?');
-  await beat(page, caps, '10:47pm: “Is Saturday free for laser?” The widget uses the server clock, not 10:47. Nothing is sent yet.', 3400);
+  await beat(page, caps, '10:47pm is this message’s own time in the studio timezone. Nothing is sent yet.', 3400);
 
   await backToApp(page);
   await approve(page, 'Saturday is open');
-  await beat(page, caps, 'She approves the price and the Saturday hours. The chat stays blank until the patient writes again.', 1800);
+  await beat(page, caps, 'She approves the price and the Saturday hours. Reopening this visitor’s chat shows that reply.', 1800);
 
   await widgetNext(page, acc.widget, 'Please book a slot', /Saturday is open/);
   await beat(page, caps, 'The next message shows the approved price. The slot offer is a new draft. Saturday hours were set through the API. There is no day picker.', 3400);
@@ -117,7 +118,7 @@ async function coachShot(page, caps, acc) {
   await backToApp(page);
   await approve(page, 'discovery call');
   await widgetNext(page, acc.widget, 'I want help with email. Budget 20000. Email meera.shah@example.com', /discovery call is ₹3,000/);
-  await beat(page, caps, 'The fees appear only after approval. The built-in questions are ads, email, website, or a retainer. This note stores email, budget, and an example.com address.', 3400);
+  await beat(page, caps, 'The fees appear only after approval. A coach is asked about the offer, the pipeline, or closing clients. This note stores email, budget, and an example.com address.', 3400);
   await backToApp(page);
   await approve(page, 'Want me to offer');
   await widgetNext(page, acc.widget, 'book a call', /Want me to offer/);
@@ -172,7 +173,7 @@ async function brokerShot(page, caps, acc) {
   await ananya.scrollIntoViewIfNeeded();
   await ananya.locator('button').click();
   await page.locator('#crmPage').getByText(/Call booked/i).waitFor({ timeout: 20000 });
-  await beat(page, caps, 'CRM timeline for the site visit. The website chat does not ask for a name, so the owner set Ananya Rao on the contact.', 3800);
+  await beat(page, caps, 'CRM timeline for the site visit. The chat asked for a name. The owner then set Ananya Rao on the contact.', 3800);
 
   await goTab(page, 'Suggestions');
   await page.locator('#cosPage').getByText(/Monday/i).waitFor({ timeout: 20000 });
