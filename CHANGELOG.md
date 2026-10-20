@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
+
 ## [2.4.1] - 2026-10-20
 
 ### Changed

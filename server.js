@@ -46,7 +46,8 @@ async function serve(req, res) {
   const ip = req.socket.remoteAddress || 'local';
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
-      return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
+      const home = process.env.AIDENTIFY_SITE === 'landing' ? 'landing-v2.html' : 'index.html';
+      return send(res, 200, await fs.readFile(path.join(dir, home)), 'text/html; charset=utf-8');
     }
     { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
       if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
@@ -56,8 +57,19 @@ async function serve(req, res) {
     if (req.method === 'GET' && (url.pathname === '/settings' || url.pathname === '/settings.html')) { // admin settings (Hermes-style)
       return send(res, 200, await fs.readFile(path.join(dir, 'settings.html')), 'text/html; charset=utf-8');
     }
-    if (req.method === 'GET' && (url.pathname === '/waitlist' || url.pathname === '/waitlist.html' || url.pathname === '/early-access')) { // public early-access form
+    if (req.method === 'GET' && (url.pathname === '/waitlist' || url.pathname === '/waitlist.html' || url.pathname === '/early-access' || url.pathname === '/v1')) { // v1 early-access page; /v1 keeps it after the landing home moves to v2
       return send(res, 200, await fs.readFile(path.join(dir, 'waitlist.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/v2' || url.pathname === '/landing-v2.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'landing-v2.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/white-label' || url.pathname === '/white-label.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'white-label.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/landing-v2.css' || url.pathname === '/landing-v2.js')) {
+      const file = url.pathname.slice(1);
+      const type = file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8';
+      return send(res, 200, await fs.readFile(path.join(dir, file)), type);
     }
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
