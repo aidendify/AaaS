@@ -5,6 +5,13 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-10-20
+
+### Changed
+- **Audience widened to Indian small business owners** (approved by Phanindra, 20 Oct 2026). Landing page hero is now "Never miss a lead again. Your AI front desk on WhatsApp." with a new subhead, title and meta description. "Who it's for" has six cards: clinics (enquiries and appointments only), coaches and consultants, real estate brokers, interior designers and home services, institutes/salons/gyms/studios, and agencies as white-label resellers. FAQ and early-user copy updated; pricing FAQ says there are no online payments yet.
+- **Business type picker.** The waitlist form and the in-app onboarding both offer the same 15 business types, with no default selected. A choice is required. The onboarding picker used to preselect "Clinic / dentist".
+- Chief of Staff's business profile line now shows the readable business type.
+
 ## [2.4.0] - 2026-10-20
 
 ### Added

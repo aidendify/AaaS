@@ -2315,12 +2315,21 @@ const STARTERS=[
  {kind:'crm',name:'CRM Agent',d:'Runs your CRM from chat: captures and qualifies leads (Hot/Warm/Cold), converts them to customers, moves deals through the pipeline, drafts follow-ups for your approval, schedules tasks and reports from your real records.'}];
 KINFO.browser={tools:['Real browser','Page reader','Approved clicks'],inputs:'A public website address and what to look for',out:'A short readout of the page, plus a screenshot',desc:'Browses a public site in its own browser. Sensitive steps such as paying, buying, or signing in wait for your approval.'};
 const VERTICALS={
- clinic:{label:'Clinic / dentist',kinds:['formfirst','nudge','afterjob','support']},
- realestate:{label:'Real estate',kinds:['formfirst','nudge','openping','research']},
- ecommerce:{label:'E-commerce',kinds:['formfirst','nudge','partping','support','social']},
- coaching:{label:'Coaching',kinds:['formfirst','nudge','openping','afterjob']},
+ clinic_skin:{label:'Clinic: skin / aesthetic / hair',kinds:['formfirst','nudge','afterjob','support']},
+ clinic_dental:{label:'Clinic: dental',kinds:['formfirst','nudge','afterjob','support']},
+ clinic_other:{label:'Clinic: physio / wellness / other',kinds:['formfirst','nudge','afterjob','support']},
+ coach:{label:'Coach / trainer',kinds:['formfirst','nudge','openping','afterjob']},
+ consultant:{label:'Consultant / freelancer',kinds:['formfirst','nudge','openping','research']},
+ creator:{label:'Course creator / online educator',kinds:['formfirst','nudge','social','support']},
+ institute:{label:'Coaching institute / tuition',kinds:['formfirst','nudge','support','afterjob']},
+ realestate:{label:'Real estate broker / agent',kinds:['formfirst','nudge','openping','research']},
+ interior:{label:'Interior designer / home services',kinds:['formfirst','nudge','openping','afterjob']},
+ salon:{label:'Salon / spa',kinds:['formfirst','nudge','afterjob','support']},
+ gym:{label:'Gym / fitness studio',kinds:['formfirst','nudge','afterjob','support']},
+ travel:{label:'Travel agency',kinds:['formfirst','nudge','openping','support']},
  agency:{label:'Digital marketing agency',kinds:['formfirst','nudge','openping','social','research','browser']},
- other:{label:'Another small business',kinds:['formfirst','nudge','support','research']}
+ marketer:{label:'Email / performance marketer',kinds:['formfirst','nudge','openping','social','research']},
+ other:{label:'Other local business',kinds:['formfirst','nudge','support','research']}
 };
 const EXTRA_AGENTS=[
  {kind:'research',name:'Research Agent',d:KINFO.research.desc},
@@ -2337,11 +2346,11 @@ function ensureAgent(kind){
 function needsOnboard(){return !!(user&&!isStaff()&&!user.imp&&!(wp&&wp.profile&&wp.profile.business))}
 function showOnboard(){
   let el=document.getElementById('onboard');if(!el){el=document.createElement('div');el.id='onboard';document.body.appendChild(el)}
-  const chips=Object.entries(VERTICALS).map(([k,v],i)=>`<button type="button" class="${i?'':'on'}" data-v="${k}">${esc(v.label)}</button>`).join('');
+  const opts=Object.entries(VERTICALS).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join('');
   el.className='ov';
   el.innerHTML=`<form class="modal onboard" id="obForm"><h2 style="margin:0 0 6px">Tell Chief of Staff about the business</h2><p class="muted" style="margin:0 0 12px">One hosted workspace. Customers get a link. They do not install anything.</p>
-   <label>What kind of business?<div class="chips" id="obChips">${chips}</div></label>
-   <label>Business name<input name="business" required maxlength="80" placeholder="e.g. Smile Dental, Koramangala"></label>
+   <label>What kind of business?<select name="vertical" id="obVertical" required><option value="" selected disabled>Select your business type</option>${opts}</select></label>
+   <label>Business name<input name="business" required maxlength="80" placeholder="e.g. Glow Skin Clinic, Banjara Hills"></label>
    <label>City<input name="city" required maxlength="60" placeholder="e.g. Bengaluru"></label>
    <label>Phone or WhatsApp<input name="phone" maxlength="40" placeholder="Optional"></label>
    <label>Website<input name="website" maxlength="160" placeholder="Optional"></label>
@@ -2350,16 +2359,14 @@ function showOnboard(){
    <p class="err hide" id="obErr" role="alert"></p>
    <div class="acts"><button class="btn dk" type="submit">Start working</button></div></form>`;
   SYNC.mode().then(m=>{if(m==='server'){const d=el.querySelector('#obAi');d&&d.classList.remove('hide')}});
-  let vertical='clinic';
-  el.querySelector('#obChips').onclick=e=>{const b=e.target.closest('button');if(!b)return;vertical=b.dataset.v;el.querySelectorAll('#obChips button').forEach(x=>x.classList.toggle('on',x===b))};
   el.querySelector('#obForm').onsubmit=async e=>{
-    e.preventDefault();const f=new FormData(e.target),business=String(f.get('business')||'').trim(),city=String(f.get('city')||'').trim();
-    if(!business||!city)return;
+    e.preventDefault();const f=new FormData(e.target),business=String(f.get('business')||'').trim(),city=String(f.get('city')||'').trim(),vertical=String(f.get('vertical')||'');
+    if(!business||!city||!VERTICALS[vertical])return;
     const okey=String(f.get('obkey')||'').trim(),oe=el.querySelector('#obErr'),ob=el.querySelector('#obForm button[type=submit]');
     if(okey){ob.disabled=true;ob.textContent='Checking your key…';oe.classList.add('hide');
       try{const r=await aiKeySave(String(f.get('obprov')||'openrouter'),okey);say('Your '+r.byok.name+' key is saved. Chats use your own credit.')}
       catch(x){ob.disabled=false;ob.textContent='Start working';oe.textContent=(x.message||'That key didn’t work.')+' Fix it, or clear the key field to use the shared demo key.';oe.classList.remove('hide');return}}
-    wp.profile={vertical,business,city,phone:String(f.get('phone')||'').trim(),website:String(f.get('website')||'').trim(),help:String(f.get('help')||'').trim(),at:Date.now()};
+    wp.profile={vertical,verticalLabel:VERTICALS[vertical].label,business,city,phone:String(f.get('phone')||'').trim(),website:String(f.get('website')||'').trim(),help:String(f.get('help')||'').trim(),at:Date.now()};
     (VERTICALS[vertical]||VERTICALS.other).kinds.forEach(ensureAgent);
     const ff=agents.find(a=>a.kind==='formfirst');
     if(ff&&!(ff.forms||[]).length)appDo(ff,'create_form',{title:business+' enquiry',fields:['Name','Email','Phone','How can we help?'],biz:business});
