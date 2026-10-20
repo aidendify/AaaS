@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Landing v2, for review.** `/v2` is a new small-business page (AI team, use cases, approvals, rupee teaser). `/white-label` is the agency page. The landing build (`AIDENTIFY_SITE=landing`) still serves `waitlist.html` at `/`. Research notes are in `docs/landing-v2-research.md`.
+
 ## [2.4.0] - 2026-10-20
 
 ### Added

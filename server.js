@@ -59,6 +59,17 @@ async function serve(req, res) {
     if (req.method === 'GET' && (url.pathname === '/waitlist' || url.pathname === '/waitlist.html' || url.pathname === '/early-access')) { // public early-access form
       return send(res, 200, await fs.readFile(path.join(dir, 'waitlist.html')), 'text/html; charset=utf-8');
     }
+    if (req.method === 'GET' && (url.pathname === '/v2' || url.pathname === '/landing-v2.html')) { // landing v2, review only — home stays the app or, on the landing build, waitlist.html
+      return send(res, 200, await fs.readFile(path.join(dir, 'landing-v2.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/white-label' || url.pathname === '/white-label.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'white-label.html')), 'text/html; charset=utf-8');
+    }
+    if (req.method === 'GET' && (url.pathname === '/landing-v2.css' || url.pathname === '/landing-v2.js')) {
+      const file = url.pathname.slice(1);
+      const type = file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8';
+      return send(res, 200, await fs.readFile(path.join(dir, file)), type);
+    }
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
     }

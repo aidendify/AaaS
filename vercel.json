@@ -42,6 +42,14 @@
     {
       "source": "/early-access",
       "destination": "/waitlist.html"
+    },
+    {
+      "source": "/v2",
+      "destination": "/landing-v2.html"
+    },
+    {
+      "source": "/white-label",
+      "destination": "/white-label.html"
     }
   ],
   "headers": [
