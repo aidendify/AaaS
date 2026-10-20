@@ -8,7 +8,7 @@
 
 ## Mock AI (`lib/llm.js`)
 - It only turns on when **both** `AI_PROVIDER=mock` and `AI_MOCK=on` are set. Neither variable exists on the demo or the landing site, so they can't fall into mock by accident.
-- While it's on, it's the only AI provider and never falls back to a real, paid one. Answers are fixed for a given prompt: `[mock <hash>] Here is a draft for: …`. Token counts and costs are fake but realistic, and they flow through the normal spend hooks, so caps and logs still get exercised.
+- While it's on, it's the only AI provider and never falls back to a real, paid one. Chat answers are canned sentences chosen from the message (the same words every time for the same message). They are not a `[mock …]` line, and the mock never calls a model. Token counts and costs are fake but realistic, and they flow through the normal spend hooks, so caps and logs still get exercised.
 - Tests can drive tools with `[[mock:tool_name {"json":"input"}]]` in the message. A customer key (BYOK) containing `nocredit` returns 402 and one containing `badkey` returns 401. Keys containing `mock` skip the provider check, but only on a mock server.
 - `/api/health` reports `aiMock: true` while it's on.
 
