@@ -44,6 +44,10 @@
       "destination": "/waitlist.html"
     },
     {
+      "source": "/v1",
+      "destination": "/waitlist.html"
+    },
+    {
       "source": "/v2",
       "destination": "/landing-v2.html"
     },

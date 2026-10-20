@@ -1,4 +1,5 @@
-// Landing v2 is served at /v2 and /white-label. Home stays the app, and the landing build still uses waitlist.html at /.
+// Landing site (AIDENTIFY_SITE=landing): v2 is /. v1 stays at /v1. /v2 and /white-label keep working.
+// The product server still serves the app at /.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -32,7 +33,7 @@ test('landing v2 reuses the waitlist business types, with no default on the main
     assert.match(page, /src="\/landing-v2\.js"/);
   }
   assert.match(js, /fetch\('\/api\/waitlist'/);
-  assert.match(main, /href="\/white-label"/);
+  assert.match(main, /class="tab" href="\/white-label"/);
   assert.doesNotMatch(main, /₹14,999/);
   assert.match(wl, /₹14,999/);
   assert.match(main, /₹2,999/);
@@ -43,19 +44,23 @@ test('landing v2 reuses the waitlist business types, with no default on the main
   assert.doesNotMatch(read('waitlist.html'), /landing-v2/);
 });
 
-test('landing build keeps v1 at / and copies v2 beside it', () => {
+test('landing build serves v2 at / and keeps v1 as waitlist.html', () => {
   const vercel = JSON.parse(read('vercel.json'));
   const rewrite = (src) => vercel.rewrites.find((r) => r.source === src);
+  assert.equal(rewrite('/v1').destination, '/waitlist.html');
   assert.equal(rewrite('/v2').destination, '/landing-v2.html');
   assert.equal(rewrite('/white-label').destination, '/white-label.html');
   assert.equal(vercel.rewrites.some((r) => r.source === '/' || r.source === '/index.html'), false);
-  execFileSync(process.execPath, ['scripts/vercel-build.mjs'], { cwd: ROOT, env: { ...process.env, AIDENTIFY_SITE: 'landing' } });
+  const build = (env) => execFileSync(process.execPath, ['scripts/vercel-build.mjs'], { cwd: ROOT, env: { ...process.env, ...env } });
+  const pub = (name) => fs.readFileSync(path.join(ROOT, 'public', name), 'utf8');
   try {
-    const index = fs.readFileSync(path.join(ROOT, 'public/index.html'), 'utf8');
-    assert.equal(index, read('waitlist.html'));
-    assert.notEqual(index, read('landing-v2.html'));
+    build({ AIDENTIFY_SITE: '' });
+    assert.equal(pub('index.html'), read('index.html'), 'product build keeps the app at /');
+    build({ AIDENTIFY_SITE: 'landing' });
+    assert.equal(pub('index.html'), read('landing-v2.html'));
+    assert.notEqual(pub('index.html'), read('waitlist.html'));
     for (const f of ['landing-v2.html', 'white-label.html', 'landing-v2.css', 'landing-v2.js', 'waitlist.html']) {
-      assert.equal(fs.readFileSync(path.join(ROOT, 'public', f), 'utf8'), read(f));
+      assert.equal(pub(f), read(f));
     }
   } finally {
     fs.rmSync(path.join(ROOT, 'public'), { recursive: true, force: true });
@@ -83,6 +88,9 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   const homeHtml = await home.text();
   assert.equal(home.status, 200);
   assert.doesNotMatch(homeHtml, /Hire an AI team/);
+  const v1 = await fetch(s.base + '/v1');
+  assert.equal(v1.status, 200);
+  assert.match(await v1.text(), /Hire AI agents, not more headcount/);
   const wait = await fetch(s.base + '/waitlist');
   assert.match(await wait.text(), /Join the waitlist/);
   const opts = await s.api('/api/waitlist/options');
@@ -99,4 +107,22 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   });
   assert.equal(missing.status, 400);
   assert.ok(missing.d.fields.businessType);
+});
+
+test('landing site serves v2 at / and v1 at /v1', async (t) => {
+  const s = await startServer({ AIDENTIFY_SITE: 'landing' });
+  t.after(s.stop);
+  const home = await fetch(s.base + '/');
+  assert.equal(home.status, 200);
+  const homeHtml = await home.text();
+  assert.match(homeHtml, /Hire an AI team/);
+  assert.match(homeHtml, /href="\/white-label"/);
+  const v2 = await fetch(s.base + '/v2');
+  assert.match(await v2.text(), /Hire an AI team/);
+  const v1 = await fetch(s.base + '/v1');
+  const v1Html = await v1.text();
+  assert.match(v1Html, /Hire AI agents, not more headcount/);
+  assert.doesNotMatch(v1Html, /landing-v2/);
+  const wl = await fetch(s.base + '/white-label');
+  assert.match(await wl.text(), /Resell AIdentify under your brand/);
 });

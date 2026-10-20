@@ -11,7 +11,6 @@ for (const p of PAGES) fs.copyFileSync(p, `${OUT}/${p}`);
 for (const p of ASSETS) fs.copyFileSync(p, `${OUT}/${p}`);
 for (const d of ['logos']) if (fs.existsSync(d)) fs.cpSync(d, `${OUT}/${d}`, { recursive: true, filter: (s) => !/README\.md$/.test(s) });
 if (fs.existsSync('zips')) { fs.mkdirSync(`${OUT}/zips`); for (const z of fs.readdirSync('zips')) if (/^[a-z-]+\.zip\.txt$/.test(z)) fs.copyFileSync(`zips/${z}`, `${OUT}/zips/${z}`); }
-// Landing project (aidentify.vercel.app): serve the v1 marketing page at /.
-// v2 stays at /v2 (landing-v2.html) until the owner switches the home page.
-if (process.env.AIDENTIFY_SITE === 'landing') fs.copyFileSync('waitlist.html', `${OUT}/index.html`);
+// Landing project (aidentify.vercel.app): v2 is the home page. v1 stays at /v1 (waitlist.html).
+if (process.env.AIDENTIFY_SITE === 'landing') fs.copyFileSync('landing-v2.html', `${OUT}/index.html`);
 console.log('public/:', fs.readdirSync(OUT).join(', '));

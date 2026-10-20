@@ -95,7 +95,7 @@ These are facts about the current product (v2.4), or they are labelled as target
 - **No fake social proof.** A strip of product facts only, each one qualified (target, default, or a count of channels).
 - **White Label** is a nav item and its own page. The main page does not explain resale, client workspaces or the agency price.
 - **Same waitlist.** `POST /api/waitlist`, the same fields, honeypot and consent. Business types are the 14 from `lib/waitlist.js`, empty first option, `required`. The white-label form may preselect Agency.
-- **Home unchanged.** `AIDENTIFY_SITE=landing` still copies `waitlist.html` to `index.html`. `/v2` and `/white-label` are extra routes.
+- **Home is v2 on the landing site.** `AIDENTIFY_SITE=landing` copies `landing-v2.html` to `index.html`. `/v2` still serves that page. v1 stays at `/v1` as `waitlist.html`. `/white-label` is the agency page. The product server (no `AIDENTIFY_SITE=landing`) still serves the app at `/`.
 
 ## Sources
 
