@@ -48,7 +48,9 @@ test('agency workspaces stay isolated, branded, capped, and unpaid', async () =>
     const badLogo = await req(s, 'POST', '/api/agency/branding', { logo: 'data:image/svg+xml;base64,PHN2Zy8+' }, owner);
     assert.equal(badLogo.status, 400);
     const badHost = await req(s, 'POST', '/api/agency/branding', { domain: 'https://app.north.example/login' }, owner);
-    assert.equal(badHost.d.branding ? badHost.d.branding.domain : '', 'app.north.example');
+    assert.equal(badHost.status, 400); // a path is refused, not silently trimmed
+    assert.equal((await req(s, 'POST', '/api/agency/branding', { domain: 'evil.example/<script>' }, owner)).status, 400);
+    assert.equal((await req(s, 'POST', '/api/agency/branding', { domain: 'https://app.north.example/' }, owner)).status, 200);
     const brand = await req(s, 'POST', '/api/agency/branding', {
       name: 'North Desk', logo: 'https://cdn.example.com/logo.png', color: '#1F6B4A', accent: '#0b3d2e',
       support_email: 'help@north.example', domain: 'app.north.example',

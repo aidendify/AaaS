@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? (args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : true) : d; };
 const BASE = String(opt('base', process.env.E2E_BASE || '')).replace(/\/+$/, '');
 if (!BASE) { console.error('Give --base <url>'); process.exit(2); }
-const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g,h,i,j,k')).split(','), REPORT = !opt('no-report', false);
+const LABEL = String(opt('label', '')), ONLY = String(opt('only', 'a,b,c,d,e,f,g,h,i,j,k,l')).split(','), REPORT = !opt('no-report', false);
 const CRON = process.env.E2E_CRON_SECRET || '';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TS = Date.now().toString(36), PW = 'E2e-' + crypto.randomBytes(9).toString('base64url') + '-7q';
@@ -530,7 +530,79 @@ async function scenarioK(S) {
   S.check('B cannot claim A\'s WhatsApp number (409)', (await call('POST', '/api/channels/whatsapp', { token: B.token, body: { phone_number_id: pid, access_token: 'mock_tok_b' + TS, app_secret: 'other-secret-123' } })).status === 409);
 }
 
-const SC = { k: ['Channels + front desk: WhatsApp inbound, approval draft, STOP, spoofed webhook, widget, cross-account', scenarioK], j: ['Learning CoS + playbooks: weekly review, apply, export/import/install, cross-account', scenarioJ], i: ['Workflows: compile from text, enable, new lead → approval, nothing sent, cross-account', scenarioI], h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
+// ---------- scenario l: agency white-label (v2.4) ----------
+async function scenarioL(S) {
+  const O = await signup(S, 'l'), O2 = await signup(S, 'l2'); if (!O.token || !O2.token) return;
+  const mkAg = await call('POST', '/api/agency', { token: O.token, body: { name: 'L Agency' } });
+  const mkAg2 = await call('POST', '/api/agency', { token: O2.token, body: { name: 'L2 Agency' } });
+  if (!S.check('two agencies created, no payment', mkAg.status === 200 && mkAg2.status === 200 && mkAg.d.payment === false, short(mkAg) + ' / ' + short(mkAg2))) return;
+  const cEmail = `e2e-${TS}-lc@example.com`, mEmail = `e2e-${TS}-lm@example.com`, aEmail = `e2e-${TS}-la@example.com`;
+  const cl = await call('POST', '/api/agency/clients', { token: O.token, body: { email: cEmail, name: '=HYPERLINK("http://x")', password: PW } });
+  const sm = await call('POST', '/api/agency/staff', { token: O.token, body: { email: mEmail, name: 'L Member', password: PW, role: 'member' } });
+  const sa = await call('POST', '/api/agency/staff', { token: O.token, body: { email: aEmail, name: 'L Admin', password: PW, role: 'admin' } });
+  S.cleanup.unshift(async () => {
+    for (const [p, e] of [['/api/agency/clients/remove', cEmail], ['/api/agency/staff/remove', mEmail], ['/api/agency/staff/remove', aEmail]]) await call('POST', p, { token: O.token, body: { email: e } });
+    const gone = await call('POST', '/api/auth/login', { body: { email: cEmail, password: PW } });
+    S.check('client and staff logins removed by the agency', gone.status === 401, short(gone));
+  });
+  S.check('client + member + admin staff created, nothing mailed', cl.status === 200 && cl.d.mailed === false && sm.status === 200 && sa.status === 200, [cl, sm, sa].map(short).join(' / '));
+  const M = (await call('POST', '/api/auth/login', { body: { email: mEmail, password: PW } })).d?.token;
+  const A = (await call('POST', '/api/auth/login', { body: { email: aEmail, password: PW } })).d?.token;
+  const C = (await call('POST', '/api/auth/login', { body: { email: cEmail, password: PW } })).d?.token;
+  const mView = await call('GET', '/api/agency', { token: M });
+  const mDenied = await Promise.all([
+    call('POST', '/api/agency/clients', { token: M, body: { email: `e2e-${TS}-lx@example.com`, name: 'x', password: PW } }),
+    call('POST', '/api/agency/view-as', { token: M, body: { email: cEmail } }),
+    call('GET', '/api/agency/invoice.csv', { token: M }),
+    call('POST', '/api/agency/branding', { token: M, body: { name: 'pwn' } }),
+    call('POST', '/api/agency/staff', { token: A, body: { email: `e2e-${TS}-ly@example.com`, name: 'y', password: PW, role: 'admin' } }),
+    call('POST', '/api/agency/branding', { token: A, body: { name: 'pwn' } }),
+  ]);
+  S.check('member can view (no markup) but cannot create, view-as, export or brand; admin cannot add admins or brand', mView.status === 200 && !mView.d.agency.markup && mDenied.every((r) => r.status === 403), mDenied.map((r) => r.status).join(','));
+  const cAg = await call('GET', '/api/agency', { token: C });
+  S.check('client cannot open the agency', cAg.status === 403, short(cAg));
+  const bad = await Promise.all([
+    { name: 'ok', color: 'red;}body{x' }, { logo: 'javascript:alert(1)' }, { support_email: '<script>@x' }, { domain: 'evil.com/<script>' }, { logo: 'data:image/svg+xml;base64,PHN2Zz4=' },
+  ].map((b) => call('POST', '/api/agency/branding', { token: O.token, body: b })));
+  S.check('unsafe colour / logo / email / hostname refused (400)', bad.every((r) => r.status === 400), bad.map((r) => r.status).join(','));
+  const host = `l${TS}.example.com`;
+  const br = await call('POST', '/api/agency/branding', { token: O.token, body: { name: '<img src=x onerror=alert(1)>L', color: '#1f6b4a', support_email: 'help@example.com', domain: host } });
+  const taken = await call('POST', '/api/agency/branding', { token: O2.token, body: { domain: host } });
+  S.check('branding saved; other agency cannot take the hostname (409)', br.status === 200 && taken.status === 409, short(br) + ' / ' + short(taken));
+  const pub = await call('GET', '/api/branding', { headers: { 'x-forwarded-host': host } });
+  const pubQ = await call('GET', '/api/branding?host=' + host);
+  const pubX = await call('GET', '/api/branding?host=unknown-' + TS + '.example.com');
+  S.check('host branding shows only public brand fields, unknown host gets platform brand', pubQ.status === 200 && pubQ.d.source === 'agency' && !/e2e-|markup|clients/.test(JSON.stringify(pubQ.d)) && pubX.d.source === 'platform', JSON.stringify(pubQ.d) + ' hdr:' + (pub.d && pub.d.source));
+  await call('POST', '/api/agency/markup', { token: O.token, body: { percent: 20, message_inr: 1, lead_inr: 5 } });
+  await call('POST', '/api/leads', { token: C, body: { first_name: '@SUM(1)', email: `lead-${TS}@example.com` } });
+  const csv = await call('GET', '/api/agency/invoice.csv', { token: O.token });
+  const row = (csv.text || '').split(/\r?\n/).find((l) => l.includes(cEmail)) || '';
+  S.check('usage CSV exported; formula-like name neutralised', csv.status === 200 && row && /,"?'=HYPERLINK/.test(row) && !/,=/.test(row), row.slice(0, 160));
+  const html = await call('GET', '/api/agency/invoice.html', { token: O.token });
+  S.check('invoice HTML escapes the brand name, says no payment', html.status === 200 && !html.text.includes('<img src=x') && /does not take payment/.test(html.text), html.text.slice(0, 120));
+  const va = await call('POST', '/api/agency/view-as', { token: O.token, body: { email: cEmail } });
+  const V = va.d && va.d.token;
+  const vGet = await call('GET', '/api/leads?limit=5', { token: V });
+  const vW = await Promise.all([
+    call('POST', '/api/leads', { token: V, body: { first_name: 'x', email: `v-${TS}@example.com` } }),
+    call('PUT', '/api/kv', { token: V, body: { k: 'as_data:' + cEmail, v: '{}', at: Date.now() } }),
+    call('POST', '/api/auth/delete', { token: V, body: { password: PW } }),
+    call('GET', '/api/agency', { token: V }),
+  ]);
+  S.check('view-as reads the client, every write refused (403)', va.status === 200 && va.d.read_only === true && vGet.status === 200 && vW.every((r) => r.status === 403), short(va) + ' ' + vW.map((r) => r.status).join(','));
+  const au = await call('GET', '/api/agency/audit', { token: O.token });
+  S.check('view-as is in the agency audit log', ((au.d && au.d.audit) || []).some((a) => a.action === 'view_as' && a.client === cEmail), short(au));
+  const x = await Promise.all([
+    call('GET', '/api/agency/clients/usage?email=' + encodeURIComponent(cEmail), { token: O2.token }),
+    call('POST', '/api/agency/view-as', { token: O2.token, body: { email: cEmail } }),
+    call('POST', '/api/agency/clients/update', { token: O2.token, body: { email: cEmail, suspended: true } }),
+    call('POST', '/api/agency/clients/remove', { token: O2.token, body: { email: cEmail } }),
+  ]);
+  const o2 = await call('GET', '/api/agency', { token: O2.token });
+  S.check('other agency gets 404 on our client and sees no clients', x.every((r) => r.status === 404) && o2.d.clients.length === 0 && !JSON.stringify(o2.d).includes(cEmail), x.map((r) => r.status).join(','));
+}
+
+const SC = { l: ['Agency white-label: clients, staff roles, branding, view-as read-only, usage CSV, cross-agency', scenarioL], k: ['Channels + front desk: WhatsApp inbound, approval draft, STOP, spoofed webhook, widget, cross-account', scenarioK], j: ['Learning CoS + playbooks: weekly review, apply, export/import/install, cross-account', scenarioJ], i: ['Workflows: compile from text, enable, new lead → approval, nothing sent, cross-account', scenarioI], h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
 console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);
