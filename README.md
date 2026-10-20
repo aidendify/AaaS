@@ -78,7 +78,7 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 ### First run
 
 1. Create the admin at `/setup` (see above). Then open http://localhost:3000 and **create an account** (email + password, an emailed sign-in code, or Google if configured).
-2. Onboarding asks what kind of business you run (clinic, real estate, shop, coaching, digital marketing agency or other) and adds a matching agent pack and a lead form.
+2. Onboarding asks what kind of business you run (15 types: clinics, coaches, consultants, course creators, institutes, real estate, interior and home services, salons, gyms, travel, agencies, marketers or other) and adds a matching agent pack and a lead form.
 3. Chat with **Chief of Staff**, the first tile in My Workplace. It delegates to your agents, creates new agents from a description and teaches them.
 4. Add agents from **Plugins → Agents** and apps from **Plugins → Connectors**.
 

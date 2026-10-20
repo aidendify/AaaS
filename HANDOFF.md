@@ -1,5 +1,9 @@
 # AIdentify handoff
 
+## v2.4.1 audience update (20 Oct 2026, IST)
+- Phanindra approved the wider small-business audience from /workspace/aaas-run/audience-research-2026-10-20.md. Landing (waitlist.html) and app onboarding (index.html) updated; lib/waitlist.js BUSINESS_TYPES matches the 15 options (server still accepts any 2-60 char type, so older entries stay valid).
+- Onboarding `VERTICALS` keys changed (clinic_skin, coach, …). Old saved profiles with `clinic`/`coaching`/`ecommerce` keep working: the key is only shown in the CoS profile line, and onboarding runs once.
+
 ## Release v2.4.0 (20 Oct 2026, ~9:45 AM IST)
 - v1.11.0 through v2.4.0 were merged to `main` in one release, approved by Phanindra, tagged `v2.4.0`, and deployed to `aidentify-demo`.
 - Before deploying, the prod `demo` schema was backed up to /workspace/aaas-run/backups (not encrypted: `BACKUP_KEY` was not set). The store is key/value rows, so no schema migration was needed.
