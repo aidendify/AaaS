@@ -16,7 +16,7 @@ test('landing v2 reuses the waitlist business types, with no default on the main
   assert.deepEqual(listed, BUSINESS_TYPES);
   assert.ok(BUSINESS_TYPES.length >= 14, 'canonical list is the server list');
   assert.equal(new Set(BUSINESS_TYPES).size, BUSINESS_TYPES.length);
-  assert.ok(BUSINESS_TYPES.includes('Agency'));
+  assert.ok(BUSINESS_TYPES.includes('Digital marketing agency'));
   assert.ok(BUSINESS_TYPES.includes('Other'));
 
   const main = read('landing-v2.html');
@@ -24,7 +24,7 @@ test('landing v2 reuses the waitlist business types, with no default on the main
   assert.match(main, /name="businessType" required/);
   assert.match(main, /<option value="" selected>Choose one<\/option>/);
   assert.doesNotMatch(main, /data-preselect/);
-  assert.match(wl, /data-preselect="Agency"/);
+  assert.match(wl, /data-preselect="Digital marketing agency"/);
   assert.match(js, /sel\.value = pre && BUSINESS_TYPES\.includes\(pre\) \? pre : ''/);
   for (const page of [main, wl]) {
     assert.match(page, /id="join-form"/);
@@ -90,13 +90,13 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   assert.doesNotMatch(homeHtml, /Hire an AI team/);
   const v1 = await fetch(s.base + '/v1');
   assert.equal(v1.status, 200);
-  assert.match(await v1.text(), /Hire AI agents, not more headcount/);
+  assert.match(await v1.text(), /Never miss a lead again/);
   const wait = await fetch(s.base + '/waitlist');
   assert.match(await wait.text(), /Join the waitlist/);
   const opts = await s.api('/api/waitlist/options');
   assert.deepEqual(opts.d.businessTypes, BUSINESS_TYPES);
   const joined = await s.api('/api/waitlist', {
-    name: 'Asha Rao', email: 'asha@clinic.example', businessType: 'Clinic / healthcare',
+    name: 'Asha Rao', email: 'asha@clinic.example', businessType: 'Clinic: skin / aesthetic / hair',
     city: 'Pune', whatsapp: '9876543211', consent: true, source: 'landing-v2',
   });
   assert.equal(joined.status, 200);
@@ -121,7 +121,7 @@ test('landing site serves v2 at / and v1 at /v1', async (t) => {
   assert.match(await v2.text(), /Hire an AI team/);
   const v1 = await fetch(s.base + '/v1');
   const v1Html = await v1.text();
-  assert.match(v1Html, /Hire AI agents, not more headcount/);
+  assert.match(v1Html, /Never miss a lead again/);
   assert.doesNotMatch(v1Html, /landing-v2/);
   const wl = await fetch(s.base + '/white-label');
   assert.match(await wl.text(), /Resell AIdentify under your brand/);

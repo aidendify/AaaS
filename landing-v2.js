@@ -1,5 +1,5 @@
 /* Shared behaviour for /v2 and /white-label. Business types match lib/waitlist.js. */
-const BUSINESS_TYPES = ['Agency', 'Clinic / healthcare', 'Coaching / education', 'Consulting', 'E-commerce / D2C', 'Home services', 'Manufacturing', 'Real estate', 'Restaurant / food', 'Retail shop', 'Salon / wellness', 'Software / IT', 'Travel', 'Other'];
+const BUSINESS_TYPES = ['Clinic: skin / aesthetic / hair', 'Clinic: dental', 'Clinic: physio / wellness / other', 'Coach / trainer', 'Consultant / freelancer', 'Course creator / online educator', 'Coaching institute / tuition', 'Real estate broker / agent', 'Interior designer / home services', 'Salon / spa', 'Gym / fitness studio', 'Travel agency', 'Digital marketing agency', 'Email / performance marketer', 'Other'];
 
 const $ = (s, r = document) => r.querySelector(s);
 const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
