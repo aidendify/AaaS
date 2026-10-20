@@ -22,6 +22,12 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Approve on a channel reply.** The Approvals button sends an edit payload. An empty edit on a web chat, WhatsApp, Telegram, Slack, or SMS item was rejected, so the reply never left Approvals. An empty edit is now ignored and the approval runs.
 
 ### Added
+- **Front desk hours per day.** The Front desk page has a checkbox and start/end time for each weekday. Saturday can be the only open day, and two days can use different hours. Booking replies and slot offers use those hours.
+- **Listings.** Each account can keep a short catalogue (title, type, location, price, status, notes), edit it, and import a CSV. “Is the 3BHK still available?” is answered from that list. The reply still waits for approval.
+- **Plain-English schedules.** “Every Friday at 5pm, remind people with bookings tomorrow” told to the Chief saves a weekly workflow. Every day, every weekday, and a named day are accepted, with a time. Anything else, such as “every fortnight”, returns a clear error. The workflow stays off until it is turned on, and the reminder is still a draft.
+- **Evening-before reminders.** “The evening before” is a real time (18:00 the day before the appointment, unless a time was named). It is drafted for approval when that time arrives. Nothing is sent before Approve.
+- **Demo-mode chat.** With `AI_MOCK=on`, chat replies are canned sentences chosen from the message. They are not the old `[mock …]` line. The mock still never calls a model.
+- **Demo script check.** `docs/demo-scripts-check.md` records PASS or FAIL for each step of the five demo stories. `test/demo-stories.test.mjs` is the check. No demo video is recorded by that test.
 - **Local demo recordings.** `scripts/demo-videos` drives five Playwright walkthroughs against a mock server and builds a 16:9 and a 9:16 cut with ffmpeg. The videos themselves are not part of this repo.
 - **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
 

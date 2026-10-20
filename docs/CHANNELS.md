@@ -90,7 +90,17 @@ Inbound text is data. It cannot change autonomy, caps, FAQs, or which account is
 
 ### Booking
 
-Hours default to Monday–Friday, 10:00–18:00, 30 minutes, `Asia/Kolkata`. The desk offers up to three open times. The visitor replies `book 1`, `book 2`, or `book 3`. The slot is held only when that reply is actually sent (you approve it, or auto within limits sends it). The booking is stored on the account.
+Hours default to Monday–Friday, 10:00–18:00, 30 minutes, `Asia/Kolkata`. On Front desk, each weekday has its own checkbox and start/end time. Saturday can be the only open day, and Monday can use different hours from Saturday. Saving the older shape (`days`, `start`, `end`, and no `by_day`) still works and clears the per-day map.
+
+The desk offers up to three open times. A question that names a day (“Is Saturday free?”) offers that day’s times. “Slot at 6” offers 18:00 when that time is inside the open hours. The visitor replies `book 1`, `book 2`, or `book 3`. The slot is held only when that reply is actually sent (you approve it, or auto within limits sends it). The booking is stored on the account.
+
+A closed day is answered as closed (“Tuesday is closed.”). An empty week is rejected: pick at least one open day.
+
+### Listings
+
+Front desk also has a catalogue for this account: title, type (for example 3BHK), location, price, status (`available` or `sold`), and notes. Add a row, edit it, delete it, or import a CSV whose header includes `title` and `type`. A cell that starts with `=`, `+`, `-`, or `@` is stored as text.
+
+“Is the 3BHK still available?” is answered from these rows. The reply still waits in Approvals. A booking question is separate and still offers slots.
 
 Optional calendar: connect Google Calendar under Plugins, or, when `CHANNELS_MOCK=on` and `AI_MOCK=on`, set the calendar to `mock`. A missing calendar still saves the booking. The mock link does not call Google.
 
@@ -128,8 +138,12 @@ The widget ignores any autonomy, FAQ, or settings fields in the message body. On
 | GET | `/api/channels/conversations/:id` | One thread. |
 | POST | `/api/channels/send` | Queue a reply. `"confirm": true` sends it now (your click is the approval). |
 | GET / POST | `/api/frontdesk` | Read or save the desk. `auto` is `needs_approval` or `auto_within_limits`. |
-| POST | `/api/frontdesk/availability` | Hours and optional `calendar: "mock"`. |
+| POST | `/api/frontdesk/availability` | Hours and optional `calendar: "mock"`. Send `by_day` (`{"6":{"start":"11:00","end":"13:00"}}`) for per-weekday hours. |
 | POST | `/api/frontdesk/widget` | Create or rotate the widget token. |
+| GET / POST | `/api/listings` | List or add a listing. |
+| POST | `/api/listings/update` | Change one listing in this account. |
+| POST | `/api/listings/delete` | Delete one listing in this account. |
+| POST | `/api/listings/import` | Import a CSV (`csv` or `text`, max 64 KB, 200 rows). |
 
 Public, no session:
 
@@ -140,7 +154,7 @@ Public, no session:
 | GET | `/c/:token` and `/c/:token.js` |
 | POST | `/c/:token/message` |
 
-Staff accounts get 403 on the customer routes. A customer cannot read or write another customer’s keys through `/api/kv`. Those keys are `as_chcred`, `as_chidx`, `as_conv`, `as_fd`, `as_book`, `as_wgt`, `as_waid`, `as_wavt`, `as_smsid`, `as_tghook`, `as_tgbot`, `as_slhook`, `as_slteam`, `as_fch`, and `as_fseen`.
+Staff accounts get 403 on the customer routes. A customer cannot read or write another customer’s keys through `/api/kv`. Those keys are `as_chcred`, `as_chidx`, `as_conv`, `as_fd`, `as_book`, `as_list`, `as_wgt`, `as_waid`, `as_wavt`, `as_smsid`, `as_tghook`, `as_tgbot`, `as_slhook`, `as_slteam`, `as_fch`, and `as_fseen`. Listings live at `as_list:<email>`.
 
 Public, no session, added in v2.5:
 

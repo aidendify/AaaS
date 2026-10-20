@@ -21,7 +21,9 @@ test('mock on: it is the only provider, even when a real key is set (never falls
   const realFetch = globalThis.fetch; globalThis.fetch = () => { throw new Error('network must not be used'); };
   try {
     const a = await complete('Write a reply to Ravi about the quote'), b = await complete('Write a reply to Ravi about the quote');
-    assert.equal(a.provider, 'mock'); assert.equal(a.text, b.text); assert.match(a.text, /^\[mock [0-9a-f]{8}\] Here is a draft for: Write a reply/);
+    assert.equal(a.provider, 'mock'); assert.equal(a.text, b.text);
+    assert.match(a.text, /Here is a draft you can edit: Write a reply to Ravi about the quote/);
+    assert.doesNotMatch(a.text, /\[mock/);
   } finally { globalThis.fetch = realFetch; }
 }));
 

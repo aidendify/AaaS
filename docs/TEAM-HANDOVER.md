@@ -213,7 +213,7 @@ Vercel **Hobby is for non-commercial use only**. Before the first paid customer 
 
 ### 7.1 Setup
 - **Staging** = Vercel project `aidentify-staging` + Neon schema `staging` + its own `SESSION_SECRET`, `CRON_SECRET`, admin password, and `PLATFORM_AI_BUDGET_USD=2`. Details in `docs/STAGING.md`.
-- **Mock AI** on staging by default: `AI_PROVIDER=mock` and `AI_MOCK=on` (both required). Free, fixed answers (`[mock <hash>] …`), realistic fake token costs so caps and logs still work. Drive tools with `[[mock:tool_name {"json":"input"}]]`. BYOK keys containing `nocredit` → 402, `badkey` → 401. `/api/health` shows `aiMock: true`.
+- **Mock AI** on staging by default: `AI_PROVIDER=mock` and `AI_MOCK=on` (both required). Free canned answers chosen from the message (no `[mock …]` line, and no model call), realistic fake token costs so caps and logs still work. Drive tools with `[[mock:tool_name {"json":"input"}]]`. BYOK keys containing `nocredit` → 402, `badkey` → 401. `/api/health` shows `aiMock: true`.
 - **Real AI run:** set `AI_PROVIDER=openrouter` and `AI_MOCK=off` on staging, redeploy, run once, switch back.
 
 ### 7.2 Running the tests

@@ -25,19 +25,19 @@ Playwright records at 1920×1080. The website-chat page is only a short title an
 
 ## What the product actually does
 
-These beats are in the stories because the code does not do the thing the sentence sounds like.
+These beats are what a recording can show today. `docs/demo-scripts-check.md` is the PASS/FAIL list from `test/demo-stories.test.mjs`. Do not record a video until that file is current.
 
-- **Saturday hours.** The front desk form saves start, end, and slot length. It does not send `days`. Saturday-only hours are set through `POST /api/frontdesk/availability` before the camera rolls.
-- **“Is Saturday free for laser?”** does not offer slots by itself. A saved answer with that question returns the price and the hours. A later “book a slot” offers the three times.
-- **Website chat history.** Opening the chat page does not load earlier messages. The approved reply appears when the visitor sends the next message. Until then the box is empty.
-- **10:47pm** is a caption. The widget stores the server’s clock.
-- **Chief replies** on this server are the mock line `[mock …] Here is a draft for: …`. Customer sends still sit in Approvals until Approve. An owner’s own Telegram or Slack chat is delivered, because that chat is the owner talking to the Chief.
-- **Approve on a channel reply.** The button sends `edit: {}`. That used to be rejected for web chat, so nothing was delivered. Empty edits are ignored now, and the reply is sent only after Approve.
-- **“Evening before”** does not set a clock. The sentence compiles to a WhatsApp that needs approval, plus an in-app reminder that does not message the patient.
-- **“Every Friday…”** does not compile. The recorder shows that error, then the sentence the compiler accepts: a weekly WhatsApp that stays on needs approval. “Bookings tomorrow” is not its own rule.
-- **“Slot at 6?”** matches the word “slot”. The 6:00 time is the first opening because the hours are 18:00–19:30, not because the phrase names 6pm.
-- **3BHK.** There is no listings database. The answer is a saved FAQ that names the fictional Lakeview Residency.
-- **Qualify.** The built-in questions are ads, email, the website, or a retainer, then budget, then an email. A fee answer does not also qualify.
+- **Saturday hours.** Front desk has a checkbox and times for each weekday. The form sends `by_day`. Saturday-only hours, and a different Monday window, are used for the reply and the slots.
+- **“Is Saturday free for laser?”** returns the saved price and that day’s hours, and offers Saturday times in the same draft. Nothing is sent until Approve.
+- **Website chat history.** Opening the chat page still does not load earlier messages. The approved reply appears when the visitor sends the next message. Until then the box is empty.
+- **10:47pm** is still a caption. The widget stores the server’s clock.
+- **Chief replies** on this mock server are canned sentences for the message, not a `[mock …]` line. The mock does not call a model. Customer sends still sit in Approvals until Approve. An owner’s own Telegram or Slack chat is delivered, because that chat is the owner talking to the Chief.
+- **Approve on a channel reply.** The button sends `edit: {}`. An empty edit is ignored, and the reply is sent only after Approve.
+- **“Evening before”** is 18:00 on the day before the appointment (or the time named in the sentence). The reminder is drafted when a tick reaches that time. It stays in Approvals.
+- **“Every Friday, remind people with bookings tomorrow”** told to the Chief saves a weekly draft. Turning it on and ticking that time drafts one reminder per booking tomorrow. The WhatsApp stays on needs approval. “Every fortnight” is refused with a clear error.
+- **“Slot at 6?”** is read as 18:00. With hours 10:00–19:30, the offer is 18:00 rather than the first opening of the day.
+- **3BHK.** The answer comes from this account’s listings (title, type, location, price, status, notes), including a CSV import. It is not a saved FAQ.
+- **Qualify.** The built-in questions are still ads, email, the website, or a retainer, then budget, then an email. A fee answer does not also qualify.
 - **Website chat names.** The lead is “Website visitor” until someone sets a name. The broker shot sets Ananya Rao on the contact before opening the timeline.
 - **Monday suggestion.** It appears after a weekly review of this account’s own email opens (four Monday sends opened, four mid-week sends not opened). Apply saves a draft. It does not send.
 - **Silent-lead follow-up.** Creating the lead only queues the workflow. The draft appears in Approvals after the routine tick (`GET /api/cron/tick`). The row is titled “Email: Following up”, and approving a draft does not send it.
