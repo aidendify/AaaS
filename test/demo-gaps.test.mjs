@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { interpret, normalizeCompiled, nextFire, eveningBeforeAt, SCHEDULE_ERROR } from '../lib/workflows.js';
-import { hoursForDay, upcomingSlots, wantedClock, formatMessageTime, todayAt, resolveQualify, contactFromText, demoSeedOn } from '../lib/frontdesk.js';
+import { hoursForDay, upcomingSlots, wantedClock, formatMessageTime, todayAt, resolveQualify, contactFromText, demoSeedOn, rulesDecide } from '../lib/frontdesk.js';
 import { parseListingCsv, matchListings, listingAnswer } from '../lib/listings.js';
 import { mockChatReply } from '../lib/llm.js';
 import { STARTERS } from '../lib/playbooks.js';
@@ -171,6 +171,10 @@ test('message clocks, qualify sets, and a visitor name', () => {
   assert.equal(who.email, 'priya.shah@example.com');
   assert.equal(contactFromText('My name is Priya Shah').phone, '');
   assert.equal(contactFromText('Is Saturday free for laser?').name, '');
+  const priced = rulesDecide({ text: 'Budget 20000', profile: {}, faqs: [], lead: {}, slots: [], offered: [], listings: [], questions: [] });
+  assert.equal(priced.qualify.budget, '20000');
+  const phone = rulesDecide({ text: 'My name is Priya Shah. Phone 9845011122. Email priya.shah@example.com', profile: {}, faqs: [], lead: {}, slots: [], offered: [], listings: [], questions: [] });
+  assert.equal(phone.qualify.budget || '', '');
   const prevSeed = process.env.DEMO_SEED;
   const prevMode = process.env.DEMO_MODE;
   delete process.env.DEMO_SEED;

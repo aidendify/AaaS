@@ -1,5 +1,5 @@
 // Playwright walkthroughs. Each one stays on screens the product already has.
-import { captions, beat, hold, openApp, askChief, goTab, approve, widgetSay, widgetNext, backToApp, api, postRaw, slackHeaders, CRON } from './lib.mjs';
+import { captions, beat, hold, openApp, askChief, goTab, approve, widgetSay, widgetNext, backToApp, frameWidget, api, postRaw, slackHeaders, CRON, BASE } from './lib.mjs';
 
 const STORIES = {
   clinic: clinicShot,
@@ -49,40 +49,48 @@ export async function recordStory(browser, id, manifest, dir) {
 
 async function clinicShot(page, caps, acc) {
   await openApp(page, acc);
-  await beat(page, caps, 'Anika tells the Chief of Staff the goal in plain English.', 1600);
+  await beat(page, caps, 'Anika tells the Chief of Staff the goal in plain English.', 900);
   await askChief(page, 'Answer Saturday laser questions with the price, offer a slot, and wait for my approval.');
-  await beat(page, caps, 'The local mock model marks this as a draft. A customer message still waits for Approve.', 3200);
+  await beat(page, caps, 'The Chief answers in a sentence. A customer message still waits for Approve.', 2600);
 
-  await page.evaluate((key) => localStorage.setItem(key, 'clinicclock1'), 'aidc-' + acc.widgetToken);
-  await widgetSay(page, acc.widget, 'Is Saturday free for laser?');
-  await beat(page, caps, '10:47pm is this message’s own time in the studio timezone. Nothing is sent yet.', 3400);
-
-  await backToApp(page);
-  await approve(page, 'Saturday is open');
-  await beat(page, caps, 'She approves the price and the Saturday hours. Reopening this visitor’s chat shows that reply.', 1800);
-
-  await widgetNext(page, acc.widget, 'Please book a slot', /Saturday is open/);
-  await beat(page, caps, 'The next message shows the approved price. The slot offer is a new draft. Saturday hours were set through the API. There is no day picker.', 3400);
-
-  await backToApp(page);
-  await approve(page, 'Here are open times');
-  await widgetNext(page, acc.widget, 'book 1', /Here are open times/);
-  await beat(page, caps, 'Three Saturday times are in the thread. They take the first. The confirmation still needs approval.', 2800);
-
-  await backToApp(page);
-  await approve(page, 'Booked for');
-  await beat(page, caps, 'The appointment is stored only when this confirmation is approved.', 1800);
-
-  await backToApp(page);
   await goTab(page, 'Front desk');
-  await page.locator('#fdPage').getByText(/mock-gcal/).first().waitFor({ timeout: 20000 });
-  await beat(page, caps, 'Confirmed appointment, plus a mock calendar id. Full auto is not available.', 3200);
+  const sat = page.locator('#fdAv input[name="open"][value="6"]');
+  await sat.waitFor({ timeout: 20000 });
+  await page.locator('#fdAv .fd-days').scrollIntoViewIfNeeded();
+  if (await page.locator('#fdAv input[aria-label="Mon start"]').inputValue() !== '10:00') throw new Error('Monday hours missing');
+  if (await page.locator('#fdAv input[aria-label="Sat start"]').inputValue() !== '11:00') throw new Error('Saturday hours missing');
+  if (await page.locator('#fdAv input[name="open"][value="2"]').isChecked()) throw new Error('Tuesday should be closed');
+  await page.locator('#fdAv input[aria-label="Sat start"]').scrollIntoViewIfNeeded();
+  await beat(page, caps, 'Each weekday has its own hours. Monday is 10:00 to 12:00. Saturday is 11:00 to 13:00. Tuesday is closed.', 3600);
+
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate((key) => localStorage.setItem(key, 'clinicclock1'), 'aidc-' + acc.widgetToken);
+  await page.goto(acc.widget, { waitUntil: 'domcontentloaded' });
+  await frameWidget(page);
+  await page.getByText('10:47pm').waitFor({ timeout: 20000 });
+  await beat(page, caps, '10:47pm is this message’s own time in the studio timezone. Nothing has been sent.', 3200);
+
+  await widgetSay(page, acc.widget, 'Is Saturday free for laser?');
+  await beat(page, caps, 'She asks again. The reply is drafted. The 10:47pm line stays in this visitor’s history.', 2600);
+
+  await backToApp(page);
+  await approve(page, 'Saturday is open', 1200);
+  await page.goto(acc.widget, { waitUntil: 'domcontentloaded' });
+  await frameWidget(page);
+  await page.getByText(/₹4,500|Saturday is open/).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'Reopening the chat shows the approved price and Saturday hours. Drafts stay hidden until Approve.', 2800);
+
+  await widgetNext(page, acc.widget, 'book 1', /Saturday is open|₹4,500/);
+  await beat(page, caps, 'They take the first Saturday time. The confirmation is a second draft.', 1400);
+  await backToApp(page);
+  await approve(page, 'Booked for', 800);
+  await beat(page, caps, 'The appointment is stored only when this confirmation is approved.', 1200);
 
   await goTab(page, 'Workflows');
-  await page.locator('#wfText').pressSequentially('When a new lead comes in, whatsapp them and remind me the evening before', { delay: 12 });
+  await page.locator('#wfText').pressSequentially('When a new lead comes in, whatsapp them and remind me the evening before', { delay: 8 });
   await page.locator('#wfNew button').click();
-  await page.locator('#wfPage .card').waitFor({ timeout: 20000 });
-  await beat(page, caps, '“Evening before” is not a clock here. WhatsApp still needs approval. The reminder stays in the app and does not message the patient.', 7000);
+  await page.locator('#wfPage').getByText(/evening before/i).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'Evening before is 18:00 the day before the visit. The reminder stays a draft until she approves it.', 3200);
 }
 
 async function coachShot(page, caps, acc) {
@@ -110,77 +118,105 @@ async function coachShot(page, caps, acc) {
   const openTg = page.locator('#inbPage button[data-act="inbOpen"]').first();
   await openTg.scrollIntoViewIfNeeded();
   await openTg.click();
-  await page.locator('#inbPage').getByText(/Here is a draft/i).waitFor({ timeout: 20000 });
-  await beat(page, caps, 'Owner chat with the Chief. The mock line is delivered here. A customer reply still waits in Approvals.', 3800);
+  await page.locator('#inbPage').getByText(/draft|approval/i).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'Owner chat on Telegram. The Chief answers in a sentence. A customer reply still waits for Approve.', 2200);
+
+  await goTab(page, 'Front desk');
+  const qualify = page.locator('select[name="qualify_set"]');
+  await qualify.waitFor({ timeout: 20000 });
+  await qualify.scrollIntoViewIfNeeded();
+  await qualify.selectOption('coach');
+  const savedSet = page.waitForResponse((r) => r.url().includes('/api/frontdesk') && r.request().method() === 'POST');
+  await page.locator('#fdSet button').click();
+  const setRes = await savedSet;
+  if (!setRes.ok()) throw new Error('Qualify save failed');
+  await page.locator('select[name="qualify_set"]').waitFor({ timeout: 15000 });
+  if (await page.locator('select[name="qualify_set"]').inputValue() !== 'coach') throw new Error('Coach qualify set did not save');
+  await beat(page, caps, 'Qualify questions are set to Coach / consultant: the offer, the pipeline, or how they close clients.', 1800);
 
   await widgetSay(page, acc.widget, 'What are your fees?');
-  await beat(page, caps, '“What are your fees?” The front desk drafts the discovery fee and the 6-week fee.', 2800);
+  await beat(page, caps, '“What are your fees?” The front desk drafts the discovery fee and the 6-week fee.', 1600);
   await backToApp(page);
-  await approve(page, 'discovery call');
-  await widgetNext(page, acc.widget, 'I want help with email. Budget 20000. Email meera.shah@example.com', /discovery call is ₹3,000/);
-  await beat(page, caps, 'The fees appear only after approval. A coach is asked about the offer, the pipeline, or closing clients. This note stores email, budget, and an example.com address.', 3400);
+  await approve(page, 'discovery call', 800);
+  await widgetNext(page, acc.widget, 'Hello', /discovery call is ₹3,000/);
+  await beat(page, caps, 'The fee appears only after approval. Hello is a new draft.', 1200);
   await backToApp(page);
-  await approve(page, 'Want me to offer');
+  await approve(page, 'pipeline', 1400);
+  await page.goto(acc.widget, { waitUntil: 'domcontentloaded' });
+  await frameWidget(page);
+  await page.getByText(/pipeline|close clients/).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'The coach question asks about the offer, the pipeline, or closing clients. Not ads, email, or a retainer.', 2000);
+
+  await widgetNext(page, acc.widget, 'I want help with email. Budget 20000. Email meera.shah@example.com', /pipeline|close clients/);
+  await beat(page, caps, 'Interest, budget, and the example.com address are stored on the lead.', 1400);
+  await backToApp(page);
+  await approve(page, 'Want me to offer', 700);
   await widgetNext(page, acc.widget, 'book a call', /Want me to offer/);
-  await beat(page, caps, 'Qualified. They ask for a call. Nothing is booked yet.', 2200);
+  await beat(page, caps, 'They ask for a call. Nothing is booked yet.', 1000);
   await backToApp(page);
-  await approve(page, 'Here are open times');
+  await approve(page, 'Here are open times', 700);
   await widgetNext(page, acc.widget, 'book 1', /Here are open times/);
-  await beat(page, caps, 'Open times from the saved hours. The lead picks the first. The confirmation still needs approval.', 2400);
   await backToApp(page);
-  await approve(page, 'Booked for');
-  await beat(page, caps, 'Discovery call confirmed only after this approval.', 1600);
+  await approve(page, 'Booked for', 700);
+  await beat(page, caps, 'Discovery call confirmed only after this approval.', 1000);
 
   await goTab(page, 'Workflows');
-  await page.locator('#wfText').pressSequentially('When a new lead comes in, draft a follow-up email, and remind me in 3 days if no reply', { delay: 10 });
+  await page.locator('#wfText').pressSequentially('When a new lead comes in, draft a follow-up email, and remind me in 3 days if no reply', { delay: 6 });
   await page.locator('#wfNew button').click();
-  await page.locator('#wfPage .card').waitFor({ timeout: 20000 });
-  await beat(page, caps, 'A follow-up draft for a quiet lead, plus a reminder in 3 days if there is no reply.', 2800);
+  await page.locator('#wfPage').getByText(/Following up|no reply|3 day/i).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'A follow-up draft for a quiet lead, plus a reminder in 3 days if there is no reply.', 1400);
   await page.locator('[data-act="wfEnable"]').click();
   await page.locator('#toast').getByText(/Workflow on/i).waitFor({ timeout: 15000 });
   await api(acc.token, 'POST', '/api/leads', { name: 'Silent Lead', email: 'silent.lead@example.com', source: 'Website' });
   await api(null, 'GET', '/api/cron/tick', undefined, { authorization: 'Bearer ' + CRON });
-  await approve(page, 'Following up', 1800);
-  await beat(page, caps, 'The routine tick wrote “Email: Following up”. Approving that draft does not send it.', 3200);
+  await approve(page, 'Following up', 1000);
+  await beat(page, caps, 'The routine tick wrote “Email: Following up”. Approving that draft does not send it.', 1800);
 }
 
 async function brokerShot(page, caps, acc) {
   await openApp(page, acc);
   await beat(page, caps, 'Meera asks the Chief to answer listing questions and book site visits.', 1400);
   await askChief(page, 'When someone asks if the 3BHK is free, answer from the listing and book a Saturday site visit. Wait for my approval.');
-  await beat(page, caps, 'Plain-English goal. The mock reply stays a draft. The listing answer is a saved FAQ, not a property database.', 3400);
+  await beat(page, caps, 'Plain-English goal. The listing answer comes from this account’s catalogue, and it waits for Approve.', 1600);
+
+  await goTab(page, 'Front desk');
+  const row = page.locator('#fdList form[data-id] input[name="title"]');
+  await row.waitFor({ timeout: 20000 });
+  await row.scrollIntoViewIfNeeded();
+  if (await row.inputValue() !== 'Lakeview Residency') throw new Error('Listing row missing');
+  await beat(page, caps, 'Lakeview Residency, 3BHK, Pune, ₹1.15 crore, available. The chat reads this row.', 1800);
 
   await widgetSay(page, acc.widget, '3BHK still available?');
-  await beat(page, caps, 'Saturday night: “3BHK still available?” The draft quotes Lakeview Residency. Nothing is sent.', 3000);
+  await beat(page, caps, '“3BHK still available?” The draft quotes the listing and asks for a name. Nothing is sent.', 1800);
   await backToApp(page);
-  await approve(page, 'Lakeview Residency');
-  await widgetNext(page, acc.widget, 'Please book a slot', /Lakeview Residency/);
-  await beat(page, caps, 'The next message shows the approved listing. The visit times are a new draft.', 2600);
+  await approve(page, 'Lakeview Residency', 900);
+  await widgetNext(page, acc.widget, 'My name is Priya Shah. Phone 9845011122. Email priya.shah@example.com', /your name/i);
+  await beat(page, caps, 'The approved reply asks for a name. Phone or email is optional. Priya sends all three.', 1800);
   await backToApp(page);
-  await approve(page, 'Here are open times');
+  await approve(page, 'Thanks, Priya', 700);
+  await widgetNext(page, acc.widget, 'Please book a Saturday site visit', /Thanks, Priya/);
+  await beat(page, caps, 'Saturday site-visit times are a new draft. Saturday hours are 11:00 to 13:00.', 1400);
+  await backToApp(page);
+  await approve(page, 'Here are open times', 700);
   await widgetNext(page, acc.widget, 'book 1', /Here are open times/);
-  await beat(page, caps, 'Saturday-only hours, so the three times are Saturday site visits. The confirmation still needs approval.', 2600);
   await backToApp(page);
-  await approve(page, 'Booked for');
+  await approve(page, 'Booked for', 700);
 
-  const leads = await api(acc.token, 'GET', '/api/leads?limit=100');
-  const visitor = (leads.leads || []).find((l) => /website visitor/i.test(l.name || ''));
-  if (!visitor) throw new Error('Web chat lead missing');
-  await api(acc.token, 'PATCH', '/api/leads/' + visitor.id, { name: 'Ananya Rao' });
   await goTab(page, 'Contacts');
-  const ananya = page.locator('#crmPage tr', { hasText: 'Ananya Rao' });
-  await ananya.waitFor({ timeout: 20000 });
-  await ananya.scrollIntoViewIfNeeded();
-  await ananya.locator('button').click();
+  const priya = page.locator('#crmPage tr', { hasText: 'Priya Shah' });
+  await priya.waitFor({ timeout: 20000 });
+  await priya.scrollIntoViewIfNeeded();
+  await priya.locator('button').click();
   await page.locator('#crmPage').getByText(/Call booked/i).waitFor({ timeout: 20000 });
-  await beat(page, caps, 'CRM timeline for the site visit. The chat asked for a name. The owner then set Ananya Rao on the contact.', 3800);
+  await page.locator('#crmPage').getByText('priya.shah@example.com').first().waitFor({ timeout: 10000 });
+  await beat(page, caps, 'Priya Shah is saved from the chat, with the phone and email. The timeline shows the site visit.', 2200);
 
   await goTab(page, 'Suggestions');
   await page.locator('#cosPage').getByText(/Monday/i).waitFor({ timeout: 20000 });
-  await beat(page, caps, 'Monday weekly suggestion, from this account’s own email opens. Apply saves a draft. It does not send.', 2800);
+  await beat(page, caps, 'Monday suggestion, from this account’s own email opens. Apply saves a draft. It does not send.', 1400);
   await page.locator('[data-act="cosApply"]').click();
   await page.locator('#toast').getByText(/Nothing was sent|Draft saved/i).waitFor({ timeout: 15000 });
-  await beat(page, caps, 'Applied. The reminder is a draft workflow. No email left the building.', 2800);
+  await beat(page, caps, 'Applied. The reminder is a draft workflow. No email left the building.', 1400);
 }
 
 async function studioShot(page, caps, acc) {
@@ -206,50 +242,52 @@ async function studioShot(page, caps, acc) {
   const openSl = page.locator('#inbPage button[data-act="inbOpen"]').first();
   await openSl.scrollIntoViewIfNeeded();
   await openSl.click();
-  await page.locator('#inbPage').getByText(/Here is a draft/i).waitFor({ timeout: 20000 });
-  await beat(page, caps, 'Slack DM with the Chief. The mock reply is in the owner’s own chat. Customer bookings still need Approve.', 3600);
+  await page.locator('#inbPage').getByText(/draft|approval/i).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'Owner chat in Slack. The Chief answers in a sentence. Customer bookings still need Approve.', 2000);
 
   await widgetSay(page, acc.widget, 'Slot at 6?');
-  await beat(page, caps, '“Slot at 6?” matches the word slot. Hours are 6:00–7:30, so the first time is 6:00. “At 6” is not read as a clock.', 3200);
+  await beat(page, caps, '“Slot at 6?” is 18:00. The day also opens at 10:00, so 18:00 is the clock in the question.', 1800);
   await backToApp(page);
-  await approve(page, 'Here are open times');
-  await widgetNext(page, acc.widget, 'book 1', /Here are open times/);
-  await beat(page, caps, 'The times show up on the next message. They pick 6:00. The confirmation still needs approval.', 2200);
+  await approve(page, '18:00', 1000);
+  await widgetNext(page, acc.widget, 'book 1', /18:00/);
+  await beat(page, caps, 'The times show up after approval. They pick 18:00. The confirmation still needs approval.', 1400);
   await backToApp(page);
-  await approve(page, 'Booked for');
-  await beat(page, caps, '6:00 is confirmed only after this approval.', 1400);
+  await approve(page, 'Booked for', 700);
+  await beat(page, caps, '18:00 is confirmed only after this approval.', 1000);
 
   await widgetSay(page, acc.widget, 'Trial class?', { fresh: true, token: acc.widgetToken });
-  await beat(page, caps, 'A second guest asks “Trial class?” A saved answer offers a free first trial.', 2400);
+  await beat(page, caps, 'A second guest asks “Trial class?” The saved answer offers a free first trial.', 1400);
   await backToApp(page);
-  await approve(page, 'trial class');
+  await approve(page, 'trial class', 700);
   await widgetNext(page, acc.widget, 'book a slot', /first trial class is free/);
-  await beat(page, caps, 'The approved trial answer is in the thread. Asking for a slot is a new draft.', 2200);
+  await beat(page, caps, 'The approved trial answer is in the thread. Asking for a slot is a new draft.', 1200);
   await backToApp(page);
-  await approve(page, 'Here are open times');
+  await approve(page, 'Here are open times', 700);
   await widgetNext(page, acc.widget, 'book 1', /Here are open times/);
   await backToApp(page);
-  await approve(page, 'Booked for');
-  await beat(page, caps, 'Trial class booked the same way: draft, then one approval.', 1800);
+  await approve(page, 'Booked for', 700);
+  await beat(page, caps, 'The trial visit is booked only after its own approval.', 1000);
 
   await goTab(page, 'Workflows');
   const box = page.locator('#wfText');
-  await box.pressSequentially('Every Friday, remind people with bookings tomorrow', { delay: 14 });
+  await box.pressSequentially('Every Friday, remind people with bookings tomorrow', { delay: 8 });
   await page.locator('#wfNew button').click();
-  await page.locator('#toast .toast').waitFor({ timeout: 15000 });
-  await beat(page, caps, '“Every Friday” does not compile. The product asks for a new lead, a stage, a tag, or a schedule it knows.', 3200);
-  await box.fill('');
-  await box.pressSequentially('Every week, whatsapp them a reminder for people with bookings tomorrow', { delay: 12 });
+  await page.locator('#wfPage').getByText(/Every Friday/i).first().waitFor({ timeout: 20000 });
+  await page.locator('#wfPage').getByText(/needs your approval/i).first().waitFor({ timeout: 20000 });
+  await beat(page, caps, 'Every Friday at 09:00. WhatsApp people with a booking tomorrow. The step needs approval, and the workflow is off.', 2200);
+  await page.locator('[data-act="wfBack"]').click();
+  await page.locator('#wfText').waitFor({ timeout: 15000 });
+  await page.locator('#wfText').fill('Every fortnight, remind people with bookings tomorrow');
   await page.locator('#wfNew button').click();
-  await page.locator('#wfPage .card').waitFor({ timeout: 20000 });
-  await beat(page, caps, 'The working line is weekly. The WhatsApp stays on needs approval. “Bookings tomorrow” is not its own rule.', 4000);
+  await page.locator('#toast').getByText(/every day, every weekday, or one weekday/i).waitFor({ timeout: 15000 });
+  await beat(page, caps, '“Every fortnight” is refused. The note lists the schedules the Chief can save. No fortnight workflow is created.', 2200);
 }
 
 async function agencyShot(page, caps, acc) {
   await openApp(page, acc);
-  await beat(page, caps, 'Nisha asks the Chief to set up a client workspace. Nothing here takes a payment.', 1400);
+  await beat(page, caps, 'Nisha asks the Chief to set up a client workspace. Nothing here takes a payment.', 800);
   await askChief(page, 'Add a client workspace, set our branding, and keep every client workflow as a draft until I approve it.');
-  await beat(page, caps, 'The goal is plain English. Client mail is not sent from this screen.', 2800);
+  await beat(page, caps, 'The goal is plain English. Creating a client does not send email, and a hostname does not change DNS.', 1600);
 
   await goTab(page, 'Agency');
   const harbour = page.locator('#agPage li', { hasText: 'Harbour Studio' }).first();

@@ -138,6 +138,10 @@ export async function seedAll() {
     }],
     days: [6], start: '11:00', end: '13:00',
   });
+  await api(clinic.token, 'POST', '/api/frontdesk/availability', {
+    timezone: 'Asia/Kolkata', slot_minutes: 30, calendar: 'mock',
+    by_day: { 1: { start: '10:00', end: '12:00' }, 6: { start: '11:00', end: '13:00' } },
+  });
   await api(clinic.token, 'POST', '/api/frontdesk/demo-message', {
     visitor: 'clinicclock1', text: 'Is Saturday free for laser?', at: todayAt(22, 47, 'Asia/Kolkata'),
   });
@@ -170,7 +174,7 @@ export async function seedAll() {
   const broker = await signup('meera.iyer@lakeview-homes.example', 'Meera Iyer');
   await profile(broker.token, {
     name: 'Lakeview Homes', location: 'Pune',
-    about: 'A fictional brokerage. Listing facts live in the saved answers, not a property database.',
+    about: 'A fictional brokerage. Listing facts live in this account’s catalogue.',
     offer: 'Site visits for listed homes', audience: 'Buyers asking on weekends', voice: 'Specific',
   });
   broker.data = await workspace(broker.token, broker.email, {
@@ -178,11 +182,11 @@ export async function seedAll() {
     phone: '', website: 'https://lakeview-homes.example', help: 'Answer listing questions and book site visits.', at: Date.now(),
   });
   const brokerDesk = await setupDesk(broker.token, {
-    faqs: [{
-      q: 'Is the 3BHK still available',
-      a: 'Yes. The 3BHK at Lakeview Residency is available. It is 1,450 sq ft, listed at ₹1.15 crore. Saturday site visits are 11:00 to 13:00. Reply book a slot.',
-    }],
+    faqs: [],
     days: [6], start: '11:00', end: '13:00',
+  });
+  await api(broker.token, 'POST', '/api/listings', {
+    title: 'Lakeview Residency', type: '3BHK', location: 'Pune', price: '₹1.15 crore', status: 'available', notes: '1450 sq ft',
   });
   const mondayText = await seedMonday(broker.token);
 
@@ -201,7 +205,7 @@ export async function seedAll() {
       q: 'Trial class',
       a: 'A first trial class is free. Evening openings start at 6:00. Reply book a slot and I will offer times.',
     }],
-    days: [0, 1, 2, 3, 4, 5, 6], start: '18:00', end: '19:30',
+    days: [0, 1, 2, 3, 4, 5, 6], start: '10:00', end: '19:30',
   });
   const sl = await api(studio.token, 'POST', '/api/channels/slack', {
     bot_token: 'mock_sl_studio_demo',

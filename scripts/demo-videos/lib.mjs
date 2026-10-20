@@ -122,7 +122,7 @@ export async function askChief(page, text) {
   await box.pressSequentially(text, { delay: 18 });
   await page.waitForTimeout(350);
   await box.press('Enter');
-  await page.locator('.wp-m.bot .wp-b').filter({ hasText: 'Here is a draft' }).last().waitFor({ timeout: 30000 });
+  await page.locator('.wp-m.bot .wp-b').filter({ hasText: /draft|approval/i }).last().waitFor({ timeout: 30000 });
 }
 
 export async function goTab(page, name) {

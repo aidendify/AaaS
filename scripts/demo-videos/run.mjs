@@ -87,7 +87,11 @@ async function main() {
       slack: manifest.studio.slack.team_id,
     }));
     if (ONLY.includes('seed') && ONLY.length === 1) return;
-    const browser = await chromium.launch({ headless: true, args: ['--disable-dev-shm-usage'] });
+    const browser = await chromium.launch({
+      headless: true,
+      executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome',
+      args: ['--disable-dev-shm-usage', '--no-sandbox'],
+    });
     const report = [];
     try {
       for (const id of ONLY) {
