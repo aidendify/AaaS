@@ -38,7 +38,7 @@ async function readBody(req, max = 4 * 1024 * 1024) {
 
 const server = http.createServer((req, res) => obsScope(() => { // one JSON log line per API request (lib/obs.js)
   const t0 = Date.now(), store = obs(), pth = new URL(req.url, 'http://x').pathname;
-  if (pth.startsWith('/api/') || pth.startsWith('/p/')) res.on('finish', () => { try { obsDone({ method: req.method, pathname: pth, status: res.statusCode, ms: Date.now() - t0, store }); } catch { /* never break a response */ } });
+  if (pth.startsWith('/api/') || pth.startsWith('/p/') || pth.startsWith('/t/') || pth.startsWith('/c/')) res.on('finish', () => { try { obsDone({ method: req.method, pathname: pth, status: res.statusCode, ms: Date.now() - t0, store }); } catch { /* never break a response */ } });
   return serve(req, res);
 }));
 async function serve(req, res) {
@@ -48,6 +48,8 @@ async function serve(req, res) {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'index.html')), 'text/html; charset=utf-8');
     }
+    { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
+      if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
     if (req.method === 'GET' && (url.pathname === '/setup' || url.pathname === '/setup.html')) { // first-run admin setup
       return send(res, 200, await fs.readFile(path.join(dir, 'setup.html')), 'text/html; charset=utf-8');
     }
@@ -63,7 +65,13 @@ async function serve(req, res) {
     if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
       return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
     }
-    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/c/')) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Headers', 'content-type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    }
+    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/c/') || url.pathname.startsWith('/api/')) {
       const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
       if (url.pathname === '/api/health') {
         const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });
@@ -71,8 +79,10 @@ async function serve(req, res) {
       }
       const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
       if (out && out.__redirect) { res.writeHead(302, { Location: out.__redirect, 'Cache-Control': 'no-store' }); return res.end(); }
+      if (out && out.__bytes && out.__name) res.setHeader('Content-Disposition', 'attachment; filename="' + out.__name + '"');
       if (out && out.__bytes) return send(res, 200, out.__bytes, out.__type || 'application/octet-stream');
       if (out && out.__html) return send(res, 200, out.__html, 'text/html; charset=utf-8');
+      if (out && typeof out.__text === 'string') return send(res, 200, out.__text, 'text/plain; charset=utf-8');
       return send(res, 200, out);
     }
     send(res, 404, { error: 'not_found' });

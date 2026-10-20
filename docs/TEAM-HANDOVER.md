@@ -17,12 +17,12 @@ The roadmap in section 5 comes from the GoHighLevel comparison report (`ghl-vs-a
 
 | Path | Who buys | What they get | Ready after |
 |---|---|---|---|
-| **A. Direct** | Individual business owners | Their own workspace: CRM, tracking, agents, follow-ups | v1.11 (billing) + v2.0 (CRM core) + v2.2 (tracking) |
+| **A. Direct** | Individual business owners | Their own workspace: CRM, tracking, agents, follow-ups | manual invoices + v2.0 (CRM core) + v2.2 (tracking) |
 | **B. White-label** | Agencies | Agency account with client sub-accounts, their own branding/domain, reusable "Playbooks" (our version of GHL snapshots), rebilling with their markup | v2.6 |
 
 - **White-label, not affiliate.** We sell agencies a wholesale plan they rebrand and resell; we are not building an affiliate programme.
 - **Ideal customers:** agencies and digital / email-marketing business owners only (as of Oct 7, 2026).
-- **Market:** India first: INR pricing, Razorpay + GST invoices, WhatsApp-first channels, DPDP Act consent.
+- **Market:** India first: INR pricing, manual invoices for early customers (Razorpay shelved until there is a GSTIN), WhatsApp-first channels, DPDP Act consent.
 - **Where we beat GHL:** depth of AI agents (multi-agent Chief of Staff), any AI provider with bring-your-own-key and cost caps, approval-first safety. **Where GHL beats us:** the platform underneath (relational CRM, tenancy, tracking, event workflows, channels, snapshots, rebilling). The roadmap closes that gap.
 - **Pricing idea (to validate, + 18% GST):** Solo ₹1,999–2,999/mo, Growth ₹5,999/mo, Agency Starter ₹9,999/mo (5 clients), Agency Pro ₹19,999/mo + ₹999/extra client. AI and messages always metered, never "unlimited".
 
@@ -40,7 +40,7 @@ Phanindra (owner) grants all of these. **Secrets move only through Vercel team a
 | 4 | **OpenRouter** | Shared platform AI key, model `deepseek/deepseek-v4-flash` on hosted | Org member or a new team key | Live, in-app $10 soft cap |
 | 5 | **Slack workspace "AIDENTIFY"**, bot `agentsfactory` | Owner's Slack bot (Socket Mode) | Workspace member + app collaborator | Runs on the owner's box only |
 | 6 | **Composio** | Managed OAuth for ~35 connected apps | Team member | Key exists, Test buttons not verified on a real account |
-| 7 | **Razorpay** | Subscriptions + GST invoices (v1.11) | Keys + GSTIN from owner | **Pending** |
+| 7 | **Razorpay** | Shelved (no GSTIN): early customers invoiced manually | none | **Shelved** |
 | 8 | **Google Cloud OAuth client** | "Sign in with Google" | Project editor | **Not live** (hidden on hosted until `GOOGLE_CLIENT_ID/SECRET` are set) |
 | 9 | Buffer, Tavily, Gmail app password, Gumroad | Social posting, web search, mail, product listings | As needed | Local box mostly |
 
@@ -121,7 +121,7 @@ flowchart LR
 |---|---|---|---|
 | 1 | Whole workspace is one JSON blob; CRM not relational; no tenancy (agency → clients) | **High** (blocks roadmap) | v2.0 |
 | 2 | Vercel **Hobby is non-commercial** under Vercel's terms | **High before paid launch** | Move to Vercel Pro or a VPS/Fly-style host before taking money (verify current terms) |
-| 3 | No billing: Razorpay webhook verifier exists (`lib/billing.js`), no routes | High | v1.11, needs keys + GSTIN |
+| 3 | No billing: Razorpay webhook verifier exists (`lib/billing.js`), no routes | Low | **Shelved**: manual invoicing for early customers |
 | 4 | Hosted scheduler is once a day; every-minute needs an outside pinger (cron-job.org) or a worker | Medium-High | v2.1; interim pinger documented in `docs/STAGING.md` |
 | 5 | Slack bot, board worker, browser only on owner's box | Medium-High | Single point of failure; v2.1 |
 | 6 | Rate limits, login throttles and metrics are per server instance (in memory) | Medium | Reset on cold start; move to Postgres/Upstash (F12) |
@@ -141,6 +141,19 @@ flowchart LR
 
 ## 5. Roadmap to build (v1.10 → v2.8)
 
+> **Update 19 Oct 2026:** v1.11.0 is now the **sign-in fixes** release (one sign-in screen, show/hide password, password rules, password reset, friendlier lockouts), taken from the team review. **Billing (Razorpay + GST) moves to v1.12.0.** Read every "v1.11" billing reference below as v1.12.
+
+### AI-first direction (the 8 pillars)
+We don't copy GoHighLevel feature for feature. Agents do the agency's work, the CRM is what they run on, and a person approves.
+1. **CRM first:** contacts, companies, deals and one timeline per contact (clicks, visits, forms, emails, chats). Every agent reads and writes it.
+2. **Tracking everywhere:** per-contact short links, a site snippet and campaign tags. A click updates the timeline and wakes the right agent.
+3. **Plain-English agent workflows on LangGraph:** "when a lead fills the form, reply on WhatsApp in 2 minutes and book a call". Each step is set to need approval, run within limits, or run on its own.
+4. **A Chief of Staff that learns:** weekly suggestions from CRM results that you install with one approval, plus A/B tests of follow-ups that keep the winners.
+5. **Agent Playbooks marketplace:** packaged agents, workflows, pipelines and templates that install in one click. Agencies build and sell them.
+6. **White-label from v2:** agency accounts with client sub-accounts, the agency's own branding and domain, a dashboard across clients, and rebilling (manual for now; Razorpay shelved) with the agency's markup.
+7. **India-first channels:** WhatsApp first, then email, then SMS (because of DLT registration).
+8. **AI front desk:** an always-on chat and WhatsApp agent per client that answers, qualifies and books calls. Voice comes later.
+
 Effort: **S** ≤ 3 days, **M** 1–2 weeks, **L** 3–5 weeks (for one engineer; parallelise where noted). Owners: **LG** = LangGraph engineers (agents, orchestrator, workflows, self-learning); **FS** = AI/full-stack engineers (data model, tenancy, tracking, billing, white-label).
 
 **Order:** v1.10 → v1.11 → v2.0 → v2.1 → v2.2 → v2.3 → {v2.4, v2.5} → v2.6 → v2.7 → v2.8. Path A can sell after v1.11 + v2.0 + v2.2; path B after v2.6.
@@ -148,7 +161,7 @@ Effort: **S** ≤ 3 days, **M** 1–2 weeks, **L** 3–5 weeks (for one engineer
 | Release | Goal | Scope | Acceptance criteria | Effort | Depends on | Owner |
 |---|---|---|---|---|---|---|
 | **v1.10.0** Leads API | Ship what's built | Push `leads-v1.10.0`, release, deploy demo | `npm test` green; e2e a–e pass on staging; demo `/api/health` ok; one live lead create+delete | S (≤1 day) | — | FS |
-| **v1.11.0** Billing | Take money in India | Razorpay Subscriptions + plans; wire `lib/billing.js` to a webhook route; GST tax invoices (GSTIN, SAC code, CGST/SGST vs IGST by state, verify with CA); invoice PDFs; dunning; plan limits enforced server-side | Test-mode subscription end to end; webhook signature + idempotency tested; invoice shows correct GST split; failed payment downgrades plan; **every charge path approval-first / user-initiated** | M | Razorpay keys + GSTIN; Vercel Pro/host decision | FS |
+| ~~v1.11.0 Billing~~ | Shelved | Razorpay and GST invoices are off the plan until there is a GSTIN. Early customers get manual invoices (bank transfer/UPI) raised by the owner. `lib/billing.js` stays unused. | | |
 | **v2.0.0** Relational core + tenancy | CRM becomes the system of record | Tables: `orgs` (agency/business, parent), `memberships` (roles), `contacts`, `companies`, `custom_field_defs` + `custom jsonb`, `tags`, `pipelines`/`stages`/`opportunities`, `tasks(due_at)`, append-only `events` timeline; agents/routines/approvals/memory to tables; Postgres Row-Level Security on `org_id`; reversible migration from the blob with a dual-read period; `/api/kv` kept for the UI; `/api/leads` becomes a layer over `contacts`; CRM agent gets typed tools (`crm_search`, `crm_update`, `timeline`); consent fields from day one (DPDP) | Migration script round-trips staging data with zero diffs; RLS test proves org A can't read org B; old UI works unchanged; leads e2e still passes; p95 workspace load < 300 ms | L | v1.10 | FS (schema, migration, RLS) + LG (typed CRM tools) |
 | **v2.1.0** Queue + always-on worker | Minute-level jobs, retries, no local box | `jobs` table claimed with `FOR UPDATE SKIP LOCKED`, idempotency keys, backoff, dead-letter view; small always-on server in India (Bangalore/Mumbai VPS ~$5–12/mo, verify) runs worker, Slack bot, Playwright browser; Upstash QStash optional | Owner's box can be switched off and Slack bot, routines, board worker keep working; a follow-up due in 2 min fires within 1 min; killed worker mid-job → job retried once, not duplicated | M | v2.0 | FS (infra) + LG (agent job runner) |
 | **v2.2.0** Tracking + consent | Every click/visit builds the contact's history | Short/trigger links with per-contact token (bot filtering, reuse `/p/v` logic); site snippet `t.js` ≤ 5 KB (page views, UTM, referrer, gclid/fbclid, form capture, identify); first/last-touch attribution; email open pixel (approximate) + click rewriting; consent banner, consent records, withdrawal, erasure/export endpoints, retention; contact timeline UI | Click on a tracked link appears on the right contact's timeline within 5 s; UTM stored; no identifying cookie before consent where required; erasure removes contact + events; snippet ≤ 5 KB gz | M | v2.0, v2.1 | FS |
@@ -267,4 +280,34 @@ From `/api/admin/metrics?minutes=60` and REPORT.md: requests, error rate, p50/p9
 | **Week 2** | Fix top Phase 2 findings (likely F12 shared throttles); draft v2.0 schema + RLS + migration plan for review; decide host for paid launch (Vercel Pro vs India VPS); start v1.11 billing as soon as Razorpay keys + GSTIN arrive | Prototype one workflow on LangGraph ("new lead → wait 3 days → AI draft follow-up → approval") against staging; design doc for v2.3 engine and v2.7 self-learning |
 | **End of week 2 review with Phanindra** | v1.10 live, Phase 2 report, v2.0 design, hosting decision | LangGraph decision with evidence, v2.3 design |
 
-**Owner inputs needed early:** Razorpay keys + GSTIN, decision on Vercel Pro vs VPS, Google OAuth client (if Google login wanted), 10 agency conversations to validate pricing.
+**Owner inputs needed early:** decision on Vercel Pro vs VPS, Google OAuth client (if Google login wanted), 10 agency conversations to validate pricing.
+
+
+## Finding #2 status (v1.12.0, staging)
+- Agent visibility: done. Agent activity panel (status, last run, steps, routines, errors) and live steps in chat. Code: `lib/activity.js`, `/api/agents/status`, `/api/agents/run`.
+- Slow Chief of Staff replies: the live step progress is done. Token streaming is a follow-up. It needs a streaming response path in `api/index.js` plus `runWithTools` streaming the final turn.
+
+## Billing: shelved (20 Oct 2026)
+- No GSTIN yet, so Razorpay subscriptions, GST invoices and white-label rebilling are off the plan.
+- Early customers are invoiced manually by the owner (bank transfer or UPI). Plans are set by hand by an admin.
+- `lib/billing.js` (webhook signature check) stays in the code, unused.
+
+## Finding #3 status (v1.13.0, staging)
+- Tenant isolation audit: every customer route reads and writes only the signed-in account's rows (`as_*:<email>`). Cross-tenant tests in `test/tenant-isolation.test.mjs`.
+- Fixed:
+  - Customers could seed the shared admin settings (plans, gateway name) before staff saved them.
+  - The owner's signed-in browser profile could be used by any customer's research or browser agent.
+  - Activity rows from v1.12 were not removed when an account was deleted, and were not marked server-only.
+- Remote browser: off unless `REMOTE_BROWSER=on`, always off on Vercel, owner/admin only (see SECURITY.md).
+
+## Finding #4 status (v1.14.0, staging)
+- Gmail/Slack: per-account status (connected / error + reason / reconnect), an on-demand check, and clearer disconnect. Slack and Google OAuth checks need those apps registered on the server to try for real; the Gmail app-password path is tested end to end.
+- Approvals: edit inline, reject with a note, batch (max 25), history and clear. Approval-first is unchanged.
+- CRM groundwork for v2: custom fields, custom stages, bulk tags, CSV import (dry run first) and export. Lead `hist` is the seed of the v2 contact timeline. Data still lives in `as_data:<email>` on the CRM agent (`db.lead`, `db.leadFields`, `db.stages`); v2 moves this to real tables.
+
+## Finding #5 status (v1.15.0, staging)
+- Backups and restore: `scripts/db-backup.mjs` plus docs/BACKUPS.md. The drill passed on staging.
+- Monitoring: `/api/health/deep` plus the alerting plan in docs/MONITORING.md. External monitors still need to be created.
+- Rollback: `scripts/vercel-rollback.sh`.
+- Costs: docs/MONITORING.md. AWS/VPC: docs/DEPLOY-AWS.md (no spend). AWS waits on the paid-host decision.
+- Next phases (GHL-style pillars) go to Cursor cloud agents. Start from branch `deploy-v1.15.0`.

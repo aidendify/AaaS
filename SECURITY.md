@@ -33,6 +33,8 @@ a public link. That profile is signed in to your accounts.
 - **The ngrok free plan shows an interstitial page** ("You are about to visit…") before the browser loads. That page
   is ngrok's, not a phishing page. It does not protect the session: anyone with the link can click through.
   cloudflared quick tunnels have no such page.
+- **Off unless you turn it on.** Set `REMOTE_BROWSER=on` in `.env` on a self-hosted server. On the hosted version (Vercel) it is always off, whatever the setting, and the Chief's `remote_browser` tool is not offered.
+- **Per-account scoping.** Only the server owner (`SETTINGS_OWNERS`, default `SLACK_ACCOUNT_EMAIL`) or an admin can open it. The agents' signed-in browser profile (`BROWSER_PROFILE_DIR`) is used only for the owner's own agents. Every other account's agents get a fresh, empty browser with no cookies.
 - **Limits that are on by default:**
   - It can only be opened by the owner or an admin. There is no unauthenticated endpoint.
   - It closes after `REMOTE_BROWSER_IDLE_MIN` idle minutes (default 20), and always after `REMOTE_BROWSER_MAX_MIN` (default 60).
@@ -66,3 +68,11 @@ a public link. That profile is signed in to your accounts.
 - Set a long random `SESSION_SECRET` (the installer does this) and create the admin at `/setup` (no default passwords exist).
 - Leave `DEMO_MODE` and `RATE_LIMIT=off` unset.
 - Put it behind HTTPS (a reverse proxy such as Caddy or nginx) and set `APP_URL` to the public address.
+
+
+## Tenant isolation
+
+- Each customer's data lives in rows keyed by their email (`as_data:`, `as_rt:`, `as_mem:`, `as_appr:`, `as_act:`, `as_run:`, and so on). Every route uses the signed-in account's email from the session token, never an email from the request.
+- Server-only rows (tokens, memories, routines, approvals, activity, settings, usage) are never returned by `/api/kv` to customers, and customers cannot write them.
+- Deleting an account removes all its per-account rows.
+- `test/tenant-isolation.test.mjs` signs in as two customers and checks every customer route both ways.

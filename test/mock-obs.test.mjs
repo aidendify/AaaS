@@ -57,4 +57,7 @@ test('obs: one JSON line per request with route, status, ms, AI calls and cost; 
   assert.equal(row.uid, uidOf('someone@example.com')); assert.doesNotMatch(lines.at(-1), /example\.com|abcdef0123/);
   const sum = obsSummary(); assert.ok(sum.requests >= 1); assert.ok(sum.routes.some((r) => r.route === 'POST /p/f/:token'));
   assert.equal(routeOf('/api/ai'), '/api/ai');
+  assert.equal(routeOf('/t/o/abcdef0123456789abcdef0123456789.gif'), '/t/o/:token.gif');
+  assert.equal(routeOf('/t/c/abcdef0123456789abcdef0123456789'), '/t/c/:token');
+  assert.equal(routeOf('/api/leads/12/timeline'), '/api/leads/:id/timeline');
 }));

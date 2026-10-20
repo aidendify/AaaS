@@ -5,6 +5,162 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-20
+
+### Added
+- **Agency workspaces.** A customer can turn their login into an agency and add client workspaces and staff. Each client is still their own account, so one client cannot read another, and one agency cannot read another agency’s clients. Staff roles are owner, admin, and member.
+- **Branding.** Name, logo, colours, support email, and a hostname. The login page on that hostname, the app after sign-in (name, logo, and the colour on the top bar and primary buttons), sign-in and password-reset wording, and the website chat use it. DNS setup is documented. Saving a hostname does not change DNS or issue a certificate.
+- **Playbooks into a client.** Install writes only after confirm. Workflows stay drafts. Nothing is enabled or sent.
+- **Per-client usage and caps.** AI calls, AI cost, messages, and leads for the month. A full cap blocks the new call, message, or lead.
+- **Manual usage summary.** CSV and a printable HTML page, with the agency’s markup. AI stays in USD and messages and leads stay in INR. No payment is taken.
+- **View as a client.** Owner or admin only. An audit line is written first. The session is read-only and lasts about two hours.
+
+### Notes
+- This is still the current per-account store. It is not organisations, memberships, or row-level security, and it is not a LangGraph runtime.
+- Billing and Razorpay stay shelved. The summary is for an invoice you raise yourself. It is not a tax invoice.
+- Mail to a client’s contacts sends only from the Gmail that client connected. The platform mailbox is not used for that. Creating a client does not send email. Sign-in codes and password resets still use the server mailbox, with the agency’s name on them.
+- A cap is checked when the action runs. It is not a lock across every process. The website chat rate limit is still per process. The hosted routine tick is still often once a day.
+- View-as cannot send, change, or open the agency. A member cannot view-as. The Back to agency bar stays on screen, and the business-setup form does not open.
+
+## [2.3.0] - 2026-10-20
+
+### Added
+- **One inbox per account.** WhatsApp, SMS and email sit on the Inbox page, matched to a CRM contact and written onto that contact’s timeline. Credentials are stored encrypted, the same way a bring-your-own AI key is stored. The page and `GET /api/channels` show a hint, not the secret.
+- **WhatsApp Cloud API.** Each account pastes its own phone number id, access token and app secret. The webhook URL has no account id in it. The account is chosen from the phone number id, then the signature is checked with that account’s app secret. A verify token is shown once. Outside 24 hours of the last inbound message, a free-form reply is refused and a template name is required. The whole message `STOP` (and the usual opt-out words) sets consent to Opted out and nothing is sent back.
+- **SMS adapter.** Twilio, MSG91, or `mock`. Inbound SMS is routed by the destination number you saved, then checked with that account’s secret. MSG91 can carry a sender id and a DLT template id you already have. This build does not register DLT for you.
+- **Inbound email.** Sync uses the Gmail connection already on the account. With the test switches on, a mock inbound email can be posted for the signed-in account only.
+- **Workflow sends.** A sentence can add a WhatsApp step or an SMS step. Both start as needs approval, use the same approval queue, and keep the contact-only rule, the step cap and the account ceiling. Opt-out skips them. A WhatsApp outside the 24 hour window waits unless the step names a template.
+- **Front desk.** Answers inbound WhatsApp and the website chat from this account’s business profile and FAQs, asks what the lead wants, and can offer call times (Monday–Friday 10:00–18:00 Asia/Kolkata by default). A reply is a draft unless you turn on auto within limits. Full auto is not available. If the desk is unsure, or the message tries to change the rules, it hands the chat to you and does not send.
+- **Website chat.** Each account can create an embeddable widget. The token is unguessable, the script is rate limited, and drafts are not shown to the visitor. Setup is in `docs/CHANNELS.md`.
+
+### Notes
+- This is still the current per-account store. It is not a separate database, and it is not a LangGraph runtime.
+- Mock providers (`mock_` WhatsApp tokens, SMS provider `mock`, and `CHANNELS_MOCK` together with `AI_MOCK`) let the tests run without Meta, Twilio, MSG91 or Google credentials. The signature check still runs.
+- A webhook cannot name an account. Two phone number ids in one payload are rejected. Deleting an account removes the number indexes and the widget token.
+- The 24 hour window is the last inbound message stored here, not a call to Meta’s window API.
+- The front desk decision is rules. The model may only make it more cautious. Inbound text never changes autonomy.
+- A booking is saved when the confirmation is actually sent. Google Calendar is optional. A mock calendar link is available only with the test switches on.
+- The widget rate limit is per process. The hosted routine tick is often once a day, so a workflow send waits for that tick.
+- Voice is not included. Embedded Signup is not included.
+
+### Review fixes (PR #3)
+- Approved emails from customers send only from their own connected mail; the server's mailbox is used only for the server owner (`allowPlatform`).
+- Playbook import: 256 KB cap; scripts, iframes, event handlers and `javascript:` links stripped; specific addresses dropped from `allowed_recipients`; outbound steps still locked to needs approval.
+- Playbook export: emails and phone numbers in prompts/templates replaced with "[contact removed]".
+- Tests: test/review-pr3.test.mjs; e2e scenario j (weekly review on the test clock, apply, export/import preview/install, cross-account 404).
+
+## [2.2.0] - 2026-10-20
+
+### Added
+- **Weekly suggestions.** On the same routine tick as workflows, each account is reviewed about once a week. The review reads only that account’s timeline, email opens and clicks, workflow runs and approvals, and writes 3 to 5 plain sentences. For example: “Emails sent on Tuesday get about 2× the opens of other days” or “Leads from LinkedIn convert best.” Open them on the Suggestions page.
+- **Apply does not send.** Apply on a suggestion saves a draft workflow, or a change that still needs a separate Confirm. A draft stays off until you turn it on. Confirm copies words or remembers a preference. It does not send, post or pay, and it does not change a step’s approval setting or its send caps.
+- **What the account learns.** Shortening a subject twice, repeating a greeting, or rejecting a draft with a note is remembered for that account and used the next time a sentence becomes an email. You can still set a step to auto afterwards.
+- **A/B tests on an email step.** Two subjects and bodies are split across contacts. Opens and clicks are counted. Auto-pick copies the winning words only when you already set that step to auto or auto within limits. It never sends, and it leaves the approval setting, the step cap and the account ceiling alone. Otherwise the winner waits for Apply, then Confirm.
+- **Playbooks.** A playbook is workflows, agent notes, pipeline stages, custom fields and email templates. Export writes JSON for this account with no contacts and no secrets. Preview lists what will be created. Install writes only after you confirm. Built-in starters cover an agency, a digital marketing business and an email marketing business. There is no real-estate starter.
+- **Installed workflows stay drafts.** Send, post and pay go back to needs approval. Installing does not turn a workflow on and does not send anything.
+
+### Notes
+- This is still the current per-account store. It is not a separate database, and it is not a LangGraph runtime.
+- The weekly review runs on the existing routine tick. On the hosted app that tick is often once a day, so a review that is due is picked up on the next tick.
+- “Tuesday” means that weekday in UTC, on the tick that ran the workflow.
+- An A/B email gets a tracking image and rewritten links so opens and clicks can be counted. The email still waits for approval, or for the send caps, before anything goes out.
+- Auto-send still has the limits from v2.1: only the contact’s own address, the step’s daily cap, and an account ceiling (`WORKFLOW_SEND_DAILY_MAX`, default 50, and 0 means none). Workflow mail never uses the platform mailbox.
+- Suggestions are for this account only. A playbook you export is visible only to this account. The starters are built in. This is not a public marketplace.
+- Nothing in Apply, Confirm, auto-pick or Install sends an email.
+
+## [2.1.0] - 2026-10-20
+
+### Added
+- **Workflows in plain English.** On the Workflows page, describe what should happen in a sentence. For example: “When a new lead comes from LinkedIn, tag them, draft a welcome email, and remind me in 2 days if no reply.” The same AI you already use (OpenRouter, or the free test AI) turns that into a trigger and steps. You read it back in ordinary words, then turn it on, pause it, or delete it. Run history sits on the same page.
+- **What can start a workflow.** A new lead, a stage change, a tag being added, an email open, a link click, a form submission, or a schedule such as every morning.
+- **What a step can do.** Tag a contact, change their stage, add a note or a task, draft an email, send an email, prepare a post, record a payment step, wait, or remind you in the app.
+- **Each step has a setting.** Needs approval, auto within limits (a daily cap and an allowed-recipient list), or auto. Anything that sends, posts or pays starts on “needs approval” and lands in the Approvals queue you already have. You can change an email step after you have read it. Posts in this version still wait as drafts. A payment step never charges anyone.
+
+### Notes
+- This is still the current per-account store. It is not a separate workflow database, and it does not use a new agent runtime.
+- Runs happen on the existing routine tick (every minute on a self-hosted box, or when the daily hosted job runs). A wait of two days finishes on the first tick after those two days.
+- “They replied” means the contact’s history has a line that says they replied. A real inbox reply is not read yet.
+- “Every morning” means once a day on that tick, not a guaranteed clock time.
+- Approving a draft still does not send or post it. An email is sent only when that step is set to auto (or auto within limits), the recipient is allowed, the daily cap is not used up, and email is connected. If it cannot send, it waits in Approvals and nothing goes out.
+- Turning a sentence into a workflow needs an AI key, or the free test AI. The test AI gives the same workflow every time for the same sentence.
+
+## [2.0.0] - 2026-10-20
+
+### Added
+- **One timeline per contact.** Open Contacts, pick a lead, and you see one list in time order: history, notes, stage changes, tasks, emails and drafts that are waiting for approval, agent runs that named that contact, form submissions, and page visits. Add a note or a task from the same page. Nothing on this page sends, posts, or pays.
+- **A small dashboard.** The Contacts page shows how many leads you have, where they came from, how they sit in the pipeline, and how many have reached Won. It also counts email opens, link clicks, and page views for your account only.
+- **Email open and click tracking.** You can put a tracking image and rewritten links on an email that is still waiting for approval. Approving that email is still a separate step. Opens and clicks show up on that contact’s timeline. A contact marked Opted out is not tracked, and new tracking links are refused for them.
+- **Where a lead came from.** A public form records the campaign tags on the link (source, medium, campaign, and the usual ad click ids) and adds a visit plus the form submission to that contact’s timeline. A page-visit link does the same for a page you share yourself.
+
+### Notes
+- This is still the existing per-account store, not separate database tables, organisations, or row-level security. Those stay on the later v2 plan.
+- Tracking is not added to an email by itself. You add it to a draft, then you approve the draft before anything is sent.
+- An open, a click, or a visit does not start an agent. Older chats are not copied onto the timeline; only a new chat that includes the contact’s email is recorded, and the prompt text is not stored.
+- The open image is a rough signal (many mail apps block images). Plain-text emails get rewritten links only.
+- There is no site snippet, consent banner, or download/delete-my-data flow in this release.
+
+## [1.15.0] - 2026-10-20
+
+### Added
+- **CRM settings screen.** Account menu → "Leads: fields, stages, CSV". Set your pipeline stages and your own lead fields there, without the API. The CRM refreshes by itself after an import or a settings change.
+- **Backups and a restore drill.** `scripts/db-backup.mjs` backs up the database to a checked, optionally encrypted file. It restores into a new schema (never over live data by accident) and runs a full restore drill. The first drill on staging passed: 13 rows restored in 7 seconds, and the copies matched exactly. See docs/BACKUPS.md.
+- **Monitoring endpoint.** `/api/health/deep` shows whether the database answers (it returns 503 when it doesn't), the version, whether AI is ready, and when the daily routine run last happened. It holds no customer data. docs/MONITORING.md has the uptime and error alerting plan.
+- **One-command rollback.** `scripts/vercel-rollback.sh <project>` switches back to the previous deployment instantly, and `undo` switches forward again. The live demo asks for a typed "yes" first.
+- **Cost notes** (docs/MONITORING.md) and an **AWS deployment plan** in Mumbai, inside a private network (docs/DEPLOY-AWS.md). These are documents only; nothing was created on AWS.
+- Staging tests now also cover app connections, approvals (edit, reject with a note, batch, history, clear) and the CRM (fields, stages, CSV import and export, tags), each checked against a second account.
+
+## [1.14.0] - 2026-10-20
+
+### Added
+- **Connection status for your apps.** Each connected app now shows Connected or Reconnect needed. A new "check" tests Gmail and Slack right away (Gmail app passwords over SMTP, Google sign-in, and Slack). When an app stops working, for example an expired sign-in, it's flagged with a plain reason. To reconnect, connect it again; disconnecting tells you whether anything was actually removed.
+- **Smoother approvals.** A new Approvals screen (account menu):
+  - Edit an email (to, subject, body), a post or a draft before approving it.
+  - Reject with an optional reason.
+  - Tick several items to approve or reject them together (up to 25, with a confirm step).
+  - See the full history: what was approved, rejected or edited, and the result.
+  - Clear decided items; anything still waiting is kept.
+  - Nothing is sent, posted or paid until you approve that exact item.
+- **A more flexible CRM.**
+  - Your own custom fields: text, number, date, a pick-list, or a checkbox.
+  - Your own pipeline stages. Removing a stage moves its leads to another stage and records it.
+  - Add or remove tags on many leads at once, and filter by tag or stage.
+  - CSV import with a check step first. It shows new, updated, skipped and problem rows before anything is saved, and duplicates are skipped unless you choose Update.
+  - CSV export, made safe to open in spreadsheets.
+  - Every change goes into the lead's history, ready for the contact timeline in v2.
+
+## [1.13.0] - 2026-10-20
+
+### Security
+- **Customers are kept strictly apart.** We checked every API route and added tests that sign in as one customer and try to read, change or delete another customer's leads, routines, approvals, memories, chats, activity and settings. All of it is refused.
+- **Shared admin settings are staff-only.** A customer could set the plans and payment-gateway name before an admin had saved them. Now a customer can only add their own payments.
+- **The owner's signed-in browser is only for the owner.** Before, another account's research or browser agent could use the owner's signed-in browser profile. Other accounts now always get a fresh, empty browser.
+- **The remote browser is off by default.** It needs `REMOTE_BROWSER=on` on a self-hosted server and is always off on the hosted version. It stays owner/admin only, with time limits and an audit log.
+- **Deleting an account also deletes its agent activity history.**
+
+### Changed
+- Billing (Razorpay and GST invoices) is shelved until there is a GSTIN. Early customers are invoiced manually.
+
+## [1.12.0] - 2026-10-20
+
+### Added
+- **Agent activity.** A new "Agent activity" item in the account menu shows every agent (Chief of Staff first): whether it's ready, waiting for your approval, or its last run failed; when it last ran and how long it took; the steps it took; its routines and next run time; and its recent errors in plain words.
+- **See the agent working.** While the Chief of Staff or an agent is answering, the chat now shows each step as it happens (for example "Searched saved data", "Read Gmail", "Draft waiting for your approval") instead of only three dots.
+
+### Notes
+- True word-by-word streaming of answers is not in this release: agents use tools in several rounds, and the live steps give most of the "it's moving" feel at a much lower cost. Approval-first is unchanged; nothing sends, posts or pays on its own.
+
+## [1.11.0] - 2026-10-19
+
+### Changed
+- **One sign-in screen.** Sign in, Create account and Forgot password are now three tabs on the same screen. Old links like `/login`, `/signin`, `/signup`, `/register`, `/forgot-password` and `/reset-password` all lead there. Admins still sign in from the same screen with the User / Admin switch, and `/setup` still creates the first admin. Google sign-in stays hidden until it's set up.
+- **Clear password rules.** When you create an account or set a new password, the rules show under the box and tick off as you type: at least 8 characters (12 for staff), and not a common or easy-to-guess password. The server checks the same rules.
+- **Friendlier lockouts.** The limits are unchanged: 10 wrong passwords per email and 50 per network in 15 minutes, and only wrong passwords count. When you have 3 tries or fewer left, the message tells you how many. When sign-in is paused, it tells you how many minutes to wait and points you to "Forgot password?".
+
+### Added
+- **Show/hide password** on every password box: sign-in, new password, change password, delete account, and the API key boxes.
+- **Password reset.** "Forgot password?" emails you a link that works once and expires after 30 minutes. Only a scrambled (hashed) copy of the link's code is stored, and asking again cancels the old link. After a reset, the old password stops working and every other session is signed out. The screen never says whether an email has an account. Requests are rate-limited to 3 per email and 20 per network every 15 minutes. If the server has no email sender, the screen says so plainly instead of pretending an email went out. New endpoints: `POST /api/auth/forgot` and `POST /api/auth/reset-password`.
+- Tests: unit tests for password rules, the reset link's life cycle and the lockout messages. There's also a new end-to-end scenario **f**: a weak password is refused, a strong one works, then reset, the old password is refused and the new one works. On mock-AI servers only, the reset reply includes the code for throwaway `e2e-*@example.com` accounts so the test can finish the flow. It never does this on the live demo.
+
 ## [1.10.0] - 2026-10-19
 
 ### Added

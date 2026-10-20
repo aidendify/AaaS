@@ -23,12 +23,19 @@ async function inner(req, res) {
   const url = new URL(req.url, 'http://x');
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'vercel';
   res.setHeader('Cache-Control', 'no-store');
+  if (url.pathname.startsWith('/c/')) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+  }
   try {
     const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await rawBody(req);
     const out = await handle({ method: req.method, pathname: url.pathname, body, headers: req.headers, ip, query: url.searchParams });
     if (out && out.__redirect) { res.setHeader('Location', out.__redirect); return res.status(302).end(); }
-    if (out && out.__bytes) { res.setHeader('Content-Type', out.__type || 'application/octet-stream'); return res.status(200).send(out.__bytes); }
+    if (out && out.__bytes) { if (out.__name) res.setHeader('Content-Disposition', 'attachment; filename="' + out.__name + '"'); res.setHeader('Content-Type', out.__type || 'application/octet-stream'); return res.status(200).send(out.__bytes); }
     if (out && out.__html) { res.setHeader('Content-Type', 'text/html; charset=utf-8'); return res.status(200).send(out.__html); }
+    if (out && typeof out.__text === 'string') { res.setHeader('Content-Type', 'text/plain; charset=utf-8'); return res.status(200).send(out.__text); }
     if (url.pathname === '/api/health') { out.ai = Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY); out.byok = true; out.aiCap = Number(process.env.PLATFORM_AI_BUDGET_USD) > 0; out.aiMock = mockOn() || undefined; }
     return res.status(200).json(out);
   } catch (e) {

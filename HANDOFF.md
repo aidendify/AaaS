@@ -1,5 +1,141 @@
 # AIdentify handoff
 
+## Release v2.4.0 (20 Oct 2026, ~9:45 AM IST)
+- v1.11.0 through v2.4.0 were merged to `main` in one release, approved by Phanindra, tagged `v2.4.0`, and deployed to `aidentify-demo`.
+- Before deploying, the prod `demo` schema was backed up to /workspace/aaas-run/backups (not encrypted: `BACKUP_KEY` was not set). The store is key/value rows, so no schema migration was needed.
+- `REMOTE_BROWSER` stays off on prod. Reset/sign-in emails still need `GMAIL_USER`, `GMAIL_APP_PASSWORD` and `APP_URL`.
+- The branch notes below ("do not merge to main") are historical. Everything is on `main` now.
+
+## v2.4.0 agency white-label (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `cursor/agency-whitelabel-5dc2`, based on `cursor/india-channels-frontdesk-108b` (includes merge `06c0b1c` and e2e scenario k `bd03b8c`). package.json version is 2.4.0. Not on staging or prod. Do not merge this line to main.
+- This is pillar 6 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.6 slice (no relational organisations, no row-level security, no Razorpay Route). v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is inbox + front desk. v2.4 is this slice.
+- **Agency.** `lib/agency.js`. `POST /api/agency` turns a direct customer into the owner. Clients and staff cannot. `GET /api/agency` lists staff and clients with counts only. `POST /api/agency/clients`, `/clients/update`, `/clients/remove`, `GET /api/agency/clients/usage`. `POST /api/agency/staff`, `/staff/role`, `/staff/remove`. Owner, admin, member. A member cannot change clients, view-as, or open the invoice. An admin cannot change branding, markup, or other admins. Platform staff get 403.
+- **Branding.** `POST /api/agency/branding`, `GET /api/agency/dns`, public `GET /api/branding?host=`. Keys: `as_ag:<owner email>`, `as_agdom:<hostname>`. Logo is an https URL or a small PNG, JPEG, GIF, or WebP. The hostname is a label plus the DNS steps in `docs/AGENCY.md`. No domain API and no certificate issuance. The login page, the app after sign-in, and the website chat use the brand.
+- **Mail.** Customer sends stay on the account’s own connected Gmail (`allowPlatform` is not set for a client; workflow sends stay `ownOnly`). The from-name and a one-line sign-off can use the agency name. The mailbox address does not change. Sign-in codes and password resets still use `sendSystemEmail` (the server mailbox) with the agency’s words. Creating a client returns `mailed: false`. The usage summary is a download, not an email.
+- **Playbooks.** `POST /api/agency/playbook` resolves a starter or the agency’s own export, runs the same scrub as a normal install, and writes into the client only when `confirm` is boolean true. Status stays draft. Nothing is enabled or sent.
+- **Usage and caps.** `as_aguse:<client email>`, month in `APP_TIMEZONE` (default Asia/Kolkata). AI calls and cost (including a client’s own key), messages after a successful channel send, and new leads. Over the lead cap, an inbound message is kept and no extra CRM lead is saved; an opt-out is still saved. A public form still thanks the visitor. API create returns 402 `client_limit`. AI returns 429 `client_limit`.
+- **Invoice helper.** `GET /api/agency/invoice`, `/invoice.csv`, `/invoice.html`. Owner sets markup (`POST /api/agency/markup`): percent on AI USD cost, and INR rates for messages and leads. USD and INR are not added into one pay total. `payment: false`. No Razorpay.
+- **View-as.** `POST /api/agency/view-as` writes `as_agaudit:<owner>` first, then a token for the client with `imp`, the actor, and the agency, for about two hours. Non-GET is 403. GET of keys, connectors, settings, and `/api/agency` is 403. The actor must still be owner or admin of that agency. The workplace does not cover the Back to agency bar, and the business-setup form does not open.
+- **Delete.** An owner who still has clients or staff gets 409 `agency_busy`. Account delete still removes the agency record and the hostname index.
+- Storage prefixes `as_ag:`, `as_aguse:`, `as_agaudit:`, and `as_agdom:` are not readable through `/api/kv`.
+- Tests: `test/v240-agency.test.mjs`, plus the new keys in `test/tenant-isolation.test.mjs`. `npm test`: 80 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- Not relational organisations or row-level security. Isolation is the existing per-account store plus the agency checks on these routes.
+- Not Razorpay, not a tax invoice, not automatic billing.
+- Not a domain API and not certificate issuance. The hostname is documentation and a lookup for the login page.
+- Sign-in and password-reset mail still leave from the server mailbox. Only the wording is branded. Contact mail is the client’s own Gmail or it is not sent.
+- Caps are not a cross-process lock. The widget rate limit is still per process. The hosted tick is still often once a day.
+- View-as is read-only. It is not a way to send or to change the client.
+
+## v2.3.0 India-first channels + AI front desk (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `cursor/india-channels-frontdesk-108b`, based on `cursor/learning-cos-playbooks-c27f`. package.json version is 2.3.0. Not on staging or prod. Do not merge to main from this branch.
+- This is pillars 7 and 8 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.4 owned-channels slice (no Embedded Signup, no campaign email, no DLT registration) and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is learning chief of staff + playbooks. v2.3 is this slice.
+- **Inbox.** `lib/channels.js`. `GET /api/channels`, `POST /api/channels/whatsapp`, `POST /api/channels/sms`, `POST /api/channels/disconnect`, `POST /api/channels/email/sync`, `GET /api/channels/conversations/:id`, `POST /api/channels/send`. The Inbox page lists threads and the connect forms. Secrets are encrypted with `SESSION_SECRET` (same idea as BYOK). `GET /api/channels` returns a last-four hint. The verify token is returned once, on save.
+- **Webhooks are not addressed by account.** `GET/POST /api/channels/whatsapp/webhook` looks up `phone_number_id`, then checks `X-Hub-Signature-256` with that account’s app secret. `POST /api/channels/sms/webhook` looks up the destination number, then checks Twilio, MSG91, or the mock signature. A payload with two phone number ids is rejected. A body field that names an email is ignored. An access token starting with `mock_` does not call Meta. SMS provider `mock` does not call Twilio or MSG91. The signature is still required.
+- **Window and STOP.** Free-form WhatsApp sends only inside 24 hours of the last inbound message stored for that thread. Otherwise a template name is required and nothing is sent. The whole message `STOP` / `STOPALL` / `STOP ALL` / `UNSUBSCRIBE` / `CANCEL` / `END` / `QUIT` sets consent to exactly `Opted out`. No auto-reply. A later message does not clear it.
+- **Email.** Sync uses the existing Gmail connector. `POST /api/channels/email/mock` exists only when `CHANNELS_MOCK=on` and `AI_MOCK=on`, and it writes only the signed-in account.
+- **Workflows.** `send_whatsapp` and `send_sms` are outbound steps. They start as needs approval, land in the existing Approvals queue, and on approve call `deliverOutbound`. Auto and auto within limits still use contact-only, the step cap, and `WORKFLOW_SEND_DAILY_MAX`. Opt-out skips. Outside the window with no template, the step waits.
+- **Front desk.** `lib/frontdesk.js`. `GET/POST /api/frontdesk`, `POST /api/frontdesk/availability`, `POST /api/frontdesk/widget`. Off until the owner enables it. Replies are drafts unless `auto` is `auto_within_limits` and the daily cap allows it. `auto` (full) is rejected. The decision is rules over this account’s profile, FAQs, and open slots. The model is called, and it can only raise a handoff. Inbound text cannot set autonomy. Injection hands off with a fixed sentence and sends nothing.
+- **Booking.** Per-account hours (default Asia/Kolkata, Mon–Fri 10:00–18:00, 30 min) and booking rows. A slot is held when the confirmation is actually sent. Optional Google Calendar through the existing connector. `calendar: "mock"` works only with the test switches, and it does not call Google.
+- **Widget.** `GET /c/:token`, `GET /c/:token.js`, `POST /c/:token/message`. Token is 32 hex chars (`as_wgt:<token>` → email). CORS `*`. Drafts are hidden. `WIDGET_RATE_MAX` (default 30 / 15 min) is independent of `RATE_LIMIT=off` and is per process. `vercel.json` rewrites `/c/` to the API function.
+- Storage: `as_chcred:<email>` (sealed), `as_chidx:<email>`, `as_conv:<email>`, `as_fd:<email>`, `as_book:<email>`, plus indexes `as_waid:`, `as_wavt:`, `as_smsid:`, `as_wgt:`. Account delete calls `forgetChannels` first, so the indexes go away. None of these keys are readable through `/api/kv`.
+- Setup: `docs/CHANNELS.md`. Tests: `test/v230-channels.test.mjs`, plus the new keys in `test/tenant-isolation.test.mjs`. Customer B cannot read A’s inbox, FAQs, or widget. A forged signature does not write. `npm test`: 77 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- Not Embedded Signup. Not DLT registration (bring your own sender id and template id). The 24 hour window is local, not Meta’s API.
+- Not LangGraph. The front desk decision is rules so the tests stay deterministic. The model cannot loosen them.
+- The widget rate limit is per process. The hosted tick is still often once a day, so a workflow WhatsApp or SMS goes out on the next tick.
+- Voice is not included. A booking without a connected calendar is still stored. It is not written to Google until Calendar is connected (or the mock switch is on).
+- Inbound email sync reads recent Gmail. It does not send, and it is not a full mailbox.
+
+## v2.2.0 learning chief of staff + playbooks (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `cursor/learning-cos-playbooks-c27f`, based on `cursor/plain-english-workflows-b818` (includes review commits ab66f8e, 5546b0f, 829f425: auto-email caps, no platform mailbox, HTML send). package.json version is 2.2.0. Not on staging or prod. Do not merge to main from this branch.
+- This is pillars 4 and 5 of the AI-first plan, on the current per-account store. It is not the TEAM-HANDOVER v2.2 tracking/consent slice, not the v2.5 marketplace or v2.7 self-learning numbering, and not a LangGraph runtime. v2.0 on this line is timeline + tracking. v2.1 is plain-English workflows. v2.2 is this slice.
+- **Suggestions.** `lib/cos.js`. The routines tick calls `runDueCos`. The first tick for an account only schedules the next review (7 days). A later tick, when that time has passed, reads that account’s timeline, workflow runs and approvals and stores up to 5 open suggestions. `GET /api/cos`, `POST /api/cos/suggestions/apply`, `POST /api/cos/suggestions/dismiss`, `POST /api/cos/confirm`. The Suggestions page has Apply, Dismiss and Confirm.
+- **Apply and Confirm do not send.** Apply on a timing or source suggestion inserts a draft workflow (`insertDraftWorkflow` → `lockOutbound`). Send, post and pay are needs approval and the workflow is not enabled. Apply on “keep emails on needs approval”, or on an A/B winner that is not already customer-auto, stores a pending change. Confirm writes that change. Copying a subject and body (`updateWorkflowStepCopy`) puts the words back and restores autonomy, limits and `autonomy_set_by`.
+- **Preferences.** Edits and rejections update `as_cos:<email>` (shorter subjects, a repeated greeting, phrases to avoid, no posts, hold new email steps on needs approval). The next compile runs `shapeEmailSteps` after the normaliser. Hold does not stop the customer from later setting a step to auto on the workflow page.
+- **A/B.** `POST /api/cos/ab` on an email step. Variant is a hash of the test id and the lead id. Opens and clicks on the tracking token carry `ab_test` / `ab_variant`. Auto-pick (`autoPickDecision`) returns `send: false` always. It copies the winner only when the step is `send_email`, `autonomy_set_by` is `customer`, and autonomy is `auto` or `auto_within_limits`. The next run still goes through `decideOutbound` and `sendEmail(..., ownOnly: true)`.
+- **Caps kept from the v2.1 review.** Contact-only for auto, the step daily cap, and the account ceiling. `WORKFLOW_SEND_DAILY_MAX` defaults to 50 when unset; `0` means no automatic sends (the old `|| 50` treated 0 as unset). A workflow never falls back to the platform mailbox. HTML mail is sent as HTML plus a plain-text copy.
+- **Playbooks.** `lib/playbooks.js`. `GET /api/playbooks`, `GET /api/playbooks/:id`, `POST /api/playbooks/export`, `POST /api/playbooks/preview`, `POST /api/playbooks/install`. Install writes only when `confirm` is boolean true. `prepareInstall` redacts secret-shaped strings and runs every workflow through `normalizeCompiled` and `lockOutbound`, so a file cannot arrive enabled or set to auto-send. Starters: `pb_agency`, `pb_digital`, `pb_email`. No real estate. Stages replace the pipeline; a lead on a removed stage moves to the first stage and is not deleted. The Playbooks page previews, then asks before install.
+- Storage: `as_cos:<email>` (suggestions, preferences, pending changes), `as_abt:<email>` (A/B tests), `as_pb:<email>` (exports), `as_tpl:<email>` (templates). All four are removed when the account is deleted, and none of them is readable through `/api/kv`.
+- Tests: `test/v220-cos-playbooks.test.mjs`, plus the new keys and cross-account checks in `test/tenant-isolation.test.mjs`. Customer B cannot read A’s suggestions, tests, or exported playbook id. `npm test`: 74 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- Not LangGraph. The weekly review is rules over this account’s own rows, not a model, so the tests stay deterministic.
+- The hosted tick is still often once a day, so “weekly” means the next tick after 7 days, not a clock time.
+- “Tuesday” is the UTC weekday of the tick that ran the workflow.
+- A/B emails get a tracking image and rewritten links so opens and clicks can be counted. Approval and the send caps still apply. Auto-pick never sends.
+- Suggestions are per account only. Playbooks are the three starters plus that account’s own exports, not a paid public marketplace.
+- Installed workflows are not enabled. Installing does not send.
+
+## v2.1.0 plain-English workflows (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `cursor/plain-english-workflows-b818`, based on `cursor/v2-timeline-tracking-e476`. package.json version is 2.1.0. Not on staging or prod. Do not merge to main from this branch.
+- This is pillar 3 of the AI-first plan, on the current per-account store. It is not the v2.1 queue-and-worker from docs/TEAM-HANDOVER.md, and it is not a LangGraph engine. The existing OpenRouter path (and the mock AI path) compiles the sentence. Runs go through the existing routines tick.
+- **Workflows.** `lib/workflows.js`. `POST /api/workflows/compile`, `GET /api/workflows`, `GET /api/workflows/:id`, `POST /api/workflows/update`, `POST /api/workflows/delete`. The Workflows page lets a customer write a sentence, read the steps in plain words, set each step to needs approval / auto within limits / auto, then enable, pause, or delete it, and see run history.
+- **Triggers.** New lead (optional source, such as LinkedIn), stage change, tag added, email open, email click, form submit, schedule.
+- **Steps.** Tag, stage, note, task, draft email, send email, post, payment, wait, remind the owner in the app. Send, post and pay start as needs approval and use the existing Approvals queue. A payment is never taken. A post in this version is a draft. An email is sent only after the customer changes that step and the limits pass, and only if email is connected.
+- Storage: `as_wf:<email>` (the workflows) and `as_wfr:<email>` (the runs). Both are removed when the account is deleted, and neither is readable through `/api/kv`.
+- A run writes a workflow line on the contact timeline and a Workflows row in agent activity.
+- Tests: `test/v210-workflows.test.mjs`, plus workflow checks in `test/tenant-isolation.test.mjs`. Customer B cannot read or change customer A’s workflows. The mock AI path returns the same workflow for the same sentence. `npm test`: 65 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- No LangGraph, no separate job queue, no “wait until they click” beyond the simple “no reply” check (a history line that says they replied).
+- The hosted tick is still once a day unless an outside pinger is set, so a two-day wait finishes on the next tick after it is due, not at that minute.
+- “Every morning” is once per day on that tick, not a clock time.
+- Tracking is still not added to an email by itself. Opens and clicks start a workflow only after tracking was put on a draft.
+- Auto-send needs the customer to change the step. If email is not connected, the step waits in Approvals and nothing is sent.
+
+## v2.0.0 timeline + tracking (19 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `cursor/v2-timeline-tracking-e476`, based on `deploy-v1.15.0`. package.json version is 2.0.0. Not on staging or prod.
+- This slice is pillars 1 and 2 of the AI-first plan, on the current per-account store. It is not the full v2.0 in docs/TEAM-HANDOVER.md (organisations, memberships, relational tables, row-level security, blob migration, dual-read, typed CRM tools).
+- **Timeline.** `lib/timeline.js`. `GET /api/leads/:id/timeline`, `POST /api/leads/:id/notes`, `POST /api/leads/:id/tasks`, `GET /api/crm/dashboard`. The customer UI has a Contacts tab: dashboard, contact list, and one timeline. Notes and tasks are records only.
+- **Tracking.** `lib/tracking.js`. `POST /api/tracking/link`, `POST /api/tracking/email` (preview), `POST /api/tracking/apply` (writes the pending email; does not approve or send). Public: `GET /t/o/:token.gif` (open), `GET /t/c/:token` (click, destination stored on the server), `GET /t/v/:token` (page visit). Public form pages record campaign tags and copy the submission onto the CRM lead. Opted out means consent is exactly "Opted out".
+- Storage: `as_tl:<email>` (opens, clicks, visits, agent runs), `as_trk:<token>` and `as_trks:<email>` (tracking tokens; deleted with the account), `as_vis:<email>` (anonymous page views for the dashboard). Lead history, tasks, and approvals stay where they were and are joined when the timeline is read.
+- Tests: `test/v200-timeline.test.mjs` and extra cases in `test/tenant-isolation.test.mjs`. Customer B cannot read or change customer A's timeline, notes, tasks, tracking, or dashboard. `npm test`: 63 passed, 2 skipped, 0 failed.
+
+### Still open (honest gaps)
+- No site snippet (`t.js`), consent banner, erasure/export, or retention jobs.
+- Tracking is not injected when an email is sent. The owner applies it to a pending draft. Approval is still required to send.
+- A click, open, or visit does not wake an agent. Past chats are not backfilled.
+- The dashboard is counts (source, stage, won, opens, clicks, page views), not a full analytics product.
+- An anonymous form view is counted on the dashboard. It is attached to a contact when the form is submitted, or when someone opens that contact’s visit link.
+- Email opens are approximate. Plain-text mail gets click rewrites only.
+
+## v1.15.0 deployment basics (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `deploy-v1.15.0` (on top of `integrations-v1.14.0`), not pushed, not on prod. package.json version is now 1.15.0.
+- Backups: `scripts/db-backup.mjs` (backup/verify/restore/drill), docs/BACKUPS.md (drill log). Box copies are in /workspace/aaas-run/backups (git-ignored, mode 600). Set `BACKUP_KEY` before backing up prod.
+- Monitoring: `/api/health/deep`. Cron runs are recorded in `as_sys_cron`. Plan in docs/MONITORING.md (monitors not created yet; they need the owner's email/account).
+- Rollback: `scripts/vercel-rollback.sh`, tested on staging.
+- AWS: docs/DEPLOY-AWS.md (plan only).
+- Staging e2e scenario `g` covers v1.14 features.
+
+## v1.14.0 integrations, approvals, flexible CRM (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `integrations-v1.14.0` (on top of `security-v1.13.0`), not pushed, not on prod.
+- Connectors: `GET /api/connectors` now returns status/error/reconnect; `POST /api/connectors/check {c}`; disconnect returns `was`. Live reads that fail with expired access mark the app "error".
+- Approvals (`lib/approvals.js`): `GET /api/agents/approvals?status=`, `POST /api/agents/approval/edit`, `POST /api/agents/approval {id, decision, edit?, note?}`, `POST /api/agents/approvals/batch {ids, decision}` (max 25), `POST /api/agents/approvals/clear {older_than_days?}`.
+- CRM (`lib/leads.js`): `GET/PUT /api/leads/fields`, `GET/PUT /api/leads/stages {stages, move_to?}`, `POST /api/leads/tags {ids, add, remove}`, `GET /api/leads/export.csv`, `POST /api/leads/import {csv, upsert?, dry_run?}` (max 2000 rows). Leads accept `stage` and `fields`; list filters `?tag=&stage=`.
+- Tests: `test/integrations-v1140.test.mjs` (per-account checks throughout).
+
+## v1.13.0 security: tenant isolation + remote browser lock-down (20 Oct 2026), released in v2.4.0 (20 Oct 2026)
+- Branch `security-v1.13.0` (on top of `agents-v1.12.0`), not pushed, not on prod.
+- Cross-tenant tests for every customer route: `test/tenant-isolation.test.mjs`.
+- `REMOTE_BROWSER=on` is now needed to use the remote browser on a self-hosted box (the owner's local box needs it added to `.env` after upgrading). It is always off on Vercel.
+- Billing/Razorpay shelved (no GSTIN). Early customers get manual invoices.
+
+## v1.12.0 agent activity (20 Oct 2026, ~12:45 AM IST), released in v2.4.0 (20 Oct 2026)
+- Branch `agents-v1.12.0` (on top of `auth-v1.11.0`), not pushed, not on prod.
+- New `lib/activity.js`: live run record `as_run:<email>:<runId>` (10-minute life) and per-agent history `as_act:<email>` (last 10 runs, last 5 errors).
+- New routes: `GET /api/agents/status`, `GET /api/agents/run?id=`. Chat accepts `run_id`; the page polls every 1.5 s and shows steps.
+- Tests: `test/activity.test.mjs`, plus an e2e check. Staging: https://aidentify-staging.vercel.app
+
+## v1.11.0 sign-in fixes (19 Oct 2026, ~late night IST)
+- The owner decided we fix things ourselves instead of the team. Billing is shelved (see v1.13.0 note).
+- Branch `auth-v1.11.0` (off v1.10.0 `dc3ed28`) is local only. It is deployed to **staging only**, not to `aidentify-demo`.
+- It adds one sign-in screen with tabs, show/hide on every password box, live password rules, friendlier lockout messages, and password reset (`lib/pwreset.js`, `POST /api/auth/forgot`, `POST /api/auth/reset-password`, links look like `/#as_reset=<token>`).
+- Reset emails go through `sendSystemEmail` (lib/mailer.js), which needs `GMAIL_USER` + `GMAIL_APP_PASSWORD` (optionally `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` for another provider) and `APP_URL` for the link. Neither the demo nor staging has these set, so the screen says reset emails aren't switched on yet.
+- `npm test`: 46 passed, 2 skipped. Staging e2e: 6/6 scenarios passed (mock AI), including the new scenario f.
+
 ## Staging + stress testing (19 Oct 2026)
 - Staging: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`; Neon schema `staging`; $2 AI budget; mock AI on by default). How it works: `docs/STAGING.md`.
 - Staging secrets (admin password, cron secret, session secret) live only in Vercel and in `/workspace/aaas-run/staging.env.local` on the box (chmod 600), never in git.
@@ -106,7 +242,7 @@ These screenshots were taken from a local test server with made-up data (no real
 The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4 (storage and tests) in v1.5.0.
 
 - **Step 2, hosted demo:** **live** on Vercel Hobby (18 Oct 2026). Demo at https://aidentify-demo.vercel.app; marketing waitlist at https://aidentify.vercel.app. Neon schema `demo`; shared OpenRouter key with in-app $10 soft cap + customer BYOK; Google login hidden until OAuth is configured. Still open on this step: link the GitHub repo to Vercel (CLI deploy only today), and wire Google / email-code sign-in when ready.
-- **Step 3, payments (Razorpay):** waiting for Phanindra's inputs. A webhook signature checker (`lib/billing.js`) and its tests exist; no payment route yet.
+- **Step 3, payments (Razorpay):** shelved on 20 Oct 2026 (no GSTIN). Early customers are invoiced manually. `lib/billing.js` stays unused.
 - More of the launch list after the demo, such as onboarding polish and priced plans (not started).
 - Step 1 follow-ups: see "Known issues".
 
