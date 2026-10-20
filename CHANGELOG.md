@@ -18,7 +18,11 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- **Approve on a channel reply.** The Approvals button sends an edit payload. An empty edit on a web chat, WhatsApp, Telegram, Slack, or SMS item was rejected, so the reply never left Approvals. An empty edit is now ignored and the approval runs.
+
 ### Added
+- **Local demo recordings.** `scripts/demo-videos` drives five Playwright walkthroughs against a mock server and builds a 16:9 and a 9:16 cut with ffmpeg. The videos themselves are not part of this repo.
 - **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
 
 ## [2.4.1] - 2026-10-20

@@ -231,7 +231,7 @@ test('webhooks, inbox, workflows and the front desk stay inside one account', as
     const bookConv = (await req(s, 'GET', '/api/channels/conversations/' + bookId, undefined, A)).d.conversation;
     const hold = bookConv.messages.find((m) => m.slot_start && m.status === 'draft');
     assert.ok(hold, JSON.stringify(bookConv.messages));
-    const approved = await req(s, 'POST', '/api/agents/approval', { id: hold.approval_id, decision: 'approve' }, A);
+    const approved = await req(s, 'POST', '/api/agents/approval', { id: hold.approval_id, decision: 'approve', edit: {} }, A);
     assert.equal(approved.status, 200, JSON.stringify(approved.d));
     assert.match(approved.d.approval.result, /Sent/);
     const bookings = (await req(s, 'GET', '/api/frontdesk', undefined, A)).d.bookings;
