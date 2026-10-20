@@ -60,4 +60,6 @@ test('obs: one JSON line per request with route, status, ms, AI calls and cost; 
   assert.equal(routeOf('/t/o/abcdef0123456789abcdef0123456789.gif'), '/t/o/:token.gif');
   assert.equal(routeOf('/t/c/abcdef0123456789abcdef0123456789'), '/t/c/:token');
   assert.equal(routeOf('/api/leads/12/timeline'), '/api/leads/:id/timeline');
+  assert.equal(routeOf('/api/channels/telegram/webhook/' + 'ab'.repeat(16)), '/api/channels/telegram/webhook/:hook');
+  assert.equal(routeOf('/api/channels/slack/webhook/' + 'cd'.repeat(16)), '/api/channels/slack/webhook/:hook');
 }));

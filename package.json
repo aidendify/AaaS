@@ -1,6 +1,6 @@
 {
   "name": "aidentify",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "private": true,
   "description": "AIdentify: open-source agent-as-a-service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
@@ -18,10 +18,12 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
     "@slack/bolt": "^4.7.3",
+    "@whiskeysockets/baileys": "^6.7.24",
     "imapflow": "2.0.6",
     "nodemailer": "^6.9.16",
     "pg": "^8.23.1",
-    "playwright": "^1.55.0"
+    "playwright": "^1.55.0",
+    "qrcode": "^1.5.4"
   },
   "engines": {
     "node": ">=20"

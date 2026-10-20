@@ -32,7 +32,7 @@ Changing a Slack token reconnects the Slack bot by itself.
 | Usage & spending | Calls, tokens and **estimated** cost per day, agent and model. Set a monthly cap and what happens when it is reached (`block` or `warn`). You are alerted at 50%, 80% and 100% (Slack DM, if the bot is on). |
 | Agents | Per-agent model and cheap/strong tier, max steps per run, default tier, and house rules added to every agent's instructions. |
 | Approvals & safety | For email, social posts, app actions, risky browser steps, lead replies, GitHub and Gumroad publishing: `ask` (needs your approval, the default) or `block` (agents cannot do it). |
-| Messaging (Slack) | Bot and app tokens, owner, notify channel, heartbeat and watchdog. Test the token or send yourself a test DM. |
+| Messaging (Slack) | Bot and app tokens, owner, notify channel, heartbeat and watchdog. Test the token or send yourself a test DM. This is the server-wide Socket Mode bot. A customer’s own Telegram bot or Slack app is saved on the Inbox page, not here. |
 | Browser | Agents' browser profile and display, remote browser timeout and tunnel, ngrok token. Open, close and check the remote browser. |
 | Schedules & board | Timezone. List routines and pause or resume one or all of them. |
 | Connectors & tools | GitHub, Gumroad, Buffer, Composio, Tavily and Gmail keys, plus your own OAuth apps. Test buttons for each. |

@@ -119,7 +119,11 @@ The widget ignores any autonomy, FAQ, or settings fields in the message body. On
 | GET | `/api/channels` | Connection hints and conversations. No secrets. |
 | POST | `/api/channels/whatsapp` | Save WhatsApp credentials. |
 | POST | `/api/channels/sms` | Save SMS credentials. |
-| POST | `/api/channels/disconnect` | `{ "which": "whatsapp" }` or `"sms"`. |
+| POST | `/api/channels/telegram` | Save a BotFather token. Optional `owner_user_id` and `customers`. |
+| POST | `/api/channels/slack` | Save a bot token and signing secret. Optional `owner_user_id` and `customers`. |
+| GET | `/api/channels/whatsapp-qr` | Beta status and the warning. No session and no QR secret in logs. |
+| POST | `/api/channels/whatsapp-qr/start` | Start a QR session. Refused unless `WHATSAPP_QR=on` on a persistent server. |
+| POST | `/api/channels/disconnect` | `{ "which": "whatsapp" }`, `"sms"`, `"telegram"`, `"slack"`, or `"whatsapp_qr"`. |
 | POST | `/api/channels/email/sync` | Pull recent Gmail. |
 | GET | `/api/channels/conversations/:id` | One thread. |
 | POST | `/api/channels/send` | Queue a reply. `"confirm": true` sends it now (your click is the approval). |
@@ -136,10 +140,66 @@ Public, no session:
 | GET | `/c/:token` and `/c/:token.js` |
 | POST | `/c/:token/message` |
 
-Staff accounts get 403 on the customer routes. A customer cannot read or write another customer’s keys through `/api/kv`. Those keys are `as_chcred`, `as_chidx`, `as_conv`, `as_fd`, `as_book`, `as_wgt`, `as_waid`, `as_wavt`, and `as_smsid`.
+Staff accounts get 403 on the customer routes. A customer cannot read or write another customer’s keys through `/api/kv`. Those keys are `as_chcred`, `as_chidx`, `as_conv`, `as_fd`, `as_book`, `as_wgt`, `as_waid`, `as_wavt`, `as_smsid`, `as_tghook`, `as_tgbot`, `as_slhook`, `as_slteam`, `as_fch`, and `as_fseen`.
+
+Public, no session, added in v2.5:
+
+| Method | Path |
+|---|---|
+| POST | `/api/channels/telegram/webhook/:hook` |
+| POST | `/api/channels/slack/webhook/:hook` |
+
+## Free channels (v2.5)
+
+Telegram and Slack let the owner talk to the Chief of Staff without a per-message fee. Tokens are stored encrypted with `SESSION_SECRET`, the same way the WhatsApp Cloud token is stored. The Inbox page and `GET /api/channels` show a hint (the last four characters), never the token, the Telegram secret, the Slack signing secret, or a WhatsApp QR session.
+
+Anything that messages a customer starts as **needs approval**. The front desk still cannot be set to full auto. A reply from the Chief to the owner, in the owner’s own chat, is the conversation itself and is delivered. It does not message anyone else.
+
+### Telegram
+
+1. In BotFather, create a bot and copy the token.
+2. On the Inbox page, paste the token. You can paste your numeric Telegram user id, or send the bot `/link` plus the code shown once after you save.
+3. Set the webhook to the URL shown after save:
+
+   `https://<your-app>/api/channels/telegram/webhook/<hook>`
+
+   The hook id only chooses the account. The `X-Telegram-Bot-Api-Secret-Token` header must match the secret stored for that account. A body field that names another email is ignored.
+4. If `APP_URL` is a public http(s) address, saving a real token also calls Telegram `setWebhook`. A token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`. When that switch is on, `mock_` does not call Telegram. `mock_` is for tests.
+5. A private message from the linked owner goes to the Chief of Staff. Other people are ignored unless you tick **Let customers reach the front desk**. Those messages use the same front desk as WhatsApp. Group chats are ignored.
+
+### Slack (per account)
+
+This is separate from the server-wide Socket Mode bot in `docs/slack.md`.
+
+1. Create a Slack app. Add a bot token (`xoxb-…`) with `chat:write`, `im:history`, `im:read`, and `app_mentions:read`. Turn on Event Subscriptions for `message.im` and `app_mention`.
+2. Copy the signing secret.
+3. On the Inbox page, paste the bot token and the signing secret. Paste your member id (`U…`), or DM the bot `link` plus the code shown once after you save. A bot token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`.
+4. Set the request URL to:
+
+   `https://<your-app>/api/channels/slack/webhook/<hook>`
+
+   Slack signs the raw body. The app checks `X-Slack-Signature` and `X-Slack-Request-Timestamp` (five minutes) with that account’s signing secret before it reads the event, including the URL-verification challenge. A `team_id` that does not match the workspace you connected is rejected.
+5. Your DMs and mentions go to the Chief. Other people are ignored unless you let customers reach the front desk. Those replies wait for approval.
+
+The host must see the raw request body. The Node server does. If a host parses the JSON first and rebuilds it, the signature will not match and the event is refused.
+
+### WhatsApp QR (beta, owner only)
+
+This is not the Meta Cloud API. It uses a QR scan (Baileys) and is **off** unless `WHATSAPP_QR=on`.
+
+- The Inbox page shows a warning: the connection is unofficial, and WhatsApp can restrict or ban the number.
+- Only the number that scanned the QR can talk to the Chief. After it links, message your own number (Message yourself). That is the only chat that is answered.
+- Messages from anyone else, groups, and broadcasts are ignored. Nothing is stored as a customer lead, and nothing is sent back.
+- There is no way to message a customer or send a broadcast through this channel. The send API refuses it.
+- It needs a process that stays running. On Vercel (or any other serverless host) it does not open a socket. The page and the API say so, and the rest of the app keeps working.
+- The session is encrypted in this account’s channel credentials. It is not written to the log.
+
+`CHANNELS_MOCK=on` together with `AI_MOCK=on` lets tests link a number and post an inbound message without a real WhatsApp connection. That route does not exist unless both switches are on, and it still requires `WHATSAPP_QR=on`.
 
 ## What this is not
 
+- Not a per-message charge for Telegram or Slack. Meta and SMS fees are still yours.
+- WhatsApp QR is not an official WhatsApp product, and it is not a customer inbox.
 - Not Embedded Signup, and not a DLT registration. You bring the sender and the template id.
 - Not Meta’s official 24 hour API. The window is the last inbound message we stored.
 - Not a separate database, and not LangGraph. The front desk decision is rules. The model can only raise caution.
