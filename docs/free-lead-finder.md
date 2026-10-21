@@ -1,6 +1,6 @@
 # Free lead finder playbook (Desk)
 
-Goal: find people who are publicly asking for help AIdentify can give, and draft a personal reply for Phanindra to approve. Zero cost: never buy bids, connects, credits or subscriptions. Research and draft only; nothing is sent until he approves it.
+Goal: find people who are publicly asking for help AaaS can give, and draft a personal reply for Phanindra to approve. Zero cost: never buy bids, connects, credits or subscriptions. Research and draft only; nothing is sent until he approves it.
 
 ## What we sell (match against this)
 AI automation and agents (n8n / Make / Zapier-style workflows, AI agents, chatbots), email deliverability and cold-email setup, self-hosted Docker tool install and configuration, landing pages and small web builds, CRM / lead follow-up automation. Free self-hosted tools on https://aidentify.gumroad.com work as lead magnets (Nudge, OpenPing, FormFirst).

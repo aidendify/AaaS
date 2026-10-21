@@ -24,7 +24,7 @@ async function req(s, method, p, body, token, extra = {}) {
   return { status: r.status, d };
 }
 const tick = (s, now) => req(s, 'GET', '/api/cron/tick', undefined, undefined, { headers: { authorization: 'Bearer ' + CRON, ...(now ? { 'x-test-now': String(now) } : {}) } });
-const UA = { 'user-agent': 'Mozilla/5.0 (compatible; AIdentify test)' };
+const UA = { 'user-agent': 'Mozilla/5.0 (compatible; AaaS test)' };
 
 test('suggestions, drafts and auto-pick stay inside approval rules and send caps', () => {
   const tue = TUE, thu = THU;

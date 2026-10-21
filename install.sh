@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# AIdentify installer and updater.
+# AaaS installer and updater.
 #
 # The repository is private: you need access to aidendify/AaaS and a signed-in git (GitHub CLI, SSH key or token).
 #
 #   Install:  gh repo clone aidendify/AaaS aidentify && cd aidentify && ./install.sh
 #             (or: git clone git@github.com:aidendify/AaaS.git aidentify && cd aidentify && ./install.sh)
-#   Update:   ./install.sh --update        (or: npm run update)  run inside your AIdentify folder
+#   Update:   ./install.sh --update        (or: npm run update)  run inside your AaaS folder
 #
 # Options / environment:
 #   --dir <path>      AIDENTIFY_DIR   install folder (default: ~/aidentify)
@@ -44,7 +44,7 @@ if ! have node; then
   die "Node.js 20 or newer is required. Install it from https://nodejs.org (or: curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && nvm install 20), then run this again."
 fi
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-[ "$NODE_MAJOR" -ge 20 ] || die "Node.js $NODE_MAJOR found; AIdentify needs Node.js 20 or newer (https://nodejs.org)."
+[ "$NODE_MAJOR" -ge 20 ] || die "Node.js $NODE_MAJOR found; AaaS needs Node.js 20 or newer (https://nodejs.org)."
 have npm || die "npm is required (it ships with Node.js)."
 
 # Newest vX.Y.Z tag. Private repo: ask git (uses your existing git sign-in), then gh, then the API with GITHUB_TOKEN.
@@ -84,7 +84,7 @@ npm_install() {
 if [ "$MODE" = "update" ]; then
   # run from inside the install folder, or from --dir
   if [ -f ./server.js ] && [ -f ./package.json ] && grep -q '"aidentify"' ./package.json; then DIR="$(pwd)"; fi
-  [ -f "$DIR/server.js" ] || die "No AIdentify install found in $DIR (use --dir)."
+  [ -f "$DIR/server.js" ] || die "No AaaS install found in $DIR (use --dir)."
   cd "$DIR"
   OLD="$(node -p 'require("./package.json").version' 2>/dev/null || echo unknown)"
   if [ -d .git ] && have git; then
@@ -105,7 +105,7 @@ if [ "$MODE" = "update" ]; then
   fi
   npm_install
   NEW="$(node -p 'require("./package.json").version')"
-  say "AIdentify updated: $OLD -> $NEW. Your .env and data/ were kept."
+  say "AaaS updated: $OLD -> $NEW. Your .env and data/ were kept."
   echo "   Restart the server to use it (stop it, then: npm start)."
   [ -f CHANGELOG.md ] && echo "   What's new: CHANGELOG.md or https://github.com/$REPO/releases"
   exit 0
@@ -113,10 +113,10 @@ fi
 
 # ---- install ----
 if [ -f ./server.js ] && [ -f ./package.json ] && grep -q '"aidentify"' ./package.json; then
-  DIR="$(pwd)"; say "Setting up the AIdentify folder you cloned: $DIR"   # usual path: gh repo clone, then ./install.sh
+  DIR="$(pwd)"; say "Setting up the AaaS folder you cloned: $DIR"   # usual path: gh repo clone, then ./install.sh
 else
   if [ -e "$DIR" ] && [ -n "$(ls -A "$DIR" 2>/dev/null)" ]; then
-    [ -f "$DIR/server.js" ] && die "AIdentify is already installed in $DIR. To update: cd $DIR && ./install.sh --update"
+    [ -f "$DIR/server.js" ] && die "AaaS is already installed in $DIR. To update: cd $DIR && ./install.sh --update"
     die "$DIR exists and is not empty. Choose another folder with --dir."
   fi
   if [ -n "${AIDENTIFY_GIT_URL:-}" ] && have git; then
@@ -150,7 +150,7 @@ have google-chrome || have google-chrome-stable || have chromium || warn "Option
 
 cat <<NEXT
 
-AIdentify $(node -p 'require("./package.json").version') is installed in $DIR
+AaaS $(node -p 'require("./package.json").version') is installed in $DIR
 
 Next steps:
   1. Add an AI key to $DIR/.env: OPENROUTER_API_KEY=... (or ANTHROPIC_API_KEY=...)

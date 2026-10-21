@@ -18,7 +18,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
-/** Phone window onto a hosted AIdentify. The public address is stored on the device. */
+/** Phone window onto a hosted AaaS. The public address is stored on the device. */
 class MainActivity : AppCompatActivity() {
     private lateinit var web: WebView
     private val prefs by lazy { getSharedPreferences("aidentify", MODE_PRIVATE) }
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         setContentView(web)
-        title = "AIdentify"
+        title = "AaaS"
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (this@MainActivity::web.isInitialized && web.canGoBack()) web.goBack() else finish()
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         box.setPadding(pad, pad, pad, 0)
         box.addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         val dialog = AlertDialog.Builder(this)
-            .setTitle("AIdentify server")
+            .setTitle("AaaS server")
             .setMessage("This phone opens the hosted site. Point it at your public address, or at a computer on the same network.")
             .setView(box)
             .setCancelable(!required)

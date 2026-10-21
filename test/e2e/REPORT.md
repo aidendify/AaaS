@@ -1,4 +1,4 @@
-# AIdentify end-to-end scenario report
+# AaaS end-to-end scenario report
 
 Written by `npm run e2e`. Each run appends a section below. The findings summary at the top is written by hand.
 

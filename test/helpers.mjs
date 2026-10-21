@@ -1,4 +1,4 @@
-// Starts a real AIdentify server on a free port with its own temp data dir and env file (never the real .env or data/).
+// Starts a real AaaS server on a free port with its own temp data dir and env file (never the real .env or data/).
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';

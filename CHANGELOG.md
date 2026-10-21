@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to AIdentify are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+All notable changes to AaaS are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [2.5.0] - 2026-10-20
@@ -17,6 +17,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - This build does not deploy the change. Setup steps are in `docs/CHANNELS.md`.
 
 ## [Unreleased]
+
+### Changed
+- **The product name is AaaS** (Agents as a Service). Titles, the app, emails, public pages, landing pages, docs and the licence line now say AaaS. Vercel projects, domains, env vars, the npm package name, database names, the browser lock file and the playbook format id are unchanged.
 
 ### Added
 - **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
@@ -261,7 +264,7 @@ Hosted demo and public waitlist (launch-readiness step 2).
 
 ### Added
 - **Public demo on Vercel.** Sign up with email and password at https://aidentify-demo.vercel.app. The demo uses Neon Postgres (schema `demo`) and keeps Slack and the board worker on a separate always-on box.
-- **Marketing waitlist site.** https://aidentify.vercel.app explains Agent-as-a-Service, who it is for, benefits and features, and lets people join the waitlist. The same form also lives at `/waitlist` and `/early-access` on the demo.
+- **Marketing waitlist site.** https://aidentify.vercel.app explains Agents as a Service, who it is for, benefits and features, and lets people join the waitlist. The same form also lives at `/waitlist` and `/early-access` on the demo.
 - **Waitlist form fields.** Name, email, business type, city and WhatsApp. Email is required and checked. One row per person: the same email or WhatsApp updates the existing row instead of adding a duplicate. Admins can export CSV from `/api/waitlist?format=csv`.
 - **Shared AI with a soft $10 cap.** New demo users can chat right away on a shared OpenRouter key. Soft limits stop the shared pool (total, daily, and per-customer). Staff still count toward the pool.
 - **Bring your own AI key (BYOK).** During onboarding or later in the user menu / Settings, paste an OpenRouter, OpenAI, xAI, Google Gemini or Anthropic key. It is checked once, stored encrypted, and never shown again. BYOK users are not limited by the shared pool.
@@ -273,7 +276,7 @@ Hosted demo and public waitlist (launch-readiness step 2).
 ## [1.6.0] - 2026-10-18
 
 ### Changed (please read)
-- **AIdentify is now proprietary: all rights reserved.** From this version on, nobody may use, copy, change or share the code without written permission from Phanindra Malladi / AIdentify. See LICENSE.
+- **AaaS is now proprietary: all rights reserved.** From this version on, nobody may use, copy, change or share the code without written permission from Phanindra Malladi / AaaS. See LICENSE.
 - **Earlier versions are not taken back.** Versions up to v1.5.0 were published under the MIT License. If you got one of those versions under MIT, you keep the MIT rights for that version. The new terms apply to v1.6.0 and later.
 - **Contributions by invitation only.** Invited contributors sign a written agreement (a contributor licence agreement or a copyright assignment) before their work is merged.
 - The README, contribution guide, app settings (About) and app details now say "all rights reserved" instead of MIT.
@@ -325,7 +328,7 @@ Security basics before launch. Existing servers keep working with no changes: if
 - **`npm run social:snapshot`**: a read-only snapshot of X, LinkedIn and Facebook analytics, taken in the agents' browser.
 
 ### Fixed
-- Leftover "AgentSphere" names were replaced with AIdentify. Internal names that existing data depends on (a database table name and two hash prefixes) were kept on purpose so nothing breaks.
+- Leftover "AgentSphere" names were replaced with AaaS. Internal names that existing data depends on (a database table name and two hash prefixes) were kept on purpose so nothing breaks.
 
 ## [1.3.0] - 2026-10-17: read-only X, LinkedIn and Facebook analytics snapshot in the agents' browser profile. It writes a dated report, a TSV row and screenshots, and reports signed-out or wrong-account sites instead of guessing.
 
@@ -372,7 +375,7 @@ First public open-source release.
 - Open-source project files: MIT LICENSE, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, issue and PR templates, CI syntax check (`npm run check`).
 
 ### Changed
-- Rebranded to AIdentify across the UI, emails, Slack messages, prompts, docs and app names.
+- Rebranded to AaaS across the UI, emails, Slack messages, prompts, docs and app names.
 - Slack: DMs are answered asynchronously with an instant :eyes: reaction, missed DMs are answered after a reconnect, and a watchdog forces a reconnect about 60 seconds after a pause or dead socket.
 - Goal planning always chains two or more tasks; research tasks get 25 steps; longer model timeout.
 - README rewritten for installers and contributors; the previous long README is now `docs/guide.md`.
@@ -384,7 +387,7 @@ First public open-source release.
 ## [1.1.0] - 2026-10-17
 
 ### Added
-- Initial AIdentify (AaaS) build: web workspace with sign-in (email + password, email code, Google), agents with knowledge bases, Chief of Staff orchestrator, routines, connectors (OAuth, API keys or Composio), Gmail, Buffer social posting, web search, real browser agents, customer share links and live apps, local file or Neon Postgres storage, and Vercel deployment.
+- Initial AaaS build: web workspace with sign-in (email + password, email code, Google), agents with knowledge bases, Chief of Staff orchestrator, routines, connectors (OAuth, API keys or Composio), Gmail, Buffer social posting, web search, real browser agents, customer share links and live apps, local file or Neon Postgres storage, and Vercel deployment.
 
 [Unreleased]: https://github.com/aidendify/AaaS/compare/v1.4.0...HEAD
 [1.4.0]: https://github.com/aidendify/AaaS/releases/tag/v1.4.0

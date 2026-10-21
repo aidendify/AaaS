@@ -2,9 +2,9 @@
   "name": "aidentify-desktop",
   "version": "1.1.0",
   "private": true,
-  "description": "Windows window onto a hosted AIdentify. The server address is changeable.",
+  "description": "Windows window onto a hosted AaaS. The server address is changeable.",
   "main": "main.js",
-  "author": "AIdentify",
+  "author": "AaaS",
   "scripts": {
     "start": "electron .",
     "pack:dir": "electron-builder --win dir --x64",
@@ -17,7 +17,7 @@
   },
   "build": {
     "appId": "com.aidentify.desktop",
-    "productName": "AIdentify",
+    "productName": "AaaS",
     "directories": {
       "output": "dist"
     },
@@ -44,8 +44,8 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "AIdentify",
-      "artifactName": "AIdentify-Setup-${version}.exe"
+      "shortcutName": "AaaS",
+      "artifactName": "AaaS-Setup-${version}.exe"
     }
   },
   "license": "UNLICENSED"

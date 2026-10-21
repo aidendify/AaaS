@@ -1,4 +1,4 @@
-// Window onto a hosted AIdentify. The address is stored on this PC and can be changed.
+// Window onto a hosted AaaS. The address is stored on this PC and can be changed.
 const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +23,7 @@ function openApp(url) {
   mainWin = new BrowserWindow({
     width: 1280,
     height: 840,
-    title: 'AIdentify',
+    title: 'AaaS',
     autoHideMenuBar: false,
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
@@ -35,7 +35,7 @@ function askAddress(current) {
     width: 520,
     height: 320,
     resizable: false,
-    title: 'AIdentify server',
+    title: 'AaaS server',
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
@@ -43,9 +43,9 @@ function askAddress(current) {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>AIdentify</title></head>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>AaaS</title></head>
 <body style="font-family:Segoe UI,sans-serif;margin:28px;color:#111">
-<h1 style="font-size:18px;margin:0 0 8px">Where is AIdentify running?</h1>
+<h1 style="font-size:18px;margin:0 0 8px">Where is AaaS running?</h1>
 <p style="margin:0 0 12px;color:#444">This app is a window onto the hosted site. Use a VPS address, or http://localhost:3000 while you test.</p>
 <input id="u" style="width:100%;box-sizing:border-box;padding:10px;font-size:15px" value="" placeholder="https://your-server.example">
 <p id="err" style="color:#b00020;min-height:1.2em"></p>

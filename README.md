@@ -1,6 +1,6 @@
-<h1 align="center">AIdentify</h1>
+<h1 align="center">AaaS</h1>
 
-<p align="center"><b>Self-hosted agent-as-a-service platform. Proprietary: all rights reserved.</b><br>
+<p align="center"><b>Self-hosted Agents as a Service platform. Proprietary: all rights reserved.</b><br>
 Small businesses and agencies create AI agent workers, connect their tools, and run them from the web or Slack.</p>
 
 <p align="center">
@@ -22,7 +22,7 @@ Small businesses and agencies create AI agent workers, connect their tools, and 
 
 ---
 
-AIdentify is a self-hosted Node.js app. You sign in, tell it what kind of business you run, and it sets up a
+AaaS is a self-hosted Node.js app. You sign in, tell it what kind of business you run, and it sets up a
 **Chief of Staff** orchestrator with matching agents (lead forms, follow-ups, research, social posting, a CRM and
 more). Agents use real tools: your connected apps, web search, a real browser, email and social posting. Anything that
 sends, posts, publishes, pays or signs in **waits for your approval**.
@@ -245,7 +245,7 @@ step-by-step "Build a connector" guide) and follow the [Code of Conduct](CODE_OF
 
 ## License
 
-Copyright (c) 2026 Phanindra Malladi / AIdentify. All rights reserved. See [LICENSE](LICENSE).
+Copyright (c) 2026 Phanindra Malladi / AaaS. All rights reserved. See [LICENSE](LICENSE).
 No use, copying, modification or distribution without written permission.
 
 Versions before v1.6.0 were published under the MIT License; copies obtained under MIT keep those rights for that version.

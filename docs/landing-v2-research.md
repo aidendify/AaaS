@@ -1,6 +1,6 @@
 # Landing v2 research
 
-Date: 20 October 2026. Public pages and docs only. No accounts were created, and no numbers below are copied onto the AIdentify page unless they are a fact about AIdentify itself.
+Date: 20 October 2026. Public pages and docs only. No accounts were created, and no numbers below are copied onto the AaaS page unless they are a fact about AaaS itself.
 
 v1 (`waitlist.html`) is a dark, black-canvas page aimed at agencies and digital / email marketers. v2 is a different audience: the owner of one small business. Agency white-label stays off that page.
 
@@ -52,13 +52,13 @@ Reviewed: GoHighLevel / HighLevel, Relevance AI, Lindy, Sintra, Artisan, 11x, Ma
 
 ## Patterns to refuse
 
-- **Invented proof.** Logo walls, star ratings, “40,000 businesses”, “$100M influenced” and testimonial carousels are the category default. AIdentify does not have that evidence. A blank “early access” line is more credible than a fake one.
+- **Invented proof.** Logo walls, star ratings, “40,000 businesses”, “$100M influenced” and testimonial carousels are the category default. AaaS does not have that evidence. A blank “early access” line is more credible than a fake one.
 - **Cute fictional staff with stock faces.** Named characters work for Sintra. They also imply a person. Use role names that match the product (Chief of Staff, Front desk, Follow-up).
 - **“Autopilot” and “stop hiring humans”.** Artisan and 11x sell unattended outbound. That fights the approvals-first product, and it is the wrong tone for a clinic.
-- **“1,500 integrations”.** Lindy and Sintra can say it. AIdentify’s customer channels are WhatsApp, SMS, Gmail, Google Calendar and website chat. Slack exists for the product’s own bot, not as a customer inbox promise.
+- **“1,500 integrations”.** Lindy and Sintra can say it. AaaS’s customer channels are WhatsApp, SMS, Gmail, Google Calendar and website chat. Slack exists for the product’s own bot, not as a customer inbox promise.
 - **Agency on the homepage.** GoHighLevel leads with agencies because that is their market. Here it pulls the page back to v1. One nav link is enough.
 - **Crossed-out discount prices.** Sintra’s $97 → $48.50 trains distrust. Publish the rupee figure once.
-- **A public marketplace.** Sintra has one. AIdentify’s playbooks are three built-in starters plus a file you export and install. Installed workflows stay drafts. Calling that a marketplace would be false.
+- **A public marketplace.** Sintra has one. AaaS’s playbooks are three built-in starters plus a file you export and install. Installed workflows stay drafts. Calling that a marketplace would be false.
 - **Voice, one-click WhatsApp signup, DLT registration, card checkout.** None of these exist. The front desk cannot be set to full auto. A payment step never charges anyone. Saving a hostname does not buy a domain or issue a certificate.
 
 ## What v2 should make someone believe

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>AIdentify</title>
+<title>AaaS</title>
 </head>
 <body>
 
@@ -697,9 +697,9 @@ html[data-brand="1"] .btn.dk,html[data-brand="1"] .go,html[data-brand="1"] .ms-a
 
 <canvas id="nn" class="nn" aria-hidden="true"></canvas><div class="bggrid" aria-hidden="true"></div>
 <header class="topbar">
-  <button class="brand" data-act="goHome" aria-label="AIdentify home">
+  <button class="brand" data-act="goHome" aria-label="AaaS home">
     <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.5"/><ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.5" transform="rotate(-32 16 16)"/><circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/></svg>
-    <span>AIdentify</span></button>
+    <span>AaaS</span></button>
   <span class="adm-tag hide" id="admTag">Admin</span>
   <label class="search"><span id="sIc"></span><input id="q" type="search" placeholder="Search" aria-label="Search agents"><button type="button" class="mic" id="qMic" aria-label="Voice search"></button></label>
   <div class="wrap"><button class="ib" id="bell" aria-label="Notifications"></button><div class="pop hide" id="bellPop"></div></div>
@@ -746,7 +746,7 @@ html[data-brand="1"] .btn.dk,html[data-brand="1"] .go,html[data-brand="1"] .ms-a
 </div>
 <div id="auth" class="auth">
   <div class="ms-card">
-    <div class="ms-logo"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.5"/><ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.5" transform="rotate(-32 16 16)"/><circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/></svg><span>AIdentify</span></div>
+    <div class="ms-logo"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.5"/><ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.5" transform="rotate(-32 16 16)"/><circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/></svg><span>AaaS</span></div>
     <form id="authForm" novalidate>
       <div class="atabs" id="aTabs" role="tablist" aria-label="Account"><button type="button" role="tab" data-t="in">Sign in</button><button type="button" role="tab" data-t="up">Create account</button><button type="button" role="tab" data-t="fp">Forgot password</button></div>
       <div id="stepEmail">
@@ -791,14 +791,14 @@ html[data-brand="1"] .btn.dk,html[data-brand="1"] .go,html[data-brand="1"] .ms-a
     </form>
   </div>
 </div>
-<div id="intro" class="intro hide" role="status" aria-label="Welcome to AIdentify">
+<div id="intro" class="intro hide" role="status" aria-label="Welcome to AaaS">
   <div class="intro-stage">
     <svg class="intro-sphere" viewBox="0 0 32 32" fill="none" aria-hidden="true" style="width:min(120px,28vw);color:#fff">
       <circle cx="16" cy="16" r="3.1" stroke="currentColor" stroke-width="1.4"/>
       <ellipse cx="16" cy="16" rx="12" ry="5" stroke="currentColor" stroke-width="1.4" transform="rotate(-32 16 16)"/>
       <circle cx="25.6" cy="10.2" r="1.35" fill="currentColor"/>
     </svg>
-    <h1 class="intro-name" id="introName">AIdentify</h1>
+    <h1 class="intro-name" id="introName">AaaS</h1>
     <p class="intro-tag">Your AI workforce, working for you.</p>
     <p class="intro-hello" id="introHello"></p>
   </div>
@@ -1225,7 +1225,7 @@ function renderUser(){
    <button data-act="profile">${ic('user',18)} Profile</button>${isStaff()?'':`<button data-act="aikey">${ic('gear',18)} AI key</button>`}<button data-act="goSettings">${ic('gear',18)} Settings</button><button class="dn" data-act="signout">${ic('logout',18)} Sign out</button>`;
 }
 function applyBrand(b){
-  const name=(b&&b.name)||'AIdentify';
+  const name=(b&&b.name)||'AaaS';
   document.querySelectorAll('.brand span,.ms-logo span').forEach(el=>{el.textContent=name});
   const home=document.querySelector('button.brand'); if(home) home.setAttribute('aria-label', name+' home');
   if(b&&b.name) document.title=name;
@@ -1329,7 +1329,7 @@ function profile(){
 $('#pwBtn').innerHTML=ic('eye',18);
 $('#pwBtn').onclick=()=>{const i=$('#aPass'),show=i.type==='password';i.type=show?'text':'password';$('#pwBtn').innerHTML=ic(show?'eyeoff':'eye',18);$('#pwBtn').setAttribute('aria-label',show?'Hide password':'Show password')};
 // password rules: same as the server (min 8 for customers, no common/easy ones); the server has the final say
-const PW_COMMON=/^(password|passw0rd|qwerty|qwertyuiop|letmein|welcome|changeme|admin|team|demo|iloveyou|aidentify|abc|12345678|123456789|1234567890|11111111|00000000)\d*$/i;
+const PW_COMMON=/^(password|passw0rd|qwerty|qwertyuiop|letmein|welcome|changeme|admin|team|demo|iloveyou|aidentify|aaas|abc|12345678|123456789|1234567890|11111111|00000000)\d*$/i;
 function pwRules(inp,ul){if(!inp||!ul)return true;const v=inp.value,len=v.length>=8,easy=!(PW_COMMON.test(v)||/^(.)\1+$/.test(v)||/^\d+$/.test(v));
   ul.querySelectorAll('li').forEach(li=>{const ok=li.dataset.r==='len'?len:easy;li.classList.toggle('ok',!!v&&ok);li.classList.toggle('bad',!!v&&!ok)});return len&&easy}
 $('#aPass').addEventListener('input',()=>{if(mode==='up')pwRules($('#aPass'),$('#aRules'))});
@@ -1509,7 +1509,7 @@ function decide(id,act){
   loadReqs();const r=reqs.find(x=>x.id===id);if(!r||isTeam()||r.status!=='quoted')return;
   r.status=act==='accept'?'accepted':'declined';saveReqs();
   if(act==='accept')log('research','Custom request accepted',r.title+' · '+fmt(r.price,r.cur));
-  say(act==='accept'?'Quote accepted. The team will start. Payment is arranged outside AIdentify.':'Quote declined');renderStatic();refresh();
+  say(act==='accept'?'Quote accepted. The team will start. Payment is arranged outside AaaS.':'Quote declined');renderStatic();refresh();
 }
 addEventListener('storage',e=>{if(e.key==='as_requests'&&user){renderStatic();renderTab()}});
 
@@ -1619,7 +1619,7 @@ function planForm(id){
 function payHtml(){
   const L=A.payments.filter(x=>fl.p==='all'||x.status===fl.p),by=st=>A.payments.filter(x=>x.status===st),P=A.pay;
   const kp=(l,v,sm)=>`<div class="card kpi"><span>${l}</span><b>${v}</b><small>${sm||'&nbsp;'}</small></div>`;
-  return `<div class="sec first"><h2>Payments</h2><p class="note">Payments are off. Customers are not asked to pay inside AIdentify. Turn this on only after a server confirms Stripe or Razorpay.</p></div>
+  return `<div class="sec first"><h2>Payments</h2><p class="note">Payments are off. Customers are not asked to pay inside AaaS. Turn this on only after a server confirms Stripe or Razorpay.</p></div>
   <div class="kpis">${kp('Total revenue',revStr(by('paid')),by('paid').length+' paid invoice'+(by('paid').length===1?'':'s'))}${kp('Awaiting verification',by('pending').length,revStr(by('pending')))}${kp('Failed',by('failed').length,revStr(by('failed')))}${kp('Refunded',revStr(by('refunded')),by('refunded').length+' refund'+(by('refunded').length===1?'':'s'))}</div>
   <div class="tools">${['all','paid','pending','failed','refunded'].map(v=>`<button class="fpill ${fl.p===v?'on':''}" data-a="payfilter" data-v="${v}">${v[0].toUpperCase()+v.slice(1)} ${v==='all'?A.payments.length:by(v).length}</button>`).join('')}</div>
   <div class="card tw">${L.length?`<table class="tbl"><thead><tr><th>Invoice</th><th>Customer</th><th>For</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>${L.map(x=>`<tr><td>${x.id}</td><td><b>${esc(x.cust)}</b><br><small class="mu">${esc(x.email||'')}</small></td><td>${esc(x.title||'—')}</td><td>${fmt(x.amount,x.cur||'INR')}</td><td>${esc(x.method||'—')}</td><td><span class="pill ${x.status}">${x.status[0].toUpperCase()+x.status.slice(1)}</span></td><td>${dt(x.date)}</td><td><button class="btn gh sm" data-a="payinv" data-id="${x.id}">Details</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No payments yet. They appear here as soon as a customer pays.</div>'}</div>
@@ -1663,10 +1663,10 @@ function adminAct(op,d){
    case 'payrefund':{const x=A.payments.find(v=>v.id===id);if(!x)break;okd('Refund '+fmt(x.amount,x.cur||'INR')+' to '+x.cust+'?',()=>{x.status='refunded';done('Refunded '+fmt(x.amount,x.cur||'INR'),'Refunded '+id)},'Refund');break}
    case 'gw':{const P=A.pay;form('Payment options',[['card','Accept card payments','check'],['upi','Accept UPI (₹ only)','check'],['bank','Accept bank transfers','check'],['tax','Tax / GST rate (%)','number','opt'],['gw','Payment gateway','select',[['Razorpay','Razorpay'],['Stripe','Stripe'],['PayPal','PayPal']]],['key','Gateway API key','password','opt'],['acctName','Bank account name','text','opt'],['bankName','Bank name','text','opt'],['acctNo','Account number','text','opt'],['ifsc','IFSC / SWIFT','text','opt']],{...P,gw:A.gw.name,key:A.gw.key},o=>{A.pay={card:!!o.card,upi:!!o.upi,bank:!!o.bank,tax:Math.max(0,+o.tax||0),acctName:o.acctName.trim(),bankName:o.bankName.trim(),acctNo:o.acctNo.trim(),ifsc:o.ifsc.trim()};A.gw={name:o.gw,key:o.key.trim()};audit('Updated payment options');saveA();say('Payment options saved');renderTab()},'Save');break}
    case 'payconfirm':{const x=A.payments.find(v=>v.id===id);if(!x||x.status!=='pending')break;loadReqs();const rr=reqs.find(v=>v.id===x.reqId);x.status='paid';x.date=Date.now();
-     if(rr){rr.paid=true;rr.paidAt=Date.now();rr.invoice=id;rr.method=x.method;rr.payPending=null;(rr.msgs=rr.msgs||[]).push({by:'AIdentify',text:'Payment confirmed. Our team will now start work.',at:Date.now()});saveReqs()}
+     if(rr){rr.paid=true;rr.paidAt=Date.now();rr.invoice=id;rr.method=x.method;rr.payPending=null;(rr.msgs=rr.msgs||[]).push({by:'AaaS',text:'Payment confirmed. Our team will now start work.',at:Date.now()});saveReqs()}
      done('Payment confirmed','Confirmed payment '+id);break}
    case 'payreject':{const x=A.payments.find(v=>v.id===id);if(!x||x.status!=='pending')break;loadReqs();const rr=reqs.find(v=>v.id===x.reqId);x.status='failed';
-     if(rr){rr.payPending=null;(rr.msgs=rr.msgs||[]).push({by:'AIdentify',text:'We couldn’t verify your bank transfer. Please check the details or pay again.',at:Date.now()});saveReqs()}
+     if(rr){rr.payPending=null;(rr.msgs=rr.msgs||[]).push({by:'AaaS',text:'We couldn’t verify your bank transfer. Please check the details or pay again.',at:Date.now()});saveReqs()}
      done('Payment rejected','Rejected payment '+id);break}
   }
 }
@@ -1825,7 +1825,7 @@ function deployModal(id,msg){
     go.disabled=true;li.forEach(x=>x.className='');li[0].className='on';bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition='width 3.6s linear';bar.style.width='100%';
     [0,1,2,3].forEach(i=>setTimeout(()=>{const l=document.querySelectorAll('#depSteps li');if(!l[i])return;l[i].className='ok';if(l[i+1])l[i+1].className='on'},900*(i+1)));
     setTimeout(()=>{
-      const ver='1.0.'+a.deploys.length,url=`https://${slug(a)}${env==='staging'?'.staging':''}.aidentify.example`;
+      const ver='1.0.'+a.deploys.length,url=`https://${slug(a)}${env==='staging'?'.staging':''}.aaas.example`;
       a.deploys.forEach(x=>{if(x.env===env&&x.status==='live')x.status='replaced'});
       const d={env,version:ver,at:Date.now(),url,status:'live'};a.deploys.unshift(d);a.deploy=d;a.version=ver;
       log(a.kind,a.name+' deployed to '+env,'Version '+ver);refresh();
@@ -1853,7 +1853,7 @@ function repoFiles(a){
   const sl=slug(a),k=ai(a),B='```',P=sl+'/';
   const cfg={name:a.name,slug:sl,kind:a.kind,version:a.version,description:a.d,schedule:a.sched,tools:k.tools};
   return [
-   {name:P+'README.md',content:[`# ${a.name}`,'',a.d,'','> Starter repository generated by AIdentify. It holds the agent’s configuration and a small HTTP service you can extend with your own model and tools.','','## Run it','',B+'bash','npm install','npm start',B,'','Then open http://localhost:8080/health','','## Run with Docker','',B+'bash',`docker build -t ${sl} .`,`docker run -p 8080:8080 --env-file .env ${sl}`,B,'','## Put it in Git','',B+'bash','git init -b main','git add .','git commit -m "Initial commit"',`git remote add origin https://github.com/YOUR-USER/${sl}.git`,'git push -u origin main',B,'','See docs/DESCRIPTION.md for what this agent does.',''].join('\n')},
+   {name:P+'README.md',content:[`# ${a.name}`,'',a.d,'','> Starter repository generated by AaaS. It holds the agent’s configuration and a small HTTP service you can extend with your own model and tools.','','## Run it','',B+'bash','npm install','npm start',B,'','Then open http://localhost:8080/health','','## Run with Docker','',B+'bash',`docker build -t ${sl} .`,`docker run -p 8080:8080 --env-file .env ${sl}`,B,'','## Put it in Git','',B+'bash','git init -b main','git add .','git commit -m "Initial commit"',`git remote add origin https://github.com/YOUR-USER/${sl}.git`,'git push -u origin main',B,'','See docs/DESCRIPTION.md for what this agent does.',''].join('\n')},
    {name:P+'agent.json',content:JSON.stringify(cfg,null,2)+'\n'},
    {name:P+'package.json',content:JSON.stringify({name:sl,version:a.version,private:true,type:'module',scripts:{start:'node src/index.js'}},null,2)+'\n'},
    {name:P+'src/index.js',content:[`import http from 'node:http';`,`import fs from 'node:fs';`,'',`const cfg = JSON.parse(fs.readFileSync(new URL('../agent.json', import.meta.url)));`,`const PORT = process.env.PORT || 8080;`,'',`http.createServer(async (req, res) => {`,`  res.setHeader('content-type', 'application/json');`,`  if (req.url === '/health') return res.end(JSON.stringify({ ok: true, agent: cfg.name, version: cfg.version }));`,`  if (req.method === 'POST' && req.url === '/run') {`,`    let body = '';`,`    for await (const chunk of req) body += chunk;`,`    const { task } = JSON.parse(body || '{}');`,`    // TODO: call your model and tools here (see agent.json for the tool list).`,`    return res.end(JSON.stringify({ agent: cfg.name, task, status: 'received' }));`,`  }`,`  res.statusCode = 404;`,`  res.end(JSON.stringify({ error: 'Not found' }));`,`}).listen(PORT, () => console.log(cfg.name + ' listening on ' + PORT));`,''].join('\n')},
@@ -1976,7 +1976,7 @@ function newKey(){
   },'Create');
 }
 function revKey(id){const u=users[user.email];if(!u)return;okd('Revoke this key?',()=>{u.keys=(u.keys||[]).filter(k=>k.id!==id);saveUsers();renderTab();say('Key revoked')},'Revoke')}
-function exportData(){loadReqs();dlFile('aidentify-data.json',JSON.stringify({exportedAt:new Date().toISOString(),profile:{name:user.name,email:user.email},agents:isStaff()?[]:agents,tasks:isStaff()?[]:tasks,requests:reqs.filter(r=>r.by===user.email)},null,2))}
+function exportData(){loadReqs();dlFile('aaas-data.json',JSON.stringify({exportedAt:new Date().toISOString(),profile:{name:user.name,email:user.email},agents:isStaff()?[]:agents,tasks:isStaff()?[]:tasks,requests:reqs.filter(r=>r.by===user.email)},null,2))}
 function resetData(){okd('Reset your agents and activity to the sample data?',()=>{ST.del('as_data:'+user.email);loadData();refresh();say('Sample data restored')},'Reset')}
 function delAccount(){
   const u=users[user.email];if(!u||user.imp)return say('Not available for this account.');
@@ -2001,7 +2001,7 @@ function showIntro(name){
   const el=$('#intro');if(!el)return;
   introT.forEach(clearTimeout);introT=[];
   const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  $('#introName').innerHTML=[...'AIdentify'].map((c,i)=>`<span style="animation-delay:${(.7+i*.06).toFixed(2)}s">${c}</span>`).join('');
+  $('#introName').innerHTML=[...'AaaS'].map((c,i)=>`<span style="animation-delay:${(.7+i*.06).toFixed(2)}s">${c}</span>`).join('');
   $('#introHello').textContent=(isStaff()?'Admin workspace':'Welcome back')+(name?', '+name.split(' ')[0]:'');
   el.classList.remove('out');el.classList.toggle('rm',rm);el.classList.remove('hide');
   el._end=()=>{introT.forEach(clearTimeout);el.classList.add('out');introT=[setTimeout(()=>{el.classList.add('hide');el.classList.remove('out');el._end=null;playIn()},500)]};
@@ -2021,7 +2021,7 @@ function recordPayment(r,method,payer,status){
   const rr=reqs.find(x=>x.id===r.id);if(!rr||rr.paid)return null;
   const taxAmt=Math.round(rr.price*(+A.pay.tax||0))/100,total=rr.price+taxAmt,id=nextInvoice(),c=allCust().find(x=>x.email===payer.email);
   if(status==='paid'){rr.paid=true;rr.paidAt=Date.now();rr.invoice=id;rr.method=method;rr.payPending=null}else rr.payPending=id;
-  (rr.msgs=rr.msgs||[]).push({by:'AIdentify',text:status==='paid'?'Payment received ('+fmt(total,rr.cur)+'). Our team will now start work and update you here.':'We received your bank transfer details. We’ll confirm once the payment arrives.',at:Date.now()});saveReqs();
+  (rr.msgs=rr.msgs||[]).push({by:'AaaS',text:status==='paid'?'Payment received ('+fmt(total,rr.cur)+'). Our team will now start work and update you here.':'We received your bank transfer details. We’ll confirm once the payment arrives.',at:Date.now()});saveReqs();
   A.payments.unshift({id,cid:c?c.id:'u:'+payer.email,email:payer.email,cust:payer.name,amount:total,sub:rr.price,tax:taxAmt,cur:rr.cur,status,date:Date.now(),method,reqId:rr.id,title:rr.title});
   A.audit.unshift({t:(status==='paid'?'Payment ':'Bank transfer reported ')+id+' for “'+rr.title+'”',by:payer.name,at:Date.now()});saveA();
   return id;
@@ -2092,11 +2092,11 @@ function billHtml(){
 }
 function invPanel(id){
   loadA();const x=A.payments.find(v=>v.id===id);if(!x||(!isStaff()&&x.email!==user.email))return;
-  panel('Invoice '+x.id,`<div class="kv"><span>Billed to</span><b>${esc(x.cust)}</b><span>For</span><b>${esc(x.title||'AIdentify services')}</b><span>Amount</span><b>${fmt(x.amount,x.cur||'INR')}</b><span>Paid with</span><b>${esc(x.method||'—')}</b><span>Date</span><b>${dt(x.date)}</b><span>Status</span><b>${x.status}</b></div><div class="acts l"><button class="btn dk sm" data-act="dlinv" data-inv="${x.id}">Download invoice</button></div>`);
+  panel('Invoice '+x.id,`<div class="kv"><span>Billed to</span><b>${esc(x.cust)}</b><span>For</span><b>${esc(x.title||'AaaS services')}</b><span>Amount</span><b>${fmt(x.amount,x.cur||'INR')}</b><span>Paid with</span><b>${esc(x.method||'—')}</b><span>Date</span><b>${dt(x.date)}</b><span>Status</span><b>${x.status}</b></div><div class="acts l"><button class="btn dk sm" data-act="dlinv" data-inv="${x.id}">Download invoice</button></div>`);
 }
 function dlInvoice(id){
   loadA();const x=A.payments.find(v=>v.id===id);if(!x||(!isStaff()&&x.email!==user.email))return;
-  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${x.id}</title><style>body{font-family:Arial,sans-serif;max-width:640px;margin:40px auto;color:#1D1D1F}h1{margin:0}table{width:100%;border-collapse:collapse;margin-top:24px}td,th{padding:10px;border-bottom:1px solid #E1E1E1;text-align:left}.t{font-size:22px;font-weight:bold}.s{color:#107C10;font-weight:bold}</style></head><body><h1>AIdentify</h1><p>Invoice <b>${x.id}</b> &middot; ${dt(x.date)}</p><p>Billed to: <b>${esc(x.cust)}</b><br>${esc(x.email||'')}</p><table><tr><th>Description</th><th>Amount</th></tr><tr><td>${esc(x.title||'AIdentify services')}</td><td>${fmt(x.sub||x.amount,x.cur||'INR')}</td></tr>${x.tax?`<tr><td>Tax</td><td>${fmt(x.tax,x.cur||'INR')}</td></tr>`:''}<tr><td><b>Total</b></td><td class="t">${fmt(x.amount,x.cur||'INR')}</td></tr></table><p>Payment method: ${esc(x.method||'—')}<br>Status: <span class="s">${x.status.toUpperCase()}</span></p><p style="color:#616161;font-size:12px">Demo invoice generated by AIdentify.</p></body></html>`;
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${x.id}</title><style>body{font-family:Arial,sans-serif;max-width:640px;margin:40px auto;color:#1D1D1F}h1{margin:0}table{width:100%;border-collapse:collapse;margin-top:24px}td,th{padding:10px;border-bottom:1px solid #E1E1E1;text-align:left}.t{font-size:22px;font-weight:bold}.s{color:#107C10;font-weight:bold}</style></head><body><h1>AaaS</h1><p>Invoice <b>${x.id}</b> &middot; ${dt(x.date)}</p><p>Billed to: <b>${esc(x.cust)}</b><br>${esc(x.email||'')}</p><table><tr><th>Description</th><th>Amount</th></tr><tr><td>${esc(x.title||'AaaS services')}</td><td>${fmt(x.sub||x.amount,x.cur||'INR')}</td></tr>${x.tax?`<tr><td>Tax</td><td>${fmt(x.tax,x.cur||'INR')}</td></tr>`:''}<tr><td><b>Total</b></td><td class="t">${fmt(x.amount,x.cur||'INR')}</td></tr></table><p>Payment method: ${esc(x.method||'—')}<br>Status: <span class="s">${x.status.toUpperCase()}</span></p><p style="color:#616161;font-size:12px">Demo invoice generated by AaaS.</p></body></html>`;
   dlFile(x.id+'.html',html);
 }
 function remind(rid){
@@ -2198,7 +2198,7 @@ function slipVoid(aid,sid){
   okd('Void this change slip?',()=>{s.status='void';s.voided=Date.now();s.ev.push({k:'voided',at:Date.now()});log('changeslip','Change slip voided',s.name);refresh();slipPanel(aid,sid)},'Void');
 }
 function csReceiptHtml(s){
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Receipt</title><style>body{font-family:Arial,sans-serif;max-width:620px;margin:40px auto;color:#1D1D1F}table{width:100%;border-collapse:collapse;margin-top:18px}td{padding:9px 0;border-bottom:1px solid #E1E1E1}td:first-child{color:#616161;width:40%}.t{font-size:22px;font-weight:bold}.s{color:#107C10;font-weight:bold}</style></head><body><h1 style="margin:0">${esc(s.biz)}</h1><p>Change order receipt &middot; <span class="s">ACCEPTED</span></p><table><tr><td>Customer</td><td>${esc(s.name)}</td></tr><tr><td>Change</td><td>${esc(s.summary)}</td></tr>${s.job?`<tr><td>Job / WO</td><td>${esc(s.job)}</td></tr>`:''}${s.details?`<tr><td>Details</td><td>${esc(s.details)}</td></tr>`:''}<tr><td>Amount</td><td class="t">${csMoney(s.cents,s.cur)}</td></tr><tr><td>Accepted</td><td>${csWhen(s.accepted)}</td></tr><tr><td>Reference</td><td>${s.token.slice(-8)}</td></tr></table><p style="color:#616161;font-size:12px">Generated by the ChangeSlip agent in AIdentify.</p></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Receipt</title><style>body{font-family:Arial,sans-serif;max-width:620px;margin:40px auto;color:#1D1D1F}table{width:100%;border-collapse:collapse;margin-top:18px}td{padding:9px 0;border-bottom:1px solid #E1E1E1}td:first-child{color:#616161;width:40%}.t{font-size:22px;font-weight:bold}.s{color:#107C10;font-weight:bold}</style></head><body><h1 style="margin:0">${esc(s.biz)}</h1><p>Change order receipt &middot; <span class="s">ACCEPTED</span></p><table><tr><td>Customer</td><td>${esc(s.name)}</td></tr><tr><td>Change</td><td>${esc(s.summary)}</td></tr>${s.job?`<tr><td>Job / WO</td><td>${esc(s.job)}</td></tr>`:''}${s.details?`<tr><td>Details</td><td>${esc(s.details)}</td></tr>`:''}<tr><td>Amount</td><td class="t">${csMoney(s.cents,s.cur)}</td></tr><tr><td>Accepted</td><td>${csWhen(s.accepted)}</td></tr><tr><td>Reference</td><td>${s.token.slice(-8)}</td></tr></table><p style="color:#616161;font-size:12px">Generated by the ChangeSlip agent in AaaS.</p></body></html>`;
 }
 function slipReceipt(aid,sid){
   const [a,s]=csFind(aid,sid);if(!s||s.status!=='accepted'){say('A receipt is available once the customer accepts.');return}
@@ -2215,12 +2215,12 @@ function slipList(aid){
 /* ---------- running agents: real output ---------- */
 const runs={};
 const AGENT_BRIEF={
- research:'You are the Research Agent inside AIdentify. Write a clear, well-organised research summary of the request: a 2-3 sentence overview, key findings as bullets, and a short "What to verify" list. You cannot browse the internet, so rely on general knowledge, say plainly when something may be out of date, and never invent sources, statistics or links.',
- finance:'You are the Finance Agent inside AIdentify. Analyse the request. If numbers are included, compute totals, averages, changes and trends and show the working. If you need data you were not given, say exactly what is missing instead of guessing. Format: Summary, Key figures, Insights, Next steps.',
- support:'You are the Support Agent inside AIdentify. Draft a warm, clear reply to the customer message in the request, then add a line starting "Internal note:" with the category and whether a human should step in. Do not promise refunds, dates or policies you were not given.',
- social:'You are the Social Media Agent inside AIdentify. Write 3 ready-to-post drafts for the request. For each give a short hook, the post text and suggested hashtags, and say which platform it suits best.'};
+ research:'You are the Research Agent inside AaaS. Write a clear, well-organised research summary of the request: a 2-3 sentence overview, key findings as bullets, and a short "What to verify" list. You cannot browse the internet, so rely on general knowledge, say plainly when something may be out of date, and never invent sources, statistics or links.',
+ finance:'You are the Finance Agent inside AaaS. Analyse the request. If numbers are included, compute totals, averages, changes and trends and show the working. If you need data you were not given, say exactly what is missing instead of guessing. Format: Summary, Key figures, Insights, Next steps.',
+ support:'You are the Support Agent inside AaaS. Draft a warm, clear reply to the customer message in the request, then add a line starting "Internal note:" with the category and whether a human should step in. Do not promise refunds, dates or policies you were not given.',
+ social:'You are the Social Media Agent inside AaaS. Write 3 ready-to-post drafts for the request. For each give a short hook, the post text and suggested hashtags, and say which platform it suits best.'};
 const NOTE={research:'From the AI’s general knowledge, not a live web search. Check important facts.',finance:'Check the calculations before you rely on them.',support:'Review the reply before you send it.',social:'Review the drafts before posting.'};
-const agentPrompt=(a,p)=>(AGENT_BRIEF[a.kind]||'You are an AIdentify agent named '+a.name+'. Complete the request clearly and concisely.')+'\n\nAgent description: '+a.d+'\n\nRequest:\n'+p+'\n\nWrite the result directly in plain Markdown, with no preamble about being an AI.';
+const agentPrompt=(a,p)=>(AGENT_BRIEF[a.kind]||'You are an AaaS agent named '+a.name+'. Complete the request clearly and concisely.')+'\n\nAgent description: '+a.d+'\n\nRequest:\n'+p+'\n\nWrite the result directly in plain Markdown, with no preamble about being an AI.';
 const tPill=t=>({completed:'active',failed:'cancelled',running:'progress',scheduled:'pending'}[t.s]||'');
 const tLabel=t=>({completed:'Done',failed:'Failed',running:'Running…',scheduled:'Scheduled',stopped:'Stopped'}[t.s]||t.s);
 const errCopy=e=>e&&e.code==='no_key'?'AI isn’t set up on this server. Add ANTHROPIC_API_KEY to the .env file and restart it.':e&&e.code==='unavailable'?'AI isn’t connected. Start the included server (npm start) so the agents can answer.':e&&e.code==='not_granted'?'You declined Claude access. Allow it when asked to see results.':e&&e.code==='rate_limited'?'Too many requests at once. Wait a moment and try again.':'Something went wrong ('+((e&&e.code)||'error')+'). Try again.';
@@ -2668,7 +2668,7 @@ function toolList(aid,f){
 renderStatic();refresh();
 
 /* ========== My Workplace: one assistant across all of the customer's agents ==========
-   Knowledge per agent = what AIdentify really holds for it: its capabilities, knowledge the
+   Knowledge per agent = what AaaS really holds for it: its capabilities, knowledge the
    customer added (pasted text or uploaded .txt/.md/.csv/.json), completed run results, and its
    records (leads, jobs, slips…). A question is matched against all of it (BM25 ranking, with
    per-agent caps and de-duplication), and one grounded answer is written with numbered sources.
@@ -2731,7 +2731,7 @@ function wpSearch(q,k=8,only){
 const wpDate=t=>t?new Date(t).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
 function wpPrompt(q,src,hist){
   const today=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
-  return `You are Chief of Staff, the orchestrator inside AIdentify. You run the user's agents, create new agents and teach them. Use the numbered sources below: the knowledge bases (playbooks, templates), completed run results and records of the user's own agents.
+  return `You are Chief of Staff, the orchestrator inside AaaS. You run the user's agents, create new agents and teach them. Use the numbered sources below: the knowledge bases (playbooks, templates), completed run results and records of the user's own agents.
 Rules:
 - If the user asks you to DO something (draft, reply, plan, list, summarise), deliver it now using the matching agent's playbook and templates; use clearly marked [placeholders] for missing details and end with one line asking for them. Never answer with only a list of what you need.
 - Do not add source numbers, [n] markers, [KB: …] tags or a sources list; just write the answer.
@@ -2755,7 +2755,7 @@ function wpAgentConv(id){const a=agents.find(x=>x.id===id);if(!a)return null;a.c
 const wpConv=()=>wpView!=null?wpAgentConv(wpView):(wp.convs.find(c=>c.id===wp.cur)||null);
 function wpAgentPrompt(q,src,hist,a){
   const today=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),lb=wpLabel(a);
-  return `You are ${a.name}${lb?' ('+lb+')':''}, one of the user's AI agents inside AIdentify. About you: ${a.d}
+  return `You are ${a.name}${lb?' ('+lb+')':''}, one of the user's AI agents inside AaaS. About you: ${a.d}
 ${(typeof AGENT_BRIEF!=='undefined'&&AGENT_BRIEF[a.kind])?AGENT_BRIEF[a.kind]+'\n':''}Reply in your own voice, briefly and practically.
 Rules:
 - ${src.length?'Your knowledge base and saved data are in the numbered sources below (playbooks, templates, records).':'You have no saved data about this yet; use your role and general know-how.'}
@@ -3422,10 +3422,10 @@ function wpCnLayer(html,label){const ov=$('#ov');if(!ov)return;let L=$('#wpCnOv'
 function wpCnClose(){const L=$('#wpCnOv');L&&L.remove()}
 function wpCnOpen(id){const x=wpCnAll().find(c=>c.id===id);if(!x)return;const st=wpCnState(id),on=!!st,su=(wpCnSrv&&wpCnSrv.setup[id])||{},acct=wpCnSrv&&wpCnSrv.on.get(id),m=wpCnMsg[id];
   const keyForm=!on&&wpCnKey===id&&su.key?`<form id="wpCnKf" class="wp-ed wp-cnkf" novalidate>${su.help?`<p class="wp-cnfine" style="margin:0 0 8px">${esc(su.help)}</p>`:''}${su.key.map(f=>`<label class="wp-f"><span>${esc(f.l)}</span><input name="${esc(f.n)}" type="${f.n==='user'?'email':'password'}" autocomplete="off" required></label>`).join('')}
-     <div class="acts"><a class="btn gh sm" href="${esc(su.help&&id==='gmail'?'https://myaccount.google.com/apppasswords':(WP_CN_SITE[id]||'#'))}" target="_blank" rel="noopener">Where do I find this?</a><button class="btn dk sm">Save and connect</button></div><small class="wp-cnfine" style="margin:0">Stored encrypted on the AIdentify server. It is never shown again, not even to admins.</small></form>`:'';
+     <div class="acts"><a class="btn gh sm" href="${esc(su.help&&id==='gmail'?'https://myaccount.google.com/apppasswords':(WP_CN_SITE[id]||'#'))}" target="_blank" rel="noopener">Where do I find this?</a><button class="btn dk sm">Save and connect</button></div><small class="wp-cnfine" style="margin:0">Stored encrypted on the AaaS server. It is never shown again, not even to admins.</small></form>`:'';
   wpCnLayer(`<header class="wp-cnh">${wpLogo(x,30,st)}<div class="wp-cnt"><b>${esc(x.name)}</b><small>${st==='on'?`<span class="wp-conntag on"><i class="wp-cdot on"></i>${acct&&acct.acct?'Connected as '+esc(acct.acct):'Connected'}</span>`:st==='pv'?`<span class="wp-conntag pv"><i class="wp-cdot pv"></i>Signed in · preview</span>`:esc(x.cat)+(x.by&&x.by!==x.name?' · by '+esc(x.by):'')}</small></div>
     ${on?`<button type="button" class="btn gh" data-act="wpCnDel" data-k="${esc(id)}">Disconnect</button>`:`<button type="button" class="btn dk wp-conn" data-act="wpCnAdd" data-k="${esc(id)}">Connect</button>`}</header>
-    ${st==='pv'?`<div class="wp-cnnote" role="status">You signed in to ${esc(x.name)} on ${esc(wpDate(wpPsign()[id]))}. This preview has no AIdentify server, so agents can’t use ${esc(x.name)} yet. On your deployed site the same Connect turns this green.</div>`:''}
+    ${st==='pv'?`<div class="wp-cnnote" role="status">You signed in to ${esc(x.name)} on ${esc(wpDate(wpPsign()[id]))}. This preview has no AaaS server, so agents can’t use ${esc(x.name)} yet. On your deployed site the same Connect turns this green.</div>`:''}
     ${!on&&su.sub?`<label class="wp-f wp-cnsub"><span>${esc(su.sub)}</span><input id="wpCnSub" placeholder="${id==='shopify'?'your-store (from your-store.myshopify.com)':'your-company (from your-company.zendesk.com)'}" value="${esc(wpMk.sub||'')}"></label>`:''}
     ${m&&m.t?`<div class="wp-cnnote${m.err?' err':''}" role="status">${esc(m.t)}${m.link?`<a class="btn dk sm wp-cnopen" href="${esc(m.link)}" target="_blank" rel="noopener">Open ${esc(x.name)} sign-in</a>`:''}${m.ask?`<div class="acts l wp-cnask"><button type="button" class="btn dk sm" data-act="wpCnMark" data-k="${esc(id)}">Yes, I signed in</button><button type="button" class="btn gh sm" data-act="wpCnAdd" data-k="${esc(id)}">Open sign-in again</button></div>`:''}</div>`:''}
     ${keyForm}
@@ -3434,10 +3434,10 @@ function wpCnOpen(id){const x=wpCnAll().find(c=>c.id===id);if(!x)return;const st
     <p class="wp-cnlab">About this Connector</p>
     <div class="wp-cnbox">
      <div><span>${ic(x.icon==='mail'?'folder':x.icon,18)}</span><p><b>${esc(x.cap)}</b><small>${esc(x.d)}</small></p></div>
-     <div><span>${ic('lock',18)}</span><p><b>We never train on your data</b><small>AIdentify does not train models on your ${esc(x.name)} data.</small></p></div>
+     <div><span>${ic('lock',18)}</span><p><b>We never train on your data</b><small>AaaS does not train models on your ${esc(x.name)} data.</small></p></div>
      <div><span>${ic('shield',18)}</span><p><b>Your data stays in ${esc(x.name)}</b><small>We don’t store copies of your ${esc(x.name)} content. Agents look it up in real time when you ask.</small></p></div>
     </div>
-    <p class="wp-cnfine">${su.via==='composio'?'Sign-in and access tokens are handled securely by Composio. ':''}${x.custom?'Custom connectors are added by you.':'Third-party connectors are not built or maintained by AIdentify.'} Use caution when granting access to external services. Review the permissions before connecting.</p>`,x.name);
+    <p class="wp-cnfine">${su.via==='composio'?'Sign-in and access tokens are handled securely by Composio. ':''}${x.custom?'Custom connectors are added by you.':'Third-party connectors are not built or maintained by AaaS.'} Use caution when granting access to external services. Review the permissions before connecting.</p>`,x.name);
   const L=$('#wpCnOv');L.dataset.k=id;const sb=$('#wpCnSub');if(sb)sb.oninput=()=>{wpMk.sub=sb.value};
   const kf=$('#wpCnKf');if(kf){if(wpCnKeyVals&&wpCnKeyVals.id===id)kf.querySelectorAll('input').forEach(i=>{if(i.type!=='password'&&wpCnKeyVals.f[i.name])i.value=wpCnKeyVals.f[i.name]});kf.querySelector('input').focus();kf.onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(kf));wpCnKeyVals={id,f};
     if(Object.values(f).some(v=>!String(v).trim())){wpCnMsg[id]={t:'Fill in every field.',err:1};wpCnOpen(id);return}
@@ -3475,7 +3475,7 @@ function wpCnCustom(){wpCnImg=null;
 }
 let wpCnKeyVals=null;
 function wpCnAdd(id){const x=wpCnAll().find(c=>c.id===id);if(!x||x.custom||wpHasConn(id))return;const site=WP_CN_SITE[id];
-  if(!SYNC.token){ // no AIdentify server here (preview): open the service's official page; the sign-in itself runs on the server
+  if(!SYNC.token){ // no AaaS server here (preview): open the service's official page; the sign-in itself runs on the server
     // inside a sandboxed preview a sized pop-up can be refused, so fall back to a normal new window (as Run does)
     let w=null;const feat='popup=yes,width=540,height=720,left='+Math.max(0,(screen.width-540)/2|0)+',top='+Math.max(0,(screen.height-720)/2|0);
     if(site){try{w=window.open(site,'as_oauth',feat)}catch(e){}if(!w){try{w=window.open(site,'_blank')}catch(e){}}}
@@ -3609,7 +3609,7 @@ function appSpecAll(){
   const chief=`\nCHIEF ACTIONS (you are Chief of Staff, the orchestrator). End your reply with one line per action:
 - Create a new agent when the user asks for one, or when work needs a specialist no current agent covers: <<DO: Chief.create_agent || {"name":"Short Name Agent","requirements":"everything it must do: its records, fields, statuses, rules, thresholds, messages — in the user's words, as complete as possible"}>>. It gets its own records app and a written knowledge base automatically (about a minute).
 - Teach an agent lasting knowledge (prices, policies, processes, templates, supplier lists): <<DO: Chief.add_knowledge || {"agent":"Agent name","title":"Short title","text":"the full text to remember"}>>.
-Do not ask the user to install or deploy FormFirst, AfterJob, Nudge, OpenPing, PartPing or ChangeSlip. Those workflows already live in AIdentify; share the customer link. Your agents now: ${agents.filter(a=>!a._new).map(a=>a.name+(a.label?' ('+a.label+')':'')+': '+String(a.d||'').replace(/\s+/g,' ').slice(0,90)+' · '+(a.kb||[]).length+' knowledge docs').join('; ')}\n`;
+Do not ask the user to install or deploy FormFirst, AfterJob, Nudge, OpenPing, PartPing or ChangeSlip. Those workflows already live in AaaS; share the customer link. Your agents now: ${agents.filter(a=>!a._new).map(a=>a.name+(a.label?' ('+a.label+')':'')+': '+String(a.d||'').replace(/\s+/g,' ').slice(0,90)+' · '+(a.kb||[]).length+' knowledge docs').join('; ')}\n`;
   if(!L.length)return chief;
   return chief+`\nACTING THROUGH YOUR AGENTS
 You can do work in the agents' apps for the user. End your reply with one line per action: <<DO: Agent name.action || {"key":"value"}>>. Use only real details from the user, never placeholders; ask in one line if a required detail is missing.
@@ -3770,7 +3770,7 @@ function appCards(m){
     const cp=(x.copy||[]).map(c=>`<div class="code"><code>${esc(c[1])}</code><button type="button" data-act="copy" data-t="${esc(c[1])}">Copy</button></div>`).join('');
     const lk=a&&LIVE_KINDS.includes(a.kind)&&a.kind!=='formfirst',nm=lk?APP_ACT[a.kind].app:'';
     const ffit=a&&a.kind==='formfirst'&&x.rid!=null?appList(a).find(y=>y.id===x.rid):null;
-    const note=lk?(SYNC.token?`<p class="wp-actn">Saved in AIdentify; customer links work from this server. To add it to your real ${esc(nm)} app instead, connect ${esc(nm)} in ${esc(a.name)}’s settings.</p>`:`<p class="wp-actn">Saved in AIdentify. This preview has no server, so share links don’t open for customers yet; use “Customer page” to try the customer side. On your deployed AIdentify, links are live and ${esc(a.name)} can work inside your real ${esc(nm)} app.</p>`):'';
+    const note=lk?(SYNC.token?`<p class="wp-actn">Saved in AaaS; customer links work from this server. To add it to your real ${esc(nm)} app instead, connect ${esc(nm)} in ${esc(a.name)}’s settings.</p>`:`<p class="wp-actn">Saved in AaaS. This preview has no server, so share links don’t open for customers yet; use “Customer page” to try the customer side. On your deployed AaaS, links are live and ${esc(a.name)} can work inside your real ${esc(nm)} app.</p>`):'';
     return `<div class="wp-act">${ic('check',14)}<div><small>${esc(x.ag||'')}${st?' · '+esc(st):''}</small><b>${esc(x.t)}</b>${sub?`<em>${esc(String(sub).slice(0,160))}</em>`:''}${cp}${btns?`<span class="wp-actb">${btns}</span>`:''}${note}${ffit?ffCard(a,ffit):''}</div></div>`;
   }).join('')}</div>`;
 }
@@ -3853,7 +3853,7 @@ function wpSetHtml(){
     <div class="wp-ed-av"><button type="button" class="wp-ava-btn" data-act="wpAvOpen" aria-label="Edit avatar" aria-expanded="${wpAvOpenSt}"><span id="wpEdAva">${wpAva({...a,avatar:wpAvTmp},84)}</span><span class="wp-ava-tip">Edit Avatar</span></button></div>
     <div class="wp-avpick${wpAvOpenSt?'':' hide'}" id="wpAvPick"><div class="wp-avgrid" id="wpAvGrid"></div>
       <div class="acts l"><button type="button" class="btn gh sm" data-act="wpAvMore">Show more</button><label class="btn gh sm wp-up">Upload photo<input type="file" accept="image/*" id="wpAvFile" hidden></label>${wpAvTmp?'<button type="button" class="btn gh sm" data-act="wpAvReset">Use default</button>':''}</div></div>
-    ${isNew?`<div class="wp-setsec wp-build"><p class="wp-lab">Build from requirements</p><p class="wp-cando">Describe the agent, or paste a full requirements document. AIdentify analyses it and designs the agent: its role, the records it manages, its statuses and rules, and its knowledge base.</p><textarea id="wpReq" rows="5" placeholder="e.g. A CRM agent that captures leads, scores them Hot/Warm/Cold, tracks deals through a pipeline and drafts follow-ups for my approval…" oninput="bpReqText=this.value">${esc(bpReqText)}</textarea><p class="err hide" id="wpReqErr" role="alert"></p><div class="acts l"><button type="button" class="btn gh sm wp-buildgo" data-act="wpBuild" data-id="${a.id}">Analyze &amp; build</button><label class="btn gh sm wp-up">Upload .txt / .md<input type="file" accept=".txt,.md,text/plain,text/markdown" id="wpReqFile" hidden onchange="const f=this.files[0];if(f)f.text().then(t=>{bpReqText=t.slice(0,60000);$('#wpReq').value=bpReqText})"></label></div><p class="wp-cando" id="wpReqSt"></p>${bpDraftHtml(a)}</div>`:''}
+    ${isNew?`<div class="wp-setsec wp-build"><p class="wp-lab">Build from requirements</p><p class="wp-cando">Describe the agent, or paste a full requirements document. AaaS analyses it and designs the agent: its role, the records it manages, its statuses and rules, and its knowledge base.</p><textarea id="wpReq" rows="5" placeholder="e.g. A CRM agent that captures leads, scores them Hot/Warm/Cold, tracks deals through a pipeline and drafts follow-ups for my approval…" oninput="bpReqText=this.value">${esc(bpReqText)}</textarea><p class="err hide" id="wpReqErr" role="alert"></p><div class="acts l"><button type="button" class="btn gh sm wp-buildgo" data-act="wpBuild" data-id="${a.id}">Analyze &amp; build</button><label class="btn gh sm wp-up">Upload .txt / .md<input type="file" accept=".txt,.md,text/plain,text/markdown" id="wpReqFile" hidden onchange="const f=this.files[0];if(f)f.text().then(t=>{bpReqText=t.slice(0,60000);$('#wpReq').value=bpReqText})"></label></div><p class="wp-cando" id="wpReqSt"></p>${bpDraftHtml(a)}</div>`:''}
     <label class="wp-f"><span>Name</span><input name="name" required maxlength="60" value="${esc(v.name)}"></label>
     <label class="wp-f"><span>Label <em>(optional)</em></span><input name="label" maxlength="30" value="${esc(v.label)}" placeholder="e.g. The Builder"></label>
     <label class="wp-f"><span>Description</span><textarea name="d" rows="6" maxlength="600" placeholder="What should this agent do? e.g. Remembers my home appliances, filter sizes and when I last changed them.">${esc(v.d)}</textarea></label>
@@ -3901,7 +3901,7 @@ async function liveLoad(force){if(!SYNC.token||liveLoading||(liveApps&&!force))r
 const liveOf=k=>(liveApps||[]).find(x=>x.id===k&&x.connected)||null;
 function liveHtml(aid){const a=agents.find(x=>x.id===aid);if(!a||!LIVE_KINDS.includes(a.kind))return '';
   const nm=APP_ACT[a.kind].app;
-  return `<p class="wp-lab">Customer link</p><p class="wp-cando">${esc(a.name)} keeps ${esc(nm)} inside AIdentify. Share the link — the customer does not install a separate app.</p><div class="acts l"><button type="button" class="btn dk sm" data-act="adl" data-id="${a.id}">Share link</button></div>`;
+  return `<p class="wp-lab">Customer link</p><p class="wp-cando">${esc(a.name)} keeps ${esc(nm)} inside AaaS. Share the link — the customer does not install a separate app.</p><div class="acts l"><button type="button" class="btn dk sm" data-act="adl" data-id="${a.id}">Share link</button></div>`;
 }
 async function liveConnect(k,btn){const e=$('#lvErr');e.classList.add('hide');btn.disabled=true;btn.textContent='Connecting…';
   try{await SYNC.api('/api/liveapps/connect',{app:k,base:$('#lvBase').value,email:$('#lvEmail').value,password:$('#lvPass').value,admin_email:$('#lvAEmail')?$('#lvAEmail').value:'',admin_password:$('#lvAPass')?$('#lvAPass').value:''});say(APP_ACT[k].app+' connected');await liveLoad(true)}
@@ -3958,7 +3958,7 @@ function ffCard(a,it){
     if(it.ffId)return `<p class="wp-actn wp-ffok">${ic('check',12)} In FormFirst as lead #${it.ffId}${it.ffForm?' (form “'+esc(it.ffForm)+'”)':''}${it.status==='qualified'&&it.sum&&it.sum.score?' · FormFirst scored it '+esc(it.sum.score.toUpperCase()):''}${it.ffOwner?' · '+esc(it.ffOwner):''}.</p>${it.ffReply&&it.ffStatus!=='done'?`<p class="wp-actn">FormFirst’s reply: “${esc(it.ffReply.slice(0,220))}”</p>`:''}<span class="wp-actb"><a class="btn gh sm" href="${esc(a.ffBase+'/admin/leads/'+it.ffId)}" target="_blank" rel="noopener">Open in FormFirst</a></span>`;
     return `<p class="wp-actn" style="color:var(--err)">Not in FormFirst yet: ${esc(it.ffErr||'sending…')}</p>`+(a.ffLink?`<span class="wp-actb"><a class="btn gh sm" href="${esc(ffPrefill(a,it))}" target="_blank" rel="noopener">Open the form filled in</a></span>`:'');
   }
-  if(!a.ffLink)return `<p class="wp-actn">Saved in AIdentify only. To put leads into your FormFirst, connect FormFirst in ${esc(a.name)}’s settings (gear → FormFirst).</p>`;
+  if(!a.ffLink)return `<p class="wp-actn">Saved in AaaS only. To put leads into your FormFirst, connect FormFirst in ${esc(a.name)}’s settings (gear → FormFirst).</p>`;
   const p=ffParts(a);
   if(it.ffSent)return `<p class="wp-actn wp-ffok">${ic('check',12)} In your FormFirst Leads${it.ffQualified?' with both answers (FormFirst scores it)':''}.${it.ffReply?' FormFirst replied: “'+esc(it.ffReply.slice(0,180))+'”':''}</p><span class="wp-actb"><a class="btn gh sm" href="${esc(p.origin+'/leads')}" target="_blank" rel="noopener">Open FormFirst leads</a></span>`;
   return `<span class="wp-actb"><a class="btn dk sm" href="${esc(ffPrefill(a,it))}" target="_blank" rel="noopener">Send to FormFirst</a></span><p class="wp-actn">Opens your FormFirst form with ${esc(it.name)}’s details filled in. Click <b>Send message</b> there and the lead appears in your FormFirst Leads; FormFirst replies and asks its two questions on that page.</p>`}
@@ -3968,7 +3968,7 @@ const ffKey=a=>{try{return localStorage.getItem(ffKeyK(a))||''}catch(e){return '
 const ffOn=a=>!!(a&&a.kind==='formfirst'&&a.ffBase&&ffKey(a));
 async function ffApi(a,path,body,key){
   let r;try{r=await fetch(a.ffBase+'/api/agent'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+(key||ffKey(a)),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined})}
-  catch(e){throw new Error('Couldn’t reach FormFirst. Either it is still running the old code (push formfirst-updated.zip and wait for Vercel to redeploy) or this page can’t reach outside sites (the Claude preview may block them; AIdentify on your own Vercel works).')}
+  catch(e){throw new Error('Couldn’t reach FormFirst. Either it is still running the old code (push formfirst-updated.zip and wait for Vercel to redeploy) or this page can’t reach outside sites (the Claude preview may block them; AaaS on your own Vercel works).')}
   const j=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(r.status===404||r.status===405?'Your FormFirst is still running the old code. Push the files from formfirst-updated.zip to its GitHub repo; Vercel redeploys it in about a minute.':(j.error||('FormFirst answered '+r.status)));return j}
 const ffCap=s=>s?String(s)[0].toUpperCase()+String(s).slice(1):'';
@@ -4015,7 +4015,7 @@ function ffBox(a){
   if(ffOn(a))return `<p class="wp-lab">FormFirst</p><p class="wp-st"><i class="wp-dot ${a.ffErr?'warn':'ok'}"></i>Connected · ${a.ffCount!=null?a.ffCount+' lead'+(a.ffCount===1?'':'s')+' in FormFirst':'not synced yet'}</p>
    <p class="wp-cando">${esc(a.ffBase.replace(/^https?:\/\//,''))} · leads you give ${esc(a.name)} in chat are added to FormFirst, answers are scored by FormFirst, and FormFirst’s leads show up here.${a.ffSynced?' Synced '+ago(a.ffSynced)+'.':''}</p>${a.ffErr?`<p class="err">${esc(a.ffErr)}</p>`:''}
    <div class="acts l"><button type="button" class="btn dk sm" data-act="wpFfSync" data-id="${a.id}">Sync now</button><a class="btn gh sm" href="${esc(a.ffBase)}/admin/leads" target="_blank" rel="noopener">Open FormFirst</a><button type="button" class="btn gh sm" data-act="wpFfDis" data-id="${a.id}">Disconnect</button></div>`;
-  return `<p class="wp-lab">Customer form</p><p class="wp-cando">The enquiry form lives in AIdentify. Use Share link — do not ask the customer to install FormFirst.</p><div class="acts l"><button type="button" class="btn dk sm" data-act="adl" data-id="${a.id}">Share link</button></div>`;
+  return `<p class="wp-lab">Customer form</p><p class="wp-cando">The enquiry form lives in AaaS. Use Share link — do not ask the customer to install FormFirst.</p><div class="acts l"><button type="button" class="btn dk sm" data-act="adl" data-id="${a.id}">Share link</button></div>`;
 }
 async function ffConnect(aid,btn){const a=agents.find(x=>x.id===aid);if(!a)return;const e=$('#ffErr');e.classList.add('hide');
   let base=($('#ffBaseIn').value||'').trim().replace(/\/+$/,'');const em=(($('#ffEmailIn')||{}).value||'').trim(),pw=($('#ffKeyIn').value||'');let key='';
@@ -4189,13 +4189,13 @@ async function bpAnalyze(aid,btn){
 async function bpDesign(req){
   const R=String(req||'').slice(0,24000);let meta=null,kb=null,how='ai';
   try{
-    const t1=await bpAI(`You are AIdentify's agent architect. Analyse the requirements below and design ONE AI agent that does this work inside AIdentify, with its own small data app it manages from chat.
+    const t1=await bpAI(`You are AaaS's agent architect. Analyse the requirements below and design ONE AI agent that does this work inside AaaS, with its own small data app it manages from chat.
 Return ONLY JSON:
 {"name":"short agent name ending in Agent","label":"2-word role","description":"2-3 sentences: what the agent does for the user","kind":"one of: research, finance, support, social, formfirst, afterjob, nudge, openping, partping, changeslip, crm, app (use crm for CRM / leads / customers / deals work, app for anything else that needs its own records)",
 "app":{"app":"app name","entities":[{"key":"singular_snake","name":"Singular","plural":"Plural","title":["field keys that name a record"],"dupe":["field keys that identify duplicates"],"statuses":["workflow statuses in order"],"fields":[{"k":"snake_key","label":"Label","type":"text|longtext|email|phone|number|money|date|select|tags|yesno","opts":["only for select"],"req":true}]}],
 "rules":[{"title":"Rule name","text":"the business rule the agent must enforce (qualification rules, approvals, consent, schedules, limits)"}],
 "convert":[{"from":"entity key","to":"entity key","done":"status set on the source","map":{"target_field":"source_field"}}]}}
-Design 2-6 entities with the fields the requirements actually need (max 14 fields each), statuses for their lifecycle, and the rules the requirements state. Omit "convert" if there is no conversion step. Skip technology/hosting/infrastructure requirements: the agent runs inside AIdentify.
+Design 2-6 entities with the fields the requirements actually need (max 14 fields each), statuses for their lifecycle, and the rules the requirements state. Omit "convert" if there is no conversion step. Skip technology/hosting/infrastructure requirements: the agent runs inside AaaS.
 Requirements:
 """${R}"""`);
     meta=bpJson(t1);

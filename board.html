@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIdentify · Groups</title>
+<title>AaaS · Groups</title>
 <!-- Groups, task boards and routines. Talks to /api/groups, /api/board/* and /api/routines/* with the signed-in session. -->
 <style>
   :root { --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --mute:#6b7385; --line:#e3e6ee; --acc:#4b5bdc; --ok:#1f9d6b; --warn:#c77d12; --bad:#c43d4b; }
@@ -63,7 +63,7 @@ async function api(path, body) {
 }
 const say = (m) => { $('#msg').textContent = m || ''; if (m) setTimeout(() => { if ($('#msg').textContent === m) $('#msg').textContent = ''; }, 6000); };
 async function load() {
-  if (!tok) { document.body.innerHTML = '<main>Sign in to AIdentify first.</main>'; return; }
+  if (!tok) { document.body.innerHTML = '<main>Sign in to AaaS first.</main>'; return; }
   try { S = await api('/api/groups'); } catch (e) { say(e.message); return; }
   if (!cur || !S.groups.some((g) => g.id === cur)) cur = (S.groups[0] || {}).id;
   render();

@@ -11,7 +11,7 @@ We aim to reply within 5 working days and will credit you in the release notes u
 
 Only the latest release gets security fixes. Update with `npm run update`.
 
-## How AIdentify handles secrets
+## How AaaS handles secrets
 
 - Keys live in `.env` (never committed; `.gitignore` excludes it) or, for connectors, encrypted server-side with AES-256-GCM using a key derived from `SESSION_SECRET`. They are never sent to the browser.
 - Actions that change things outside the app (sending email, posting, publishing, paying, signing in, submitting forms) wait for the owner's approval.
@@ -45,7 +45,7 @@ a public link. That profile is signed in to your accounts.
      tunnel, so the old link stops working at once, and a new open makes a new token.
   2. If you think a link leaked while it was open, sign out of the important sites' other sessions. Most sites offer
      "sign out of all devices" or a security page. Then change those passwords.
-  3. Optionally use Settings → Security → Sign everyone out for AIdentify sessions.
+  3. Optionally use Settings → Security → Sign everyone out for AaaS sessions.
 - The agents' own browser steps that send, post, pay, submit or sign in always wait for your approval (Settings →
   Approvals can block them entirely). The remote browser is you driving by hand, so no approval applies there.
 

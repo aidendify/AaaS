@@ -78,7 +78,7 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   assert.match(html, /White Label/);
   const wl = await fetch(s.base + '/white-label');
   assert.equal(wl.status, 200);
-  assert.match(await wl.text(), /Resell AIdentify under your brand/);
+  assert.match(await wl.text(), /Resell AaaS under your brand/);
   const css = await fetch(s.base + '/landing-v2.css');
   assert.equal(css.status, 200);
   assert.match(css.headers.get('content-type'), /text\/css/);
@@ -124,5 +124,5 @@ test('landing site serves v2 at / and v1 at /v1', async (t) => {
   assert.match(v1Html, /Never miss a lead again/);
   assert.doesNotMatch(v1Html, /landing-v2/);
   const wl = await fetch(s.base + '/white-label');
-  assert.match(await wl.text(), /Resell AIdentify under your brand/);
+  assert.match(await wl.text(), /Resell AaaS under your brand/);
 });

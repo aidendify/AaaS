@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "AIdentify"
+rootProject.name = "AaaS"
 include(":app")

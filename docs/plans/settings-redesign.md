@@ -56,7 +56,7 @@ lucide-style icons (Box, MessageCircle, Palette, Monitor, Lock, Globe, Brain, Mi
 
 ---
 
-## 2. What AIdentify has today (audit)
+## 2. What AaaS has today (audit)
 
 **Settings tab** (`index.html`, `settingsHtml()`, around line 1803): Profile, Password & security (change password,
 sign out everywhere), Appearance (system / light / dark), Preferences (task progress card, speak replies), "API keys"
@@ -263,8 +263,8 @@ Each phase: unit tests for precedence/masking/validation, a migration that impor
 
 ## 8. Deliberately skipped
 
-Hermes features that do not fit AIdentify (a hosted web app, not a desktop coding agent): terminal backends
+Hermes features that do not fit AaaS (a hosted web app, not a desktop coding agent): terminal backends
 (Docker/SSH/Modal/Daytona/…), keybinds, desktop pet, quick entry and screenshot shortcuts, voice STT/TTS settings,
 local model downloads and hardware panel (Ollama URL is enough), MoA / mixture of agents, context compression and
-prompt-caching knobs, plugin marketplace, billing, uninstall, telemetry (AIdentify has none). Telegram, WhatsApp and
+prompt-caching knobs, plugin marketplace, billing, uninstall, telemetry (AaaS has none). Telegram, WhatsApp and
 Discord gateways are out of scope until the Slack path is solid. No editing of `.env` itself from the UI.
