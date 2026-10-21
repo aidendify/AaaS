@@ -1,4 +1,4 @@
-# AIdentify: full guide
+# AaaS: full guide
 
 ## For the team (this build)
 
@@ -60,7 +60,7 @@ An AI-agent workspace: customers run agents and request custom ones, the admin t
 ## Deploy to Vercel with Neon Postgres
 
 1. **Push to GitHub.** In this folder:
-   `git init -b main && git add . && git commit -m "AIdentify"`, create an empty repository online, then
+   `git init -b main && git add . && git commit -m "AaaS"`, create an empty repository online, then
    `git remote add origin <url> && git push -u origin main`.
 2. **Import in Vercel.** Add New → Project → pick the repository. No build settings are needed.
 3. **Add the database.** In the project: Storage → Create Database → **Neon (Postgres)** → connect it to this project. Vercel adds `DATABASE_URL` for you.
@@ -143,7 +143,7 @@ The chat shows what the agent did under each reply ("Created routines ⏱ Furnac
 `GET /api/cron/tick` with `Authorization: Bearer <CRON_SECRET>` every few minutes — on a Pro plan add to `vercel.json`:
 `"crons": [{ "path": "/api/cron/tick", "schedule": "*/5 * * * *" }]` (Vercel sends the secret automatically); on Hobby use
 any external scheduler (e.g. cron-job.org). Results appear in the agent's chat with a notification the next time the
-customer has AIdentify open (it checks every minute).
+customer has AaaS open (it checks every minute).
 
 Memories, routines, approvals and routine results are stored server-side (`as_mem:`, `as_rt:`, `as_appr:`, `as_inbox:`
 keys) and are never sent through `/api/kv`. Deleting an account deletes them. Without an AI key, agents fall back to

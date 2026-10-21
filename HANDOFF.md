@@ -1,4 +1,4 @@
-# AIdentify handoff
+# AaaS handoff
 
 ## v2.4.1 audience update (20 Oct 2026, IST)
 - Phanindra approved the wider small-business audience from /workspace/aaas-run/audience-research-2026-10-20.md. Landing (waitlist.html) and app onboarding (index.html) updated; lib/waitlist.js BUSINESS_TYPES matches the 15 options (server still accepts any 2-60 char type, so older entries stay valid).
@@ -165,7 +165,7 @@
 - Public sign-up is open (email + password). Google and email-code sign-in are not configured on Vercel (no GOOGLE_CLIENT_ID / SMTP)
 - Admin password for hosted: saved on box at /workspace/aaas-run/vercel-admin.secret (chmod 600); not in git
 
-A one-page status for anyone picking up AIdentify: what it does today, what is in progress, and what is known to be
+A one-page status for anyone picking up AaaS: what it does today, what is in progress, and what is known to be
 missing. Last updated 18 Oct 2026 (hosted demo + landing live; CHANGELOG 1.7.0 drafted on `hosted-demo`, GitHub Release not cut yet).
 
 | | |
@@ -178,7 +178,7 @@ missing. Last updated 18 Oct 2026 (hosted demo + landing live; CHANGELOG 1.7.0 d
 
 ## What it is
 
-AIdentify is a self-hosted app for agencies and small marketing teams. You sign in, describe the business, and it sets
+AaaS is a self-hosted app for agencies and small marketing teams. You sign in, describe the business, and it sets
 up a **Chief of Staff** assistant with a team of AI agents: lead replies, follow-ups, quote tracking, social posts,
 research and a real browser. Anything that sends, posts, publishes, pays or signs in waits for your approval. You can run
 it from the web app or from Slack.
@@ -215,7 +215,7 @@ it from the web app or from Slack.
   - **Tests:** automatic tests for all of the above.
   - **Names:** leftover "AgentSphere" names were replaced.
   - **Read-only analytics:** a social analytics snapshot command (`npm run social:snapshot`).
-- **v1.6, licence change.** AIdentify is now proprietary (all rights reserved). Contributions by invitation only, with a
+- **v1.6, licence change.** AaaS is now proprietary (all rights reserved). Contributions by invitation only, with a
   signed contributor agreement. Copies obtained under MIT while it was public keep their MIT rights for that version.
   Git history was not rewritten, so old commits still carry the MIT LICENSE file.
 - **v1.5, hostable storage and a test suite.**

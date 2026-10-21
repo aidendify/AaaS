@@ -164,10 +164,10 @@ function report(res, t0, t1) {
   const need = res.filter((s) => s.signedIn !== true).map((s) => s.site + (s.signedIn === 'other' ? ' (signed in as another account)' : s.signedIn === false ? ' (not signed in)' : ' (unreadable)'));
   const L = [];
   L.push(`# Social analytics ${DATE} (IST)`);
-  L.push(`Snapshot ~${hm(t0)} IST (finished ${hm(t1)} IST) by the AIdentify browser (npm run social:snapshot, profile ${path.relative(ROOT, profile)}). Read-only: analytics and profile pages only. No likes, follows, posts or settings changes.${need.length ? ` Needs sign-in as his own account: ${need.join(', ')}. Sign in from Slack with "open browser".` : ''}`);
+  L.push(`Snapshot ~${hm(t0)} IST (finished ${hm(t1)} IST) by the AaaS browser (npm run social:snapshot, profile ${path.relative(ROOT, profile)}). Read-only: analytics and profile pages only. No likes, follows, posts or settings changes.${need.length ? ` Needs sign-in as his own account: ${need.join(', ')}. Sign in from Slack with "open browser".` : ''}`);
   L.push('', `## X (${x.handle})`);
   if (x.signedIn !== true) {
-    L.push(x.signedIn === false ? '- Not signed in in the AIdentify browser profile.' : `- Signed in as ${x.viewer ? '@' + x.viewer : 'another account'}, not ${x.handle}.`);
+    L.push(x.signedIn === false ? '- Not signed in in the AaaS browser profile.' : `- Signed in as ${x.viewer ? '@' + x.viewer : 'another account'}, not ${x.handle}.`);
     L.push(`- Followers (public profile): ${v(x.followers)}${x.following != null ? ` (following ${v(x.following)}${x.posts != null ? `, posts ${v(x.posts)}` : ''})` : ''}.`);
     L.push('- Verified followers: missing (Overview not read for this account).');
   } else {
@@ -177,15 +177,15 @@ function report(res, t0, t1) {
     L.push(`- Content tab rows with a date: ${x.contentRows == null ? 'not read' : x.contentRows}.`);
   }
   L.push('', `## LinkedIn (${li.handle})`);
-  if (li.signedIn !== true) L.push(li.signedIn === false ? '- Not signed in in the AIdentify browser profile. No numbers read.' : `- Signed in as another LinkedIn account, not ${li.handle}. No numbers read (that account's analytics are not his).`);
+  if (li.signedIn !== true) L.push(li.signedIn === false ? '- Not signed in in the AaaS browser profile. No numbers read.' : `- Signed in as another LinkedIn account, not ${li.handle}. No numbers read (that account's analytics are not his).`);
   else L.push(`- Followers: ${v(li.followers)}.`, `- Impressions${li.impressionsRange ? ' (' + li.impressionsRange.toLowerCase() + ')' : ''}: ${v(li.impressions)}.`);
   L.push('', `## Facebook (${fb.handle})`);
-  if (fb.signedIn === false) L.push('- Not signed in in the AIdentify browser profile. No numbers read.');
+  if (fb.signedIn === false) L.push('- Not signed in in the AaaS browser profile. No numbers read.');
   else if (fb.signedIn === 'other') L.push('- Signed in as a different Facebook account.', `- Followers (public profile): ${fb.followersText ? fb.followersText + ' (as shown)' : 'not found'}.`, '- Reach: not read (needs his own account).');
   else L.push(`- Followers: ${fb.followersText ? fb.followersText + ' (as shown)' : 'not found'}.`, `- Reach${fb.reachRange ? ' (' + fb.reachRange.toLowerCase() + ')' : ''}: ${v(fb.reach)}.`);
   const notes = res.flatMap((s) => s.notes.map((n) => `${s.site}: ${n}`));
   if (notes.length) { L.push('', '## Notes'); notes.forEach((n) => L.push('- ' + n)); }
-  L.push('', '## Source', `- AIdentify browser (Chrome, saved sign-ins), screenshots in ${path.relative(OUT, SHOTS)}/:`);
+  L.push('', '## Source', `- AaaS browser (Chrome, saved sign-ins), screenshots in ${path.relative(OUT, SHOTS)}/:`);
   res.flatMap((s) => s.shots).forEach((p) => L.push('  - ' + path.basename(p)));
   return L.join('\n') + '\n';
 }
@@ -193,7 +193,7 @@ function report(res, t0, t1) {
 function writeOutputs(res, t0, t1) {
   const file = path.join(OUT, `analytics-${DATE}.md`);
   const md = report(res, t0, t1);
-  const SEP = '\n---\n\n## AIdentify browser snapshot\n';
+  const SEP = '\n---\n\n## AaaS browser snapshot\n';
   const section = SEP + md.replace(/^# .*\n/, '').replace(/^## /gm, '### ');
   const cur = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
   if (!cur || /^# .*\nSnapshot .*npm run social:snapshot/.test(cur)) fs.writeFileSync(file, md); // ours alone: replace

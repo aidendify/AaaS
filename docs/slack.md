@@ -1,6 +1,6 @@
 # Slack bot
 
-AIdentify can run a Slack bot in **Socket Mode**, so it works from a laptop or a private server with no public URL.
+AaaS can run a Slack bot in **Socket Mode**, so it works from a laptop or a private server with no public URL.
 
 This page is the one server-wide bot (environment variables, one owner). A business that wants its own Slack app, with a bot token and signing secret saved on the Inbox page, uses the per-account channel in `docs/CHANNELS.md`. That one checks Slack’s request signature and can optionally hand customer messages to the front desk.
 
@@ -20,8 +20,8 @@ What it does:
 3. **Install App** → install to the workspace. Copy the **Bot User OAuth Token** (`xoxb-…`) → `SLACK_BOT_TOKEN`.
 4. Optional: **Basic Information → Signing Secret** → `SLACK_SIGNING_SECRET` (not needed for Socket Mode).
 5. Your member ID: in Slack, click your profile → ⋯ → **Copy member ID** → `SLACK_OWNER_USER_ID`.
-6. `SLACK_ACCOUNT_EMAIL`: the AIdentify account whose agents and boards the bot uses.
-7. Restart AIdentify. The log says `Slack bot: on (Socket Mode)`. DM the bot.
+6. `SLACK_ACCOUNT_EMAIL`: the AaaS account whose agents and boards the bot uses.
+7. Restart AaaS. The log says `Slack bot: on (Socket Mode)`. DM the bot.
 
 ```env
 SLACK_BOT_TOKEN=xoxb-...
@@ -38,8 +38,8 @@ Values in the shell environment win over `.env`. Make sure no old Slack tokens a
 
 ```yaml
 display_information:
-  name: AIdentify
-  description: Your AIdentify agents in Slack
+  name: AaaS
+  description: Your AaaS agents in Slack
   background_color: "#1d2433"
 features:
   app_home:
@@ -47,7 +47,7 @@ features:
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
   bot_user:
-    display_name: AIdentify
+    display_name: AaaS
     always_online: true
 oauth_config:
   scopes:
@@ -75,7 +75,7 @@ Code: `lib/slack.js`, started from `server.js`.
 
 ## Who answers and conversation memory
 
-- Unprefixed DMs are answered by the orchestrator: `SLACK_AGENT_ID` if set, otherwise the lead of the group that orchestrates other groups (for example "Chief · AIdentify CEO"). If none is set up, the bot says so instead of answering as another agent.
+- Unprefixed DMs are answered by the orchestrator: `SLACK_AGENT_ID` if set, otherwise the lead of the group that orchestrates other groups (for example "Chief · AaaS CEO"). If none is set up, the bot says so instead of answering as another agent.
 - Top-level DMs are answered in the DM and form one ongoing conversation; a message inside a thread is answered in that thread, which keeps its own history. The last 20 turns per conversation are kept server-side in `as_slack:<email>`.
 
 ## Staying connected
@@ -84,7 +84,7 @@ Socket Mode reconnects by itself after drops. The bot also logs every socket sta
 
 ## Notifications channel
 
-Set `SLACK_NOTIFY_CHANNEL` to a channel id (Slack: open the channel → channel name → About → Channel ID, e.g. `C0123ABCD`) to send review cards, failure notes and scheduled briefs there. Conversation with the Chief stays in the DM. The bot must be a member of the channel: type `/invite @AIdentify` in it (private channels too). Leave it empty to keep everything in the DM. Approve / Reject buttons work in the channel, but only for the owner.
+Set `SLACK_NOTIFY_CHANNEL` to a channel id (Slack: open the channel → channel name → About → Channel ID, e.g. `C0123ABCD`) to send review cards, failure notes and scheduled briefs there. Conversation with the Chief stays in the DM. The bot must be a member of the channel: type `/invite @AaaS` in it (private channels too). Leave it empty to keep everything in the DM. Approve / Reject buttons work in the channel, but only for the owner.
 
 ## Chief operations tools
 

@@ -2,7 +2,7 @@
   "name": "aidentify",
   "version": "2.5.0",
   "private": true,
-  "description": "AIdentify: open-source agent-as-a-service platform. Create AI agent workers, connect tools and build connectors.",
+  "description": "AaaS: open-source Agents as a Service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
   "scripts": {
     "start": "node server.js",
@@ -28,7 +28,7 @@
   "engines": {
     "node": ">=20"
   },
-  "productName": "AIdentify",
+  "productName": "AaaS",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aidendify/AaaS.git"

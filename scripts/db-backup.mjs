@@ -38,7 +38,7 @@ export function unpackBackup(buf, { key = '' } = {}) {
     try { buf = Buffer.concat([d.update(buf.subarray(34)), d.final()]); } catch { throw new Error('Wrong BACKUP_KEY, or the file is damaged.'); }
   }
   const j = JSON.parse(zlib.gunzipSync(buf).toString('utf8'));
-  if (!j.meta || !Array.isArray(j.rows)) throw new Error('Not an AIdentify backup.');
+  if (!j.meta || !Array.isArray(j.rows)) throw new Error('Not an AaaS backup.');
   if (j.rows.length !== j.meta.count || hashRows(j.rows) !== j.meta.sha256) throw new Error('Backup check failed: row count or hash does not match.');
   return j;
 }

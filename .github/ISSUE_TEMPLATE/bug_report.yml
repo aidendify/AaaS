@@ -12,7 +12,7 @@ body:
     validations: { required: true }
   - type: input
     id: version
-    attributes: { label: AIdentify version, description: '"version" in package.json', placeholder: 1.2.0 }
+    attributes: { label: AaaS version, description: '"version" in package.json', placeholder: 1.2.0 }
     validations: { required: true }
   - type: dropdown
     id: how

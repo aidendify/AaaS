@@ -1,6 +1,6 @@
-# Contributing to AIdentify
+# Contributing to AaaS
 
-AIdentify is proprietary software (see [LICENSE](LICENSE)). **Contributions are by invitation only.** If you have not been
+AaaS is proprietary software (see [LICENSE](LICENSE)). **Contributions are by invitation only.** If you have not been
 invited, please do not open pull requests.
 
 Before an invited contribution can be merged, you will be asked to sign a written agreement with the copyright holder
@@ -77,7 +77,7 @@ happened without a tool result.
 
 1. Move **Unreleased** items in `CHANGELOG.md` under a new version and bump `version` in `package.json`.
 2. Commit, then `git tag vX.Y.Z && git push origin main --tags`.
-3. `gh release create vX.Y.Z --title "AIdentify vX.Y.Z" --notes-file <changelog section>`.
+3. `gh release create vX.Y.Z --title "AaaS vX.Y.Z" --notes-file <changelog section>`.
    Installs and `npm run update` pick up the newest release automatically.
 
 Contributions are accepted only from invited contributors who have signed the written agreement described at the top

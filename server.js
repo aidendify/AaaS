@@ -1,4 +1,4 @@
-// AIdentify server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
+// AaaS server: serves the site, the shared data API (Neon Postgres or a local file) and the AI proxy.
 // Needs Node 20+. `npm install` only matters when DATABASE_URL is set (it adds the Neon driver).
 import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
 import { obsScope, obs, obsDone } from './lib/obs.js';
@@ -103,7 +103,7 @@ async function serve(req, res) {
     console.error(e);
     // local server: say what broke (e.g. data folder not writable) instead of a blank "Something went wrong"
     const disk = e && ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'EINVAL', 'EBUSY', 'ENOSPC', 'EEXIST', 'ENOTDIR'].includes(e.code);
-    send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AIdentify folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
+    send(res, 500, { error: 'server_error', message: disk ? `Server can't save data (${e.code}). Move the AaaS folder to Desktop/Documents (not OneDrive or inside the zip), then run npm start again.` : 'Server error: ' + String(e && e.message || e).slice(0, 160) + ' (see the npm start window)' });
   }
 }
 
@@ -130,7 +130,7 @@ async function shutdown(sig) {
 for (const sig of ['SIGTERM', 'SIGINT']) process.prependListener(sig, () => { shutdown(sig); });
 
 server.listen(PORT, HOST, async () => {
-  console.log(`AIdentify running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+  console.log(`AaaS running at http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
   try { const st = await store();
     if (st.kind === 'file') console.log('Database: local file ' + path.join(DATA_DIR, 'kv.json') + (hostedMode() ? '' : ' (fine for one self-hosted server; for a hosted deploy set DATABASE_URL to Postgres/Neon and HOSTED=1)'));
     else { await st.init(); console.log(`Database: ${st.kind === 'neon' ? 'Neon Postgres' : 'Postgres'} (DATABASE_URL, schema ${st.schema}, driver ${st.driver})`); }

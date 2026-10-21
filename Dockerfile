@@ -1,4 +1,4 @@
-# AIdentify server. Data (kv.json, browser profile) lives in /app/data: mount a volume there.
+# AaaS server. Data (kv.json, browser profile) lives in /app/data: mount a volume there.
 # Chrome is not included, so the Browser/Research agents' real browser and the remote browser are off in this image
 # (everything else works). See README "Docker".
 FROM node:20-slim

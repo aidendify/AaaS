@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// End-to-end scenario suite for a running AIdentify server (staging, or a local copy). Not part of `npm test`.
+// End-to-end scenario suite for a running AaaS server (staging, or a local copy). Not part of `npm test`.
 //
 //   npm run e2e -- --base https://aidentify-staging.vercel.app [--label "mock AI"] [--only a,b] [--no-report]
 //
@@ -605,7 +605,7 @@ async function scenarioL(S) {
 const SC = { l: ['Agency white-label: clients, staff roles, branding, view-as read-only, usage CSV, cross-agency', scenarioL], k: ['Channels + front desk: WhatsApp inbound, approval draft, STOP, spoofed webhook, widget, cross-account', scenarioK], j: ['Learning CoS + playbooks: weekly review, apply, export/import/install, cross-account', scenarioJ], i: ['Workflows: compile from text, enable, new lead → approval, nothing sent, cross-account', scenarioI], h: ['v2: contact timeline, tracking pixel + click (stored URL only), dashboard, cross-account', scenarioH], g: ['Integrations: connections, CRM fields/stages/CSV/tags, approvals edit/batch/history', scenarioG], a: ['Agency owner: profile, 10 drafts, approvals', scenarioA], b: ['Lead flow: quote form → CRM → routine → cron', scenarioB], c: ['Bring your own key: bad keys, no credit, no fallback', scenarioC], d: ['Outside script: login, tasks, token checks', scenarioD], e: ['Single-lead API: add, dedupe, list, change, delete, follow-up', scenarioE], f: ['Sign-in: password rules, reset link, old password refused', scenarioF] };
 const health = await call('GET', '/api/health');
 const ctx = { mock: !!(health.d && health.d.aiMock) };
-console.log(`AIdentify e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);
+console.log(`AaaS e2e → ${BASE} (${ctx.mock ? 'mock AI' : 'real AI'})`);
 const results = [];
 for (const id of ONLY) {
   if (!SC[id]) continue;
@@ -632,7 +632,7 @@ if (REPORT) {
     for (const n of s.notes) md += `- note: ${n}\n`;
     md += '\n</details>\n';
   }
-  if (!fs.existsSync(f)) fs.writeFileSync(f, '# AIdentify end-to-end scenario report\n\nWritten by `npm run e2e`. Each run appends a section; findings are summarised at the top by hand.\n');
+  if (!fs.existsSync(f)) fs.writeFileSync(f, '# AaaS end-to-end scenario report\n\nWritten by `npm run e2e`. Each run appends a section; findings are summarised at the top by hand.\n');
   fs.appendFileSync(f, md);
   console.log('Report: ' + f);
 }
