@@ -18,6 +18,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Clinic team at `/clinic`.** Sign in, pick Dental or Real estate (the same screens, different labels), and a five-agent team is created: Front Desk, Patient Recall, Reviews & Referrals, Social Media, and Owner Insights. The dashboard reads enquiries, bookings, no-shows, recalls, review requests, scheduled posts, and estimated revenue from that account’s records. Each agent’s actions run against the existing store. Outbound text is a draft in Approvals; approve and reject do not email, text, or post. Review requests are WhatsApp click-to-chat links. CSV import and `POST /api/clinic/form/<token>` write into the CRM. The corner chat uses the Chief. A local server can open a sample clinic marked demo. `npm run test:clinic`.
+
 ### Changed
 - **The product name is AaaS** (Agents as a Service). Titles, the app, emails, public pages, landing pages, docs and the licence line now say AaaS. Vercel projects, domains, env vars, the npm package name, database names, the browser lock file and the playbook format id are unchanged.
 

@@ -11,6 +11,7 @@
     "update": "bash install.sh --update",
     "social:snapshot": "node scripts/social-snapshot.mjs",
     "test": "node --test test/*.test.mjs",
+    "test:clinic": "node --test test/clinic.test.mjs",
     "db:migrate-from-file": "node scripts/db-migrate.mjs from-file",
     "db:export-to-file": "node scripts/db-migrate.mjs to-file",
     "e2e": "node test/e2e/run.mjs"

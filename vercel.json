@@ -28,6 +28,14 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/book/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/clinic",
+      "destination": "/clinic.html"
+    },
+    {
       "source": "/setup",
       "destination": "/setup.html"
     },
@@ -86,6 +94,19 @@
     },
     {
       "source": "/c/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/book/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -74,16 +74,19 @@ async function serve(req, res) {
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
     }
+    if (req.method === 'GET' && (url.pathname === '/clinic' || url.pathname === '/clinic.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'clinic.html')), 'text/html; charset=utf-8');
+    }
     if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
       return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
     }
-    if (url.pathname.startsWith('/c/')) {
+    if (url.pathname.startsWith('/c/') || url.pathname.startsWith('/book/') || url.pathname.startsWith('/api/clinic/form/')) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Headers', 'content-type');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     }
-    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/c/') || url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/c/') || url.pathname.startsWith('/book/') || url.pathname.startsWith('/api/')) {
       const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
       if (url.pathname === '/api/health') {
         const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });

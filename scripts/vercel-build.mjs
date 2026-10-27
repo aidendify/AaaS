@@ -3,7 +3,7 @@
 // The serverless function (api/index.js) still bundles lib/ on its own.
 import fs from 'node:fs';
 const OUT = 'public';
-const PAGES = ['index.html', 'setup.html', 'settings.html', 'board.html', 'waitlist.html', 'landing-v2.html', 'white-label.html'];
+const PAGES = ['index.html', 'setup.html', 'settings.html', 'board.html', 'waitlist.html', 'landing-v2.html', 'white-label.html', 'clinic.html'];
 const ASSETS = ['landing-v2.css', 'landing-v2.js'];
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });

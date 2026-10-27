@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AaaS · Clinic team</title>
+<style>
+:root { --bg:#f4f6f8; --card:#fff; --ink:#1b2430; --muted:#5e6b7a; --line:#e4e8ee; --blue:#0b5fff; --blue-d:#0847c7; --soft:#e8f0ff; --green:#067647; --green-bg:#e7f6ee; --amber:#8a5a00; --amber-bg:#fff6e5; --red:#b42318; --red-bg:#fdecec; --shadow:0 1px 2px rgba(16,24,40,.05); }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; }
+body { font:15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); background:var(--bg); }
+button,input,select,textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.app { display:flex; min-height:100vh; }
+.side { width:248px; flex:none; background:#fff; border-right:1px solid var(--line); display:flex; flex-direction:column; padding:18px 12px 14px; position:sticky; top:0; height:100vh; }
+.brand { display:flex; gap:10px; align-items:center; padding:0 8px 16px; }
+.mark { width:28px; height:28px; border-radius:8px; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; }
+.brand b { display:block; font-size:15px; }
+.brand span { display:block; color:var(--muted); font-size:12px; font-weight:400; }
+.nav { display:flex; flex-direction:column; gap:2px; }
+.nav button { text-align:left; background:transparent; border:0; border-radius:8px; padding:8px 10px; color:var(--ink); display:flex; justify-content:space-between; align-items:center; }
+.nav button[aria-current="page"] { background:var(--soft); color:var(--blue); font-weight:600; }
+.nav button:hover { background:#f6f8fb; }
+.badge { background:#eef2f6; color:var(--ink); border-radius:99px; font-size:12px; padding:0 7px; min-width:20px; text-align:center; }
+.nav button[aria-current="page"] .badge { background:#d7e4ff; color:var(--blue); }
+.side .grow { flex:1; }
+.role-switch { display:flex; gap:6px; padding:8px; }
+.role-switch button { flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 4px; font-size:12px; }
+.role-switch button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.out { margin:6px 8px 0; background:transparent; border:0; color:var(--muted); text-align:left; padding:6px; }
+.main { flex:1; min-width:0; padding:28px 32px 96px; }
+.banner { background:var(--amber-bg); color:#6b4700; border:1px solid #f3e2c0; border-radius:10px; padding:10px 12px; margin-bottom:16px; font-size:13px; }
+h1 { font-size:26px; letter-spacing:-.03em; margin:0 0 4px; font-weight:650; }
+.sub { color:var(--muted); margin:0 0 18px; }
+.callout { background:#fff; border:1px solid var(--line); border-left:3px solid var(--blue); border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+.kpis, .team, .split, .days { display:grid; gap:12px; }
+.kpis { grid-template-columns:repeat(4, minmax(0,1fr)); margin-bottom:18px; }
+.team { grid-template-columns:repeat(5, minmax(0,1fr)); }
+.card, .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+.tile { padding:14px; }
+.tile .k { color:var(--muted); font-size:13px; }
+.tile .v { font-size:26px; font-weight:650; letter-spacing:-.03em; margin-top:4px; }
+.tile .hint { color:var(--muted); font-size:12px; margin-top:4px; }
+.team button.tile { width:100%; text-align:left; }
+.team button.tile:hover { border-color:#c9d7f5; }
+.muted { color:var(--muted); }
+.small { font-size:13px; color:var(--muted); }
+h2 { font-size:16px; margin:22px 0 8px; }
+table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; color:var(--muted); font-weight:600; background:#fafbfc; }
+tr:last-child td { border-bottom:0; }
+.scroll { max-height:440px; overflow:auto; border-radius:12px; }
+.pill { display:inline-block; border-radius:99px; padding:2px 8px; font-size:12px; background:#eef2f6; }
+.pill.new, .pill.pending, .pill.draft, .pill.queued { background:#fff6e5; color:var(--amber); }
+.pill.booked, .pill.scheduled, .pill.approved, .pill.completed { background:var(--green-bg); color:var(--green); }
+.pill.noshow, .pill.rejected, .pill.cancelled, .pill.closed { background:var(--red-bg); color:var(--red); }
+.btn, .btn-ghost, .btn-danger { border-radius:8px; padding:8px 12px; border:1px solid transparent; }
+.btn { background:var(--blue); color:#fff; }
+.btn:hover { background:var(--blue-d); }
+.btn-ghost { background:#fff; border-color:var(--line); }
+.btn-danger { background:#fff; border-color:#f0d0d0; color:var(--red); }
+.btn:disabled, .btn-ghost:disabled { opacity:.5; cursor:not-allowed; }
+.row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.form { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin:10px 0 16px; }
+.form label, .stack label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+.form input, .form select, .form textarea, .stack input, .stack select, .stack textarea { border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; background:#fff; width:100%; }
+.form .wide { grid-column:span 2; }
+.form .full { grid-column:1 / -1; }
+.split { grid-template-columns:1fr 1fr; align-items:start; }
+.days { grid-template-columns:repeat(7, minmax(0,1fr)); }
+.day { background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px; min-height:140px; }
+.day b { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+.post { font-size:12px; background:#f6f8fb; border-radius:8px; padding:6px; margin-top:6px; }
+.draft { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+.draft p { margin:6px 0; white-space:pre-wrap; }
+.rules { margin-top:16px; }
+.auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
+.panel { width:min(440px, 100%); background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
+.panel h1 { font-size:28px; }
+.stack { display:flex; flex-direction:column; gap:10px; }
+.tabs { display:flex; gap:6px; margin-bottom:12px; }
+.tabs button { flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px; }
+.tabs button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.err { color:var(--red); font-size:13px; min-height:1.2em; }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.roles button { text-align:left; padding:16px; }
+.roles ul { margin:8px 0 0; padding-left:18px; color:var(--muted); }
+.chat-fab { position:fixed; right:20px; bottom:20px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:12px 16px; box-shadow:0 8px 24px rgba(16,24,40,.18); z-index:5; }
+.chat { position:fixed; right:20px; bottom:72px; width:min(360px, calc(100vw - 32px)); height:460px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px rgba(16,24,40,.16); display:flex; flex-direction:column; z-index:5; }
+.chat header { padding:12px 14px; border-bottom:1px solid var(--line); font-weight:650; }
+.chat .log { flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.bubble { border-radius:12px; padding:8px 10px; max-width:95%; white-space:pre-wrap; }
+.bubble.u { align-self:flex-end; background:var(--soft); }
+.bubble.a { align-self:flex-start; background:#f6f8fb; }
+.chat form { display:flex; gap:6px; padding:10px; border-top:1px solid var(--line); }
+.chat input { flex:1; border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; }
+.toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1b2430; color:#fff; padding:10px 14px; border-radius:10px; z-index:6; max-width:min(480px, 90vw); }
+.link { color:var(--blue); }
+.placeholder { opacity:.85; }
+@media (max-width:1100px) {
+  .kpis, .team { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .days, .split, .form, .roles { grid-template-columns:1fr 1fr; }
+  .side { width:210px; }
+}
+@media (max-width:760px) {
+  .app { flex-direction:column; }
+  .side { width:auto; height:auto; position:relative; }
+  .nav { flex-direction:row; overflow:auto; }
+  .kpis, .team, .days, .split, .form, .roles { grid-template-columns:1fr; }
+  .main { padding:16px 14px 96px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+const when = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Date(t).toLocaleString('en-IN', { timeZone:'Asia/Kolkata', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); };
+const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kolkata', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date(t)); };
+const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued' };
+const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
+const SCREENS = ['dash','front','recall','reviews','social','insights','approvals','connections'];
+
+let token = sessionStorage.getItem('aaas_clinic_token') || '';
+let meta = { demoLogin:false };
+let state = null;
+let screen = 'login';
+let mode = 'signin';
+let err = '';
+let toast = '';
+let chatOpen = false;
+let chatLog = [];
+let chatDraft = '';
+let chatBusy = false;
+let showAdd = '';
+
+const root = document.getElementById('root');
+async function api(path, body) {
+  const r = await fetch(path, { method: body === undefined ? 'GET' : 'POST', headers: { 'content-type':'application/json', ...(token ? { authorization:'Bearer ' + token } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401) { token = ''; sessionStorage.removeItem('aaas_clinic_token'); screen = 'login'; throw new Error(d.message || 'Please sign in again.'); }
+  if (!r.ok) throw new Error(d.message || 'That did not work.');
+  return d;
+}
+function flash(m) { toast = m; setTimeout(() => { if (toast === m) { toast = ''; render(); } }, 3500); }
+function go(s) { screen = s; showAdd = ''; history.replaceState(null, '', '#' + s); render(); }
+function pname(id) { const p = (state.patients || []).find((x) => x.id === id); return p ? p.name : 'Unknown'; }
+function wanted() { const h = location.hash.replace('#',''); return SCREENS.includes(h) ? h : 'dash'; }
+
+function loginView() {
+  return `<div class="auth"><form class="panel stack" data-act="auth">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Clinic team</span></div></div>
+    <h1>Sign in</h1>
+    <p class="sub">Then pick Dental or Real estate. A team of five is created for you, with sample records so you can look around.</p>
+    <div class="tabs"><button type="button" class="${mode==='signin'?'on':''}" data-act="mode" data-mode="signin">Sign in</button><button type="button" class="${mode==='create'?'on':''}" data-act="mode" data-mode="create">Create account</button></div>
+    ${mode==='create'?'<label>Your name<input name="name" autocomplete="name" required></label>':''}
+    <label>Email<input name="email" type="email" autocomplete="username" required></label>
+    <label>Password<input name="password" type="password" autocomplete="${mode==='create'?'new-password':'current-password'}" required minlength="8"></label>
+    <div class="err">${esc(err)}</div>
+    <button class="btn" type="submit">${mode==='create'?'Create account':'Sign in'}</button>
+    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample clinic</button><p class="small">Local only. Opens a sample owner account. No password is shown or stored in the page.</p>':''}
+  </form></div>`;
+}
+function roleView() {
+  const card = (role, title, blurb, names) => `<button class="tile" type="button" data-act="pick" data-role="${role}"><b>${esc(title)}</b><div class="small" style="margin-top:6px">${esc(blurb)}</div><ul>${names.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></button>`;
+  return `<div class="auth"><div class="panel" style="width:min(760px,100%)">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Pick a role</span></div></div>
+    <h1>Who is this for?</h1>
+    <p class="sub">One click loads that team. The screens stay the same. Real estate only changes the labels.</p>
+    <div class="roles">
+      ${card('dental','Dental clinic','Private clinic in Hyderabad. Enquiries, recall, reviews, social, and whether the week made money.',['Front Desk','Patient Recall','Reviews & Referrals','Social Media','Owner Insights'])}
+      ${card('realestate','Real estate','The same five screens for a desk that follows leads instead of patients.',['Lead Desk','Lead Follow-up','Reviews & Referrals','Social Media','Owner Insights'])}
+    </div>
+    <div class="err">${esc(err)}</div>
+  </div></div>`;
+}
+function side() {
+  const pending = (state.pending || []).length;
+  const item = (id, label, extra) => `<button type="button" data-act="go" data-screen="${id}" ${screen===id?'aria-current="page"':''}>${esc(label)}${extra||''}</button>`;
+  return `<aside class="side">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>${esc(state.biz || '')}</span></div></div>
+    <nav class="nav">
+      ${item('dash','Dashboard')}
+      ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
+      ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
+      ${item('connections','Connections')}
+    </nav>
+    <div class="grow"></div>
+    <div class="role-switch">
+      <button type="button" class="${state.role==='dental'?'on':''}" data-act="pick" data-role="dental">Dental</button>
+      <button type="button" class="${state.role==='realestate'?'on':''}" data-act="pick" data-role="realestate">Real estate</button>
+    </div>
+    <button class="out" type="button" data-act="logout">Sign out</button>
+  </aside>`;
+}
+function kpis() {
+  const s = state.stats || {};
+  const L = state.labels || {};
+  const tiles = [
+    ['Enquiries this week', s.enquiriesWeek, s.enquiriesOpen + ' still open'],
+    [L.booking || 'Bookings this week', s.bookingsWeek, 'Booked or completed'],
+    [L.noshow || 'No-shows', s.noshows, 'This week'],
+    [L.recall || 'Recalls due', s.recallsDue, 'No visit in 6 months'],
+    ['Reviews requested', s.reviews, 'Drafts on file'],
+    ['Posts scheduled', s.posts, 'On the calendar, not published'],
+    [L.revenue || 'Est. revenue this month', inr(s.revenue), 'Booked and completed visits'],
+    [(L.who || 'Patients') + ' last 2 months', s.patientsLast2Months, s.patientsTotal + ' on file'],
+  ];
+  return `<div class="kpis">${tiles.map(([k,v,h]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="hint">${esc(h)}</div></div>`).join('')}</div>`;
+}
+function banner() {
+  if (!state.demo) return '';
+  return `<div class="banner">Sample data for ${esc(state.biz)}, ${esc(state.city)}. These people, phones and fees are fake and marked demo. AaaS does not email, text, or post anything.</div>`;
+}
+function dash() {
+  const L = state.labels || {};
+  return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
+    <div class="callout">${esc(state.pitch || '')}</div>
+    ${kpis()}
+    <h2>Your team</h2>
+    <div class="team">${(state.agents||[]).map((a) => `<button class="tile" type="button" data-act="go" data-screen="${a.key}"><b>${esc(a.name)}</b><div class="small">${a.paused?'Paused':'Active'} · ${a.waiting? a.waiting + ' waiting':'last action in the sample'}</div></button>`).join('')}</div>
+    <p class="small" style="margin-top:14px">${esc(L.who || 'Records')} in the last 2 months are counted from the database, not typed in by hand.</p>`;
+}
+function rulesBox(agent) {
+  const r = state.rules || {};
+  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules</div>
+    <div style="margin:6px 0 8px">Send only between <input name="from" value="${esc(r.from)}" style="width:90px"> and <input name="to" value="${esc(r.to)}" style="width:90px"> · Ask before anything new · Tone: <input name="tone" value="${esc(r.tone)}" style="width:min(360px,100%)"></div>
+    <button class="btn-ghost" type="submit">Save rules</button>
+    <button class="btn-ghost" type="button" data-act="pause" data-key="${esc(agent.key)}">${agent.paused?'Resume agent':'Pause agent'}</button>
+  </form>`;
+}
+function agentHead(agent) {
+  return `${banner()}<h1>${esc(agent.name)}</h1><p class="sub">${esc(agent.d)}</p>
+    <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="tile"><div class="k">Done this week</div><div class="v">${agent.done}</div></div>
+      <div class="tile"><div class="k">Waiting for approval</div><div class="v">${agent.waiting}</div></div>
+      <div class="tile"><div class="k">Scheduled</div><div class="v">${agent.scheduled}</div></div>
+    </div>`;
+}
+function draftCard(d) {
+  const link = String(d.waLink || '').startsWith('https://wa.me/') ? d.waLink : '';
+  return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)} ${d.demo?'<span class="pill">DEMO</span>':''}
+    <p>${esc(d.body)}</p>
+    ${link?`<p><a class="link" href="${esc(link)}" target="_blank" rel="noopener">WhatsApp link</a> <span class="small">Opens on your phone. AaaS does not send it.</span></p>`:''}
+    ${d.status==='pending'?`<form data-act="edit-draft"><input type="hidden" name="id" value="${d.id}"><textarea name="body" rows="3">${esc(d.body)}</textarea><div class="row-actions" style="margin-top:8px"><button class="btn-ghost" type="submit">Save edit</button><button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button><button class="btn-danger" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="reject">Reject</button></div></form>`:''}
+    ${d.result?`<p class="small">${esc(d.result)}</p>`:''}
+  </article>`;
+}
+function front() {
+  const a = state.agents.find((x) => x.key==='front');
+  const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  return `${agentHead(a)}
+    <div class="split">
+      <section><h2>Enquiries</h2>
+        <form class="form" data-act="add-enq" style="grid-template-columns:1fr 1fr">
+          <label>Name<input name="name" required></label>
+          <label>Phone<input name="phone" required></label>
+          <label>Channel<select name="channel"><option>Phone</option><option>Website</option><option>Instagram</option><option>Walk-in</option></select></label>
+          <label>Message<input name="message"></label>
+          <div><button class="btn" type="submit">Add enquiry</button></div>
+        </form>
+        <div class="scroll"><table><thead><tr><th>Who</th><th>Channel</th><th>Status</th><th></th></tr></thead><tbody>
+          ${(state.enquiries||[]).map((e) => `<tr><td>${esc(e.name)}${e.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(e.message||'')}</div></td><td>${esc(e.channel)}<div class="small">${esc(e.phone)}</div></td><td>${pill(e.status)}</td><td class="row-actions">
+            <button class="btn-ghost" type="button" data-act="enq-status" data-id="${e.id}" data-status="${e.status==='closed'?'new':'closed'}">${e.status==='closed'?'Reopen':'Close'}</button>
+            <button class="btn-danger" type="button" data-act="enq-del" data-id="${e.id}">Delete</button>
+          </td></tr>`).join('') || '<tr><td colspan="4">No enquiries yet.</td></tr>'}
+        </tbody></table></div>
+      </section>
+      <section><h2>Appointments</h2>
+        <form class="form" data-act="add-appt" style="grid-template-columns:1fr 1fr">
+          <label>Person<select name="patientId">${opts}</select></label>
+          <label>When<input name="at" type="datetime-local" required></label>
+          <label>Service<input name="service" value="${state.role==='realestate'?'Site visit':'Check-up'}"></label>
+          <label>Fee<input name="fee" type="number" min="0" value="1500"></label>
+          <div><button class="btn" type="submit">Add appointment</button></div>
+        </form>
+        <div class="scroll"><table><thead><tr><th>When</th><th>Who</th><th>Status</th><th></th></tr></thead><tbody>
+          ${(state.appointments||[]).map((ap) => `<tr><td>${esc(when(ap.at))}<div class="small">${esc(ap.service)} · ${inr(ap.fee)}</div></td><td>${esc(pname(ap.patientId))}${ap.demo?' <span class="pill">DEMO</span>':''}</td><td>${pill(ap.status)}${ap.reminder?`<div class="small">Reminder ${esc(ap.reminder.status)}</div>`:''}</td><td class="row-actions">
+            <button class="btn-ghost" type="button" data-act="appt-status" data-id="${ap.id}" data-status="noshow">No-show</button>
+            <button class="btn-ghost" type="button" data-act="remind" data-id="${ap.id}">Queue reminder</button>
+            <button class="btn-danger" type="button" data-act="appt-del" data-id="${ap.id}">Delete</button>
+          </td></tr>`).join('') || '<tr><td colspan="4">No appointments yet.</td></tr>'}
+        </tbody></table></div>
+      </section>
+    </div>${rulesBox(a)}`;
+}
+function peopleTable(list, act) {
+  if (!list.length) return '<p class="small">Nobody in this list.</p>';
+  return `<div class="scroll"><table><thead><tr><th>Name</th><th>Last visit</th><th>Value</th><th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(p.phone)}</div></td><td>${esc(when(p.lastVisit))}</td><td>${inr(p.value)}</td><td><button class="btn" type="button" data-act="${act}" data-id="${p.id}">Draft follow-up</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function recall() {
+  const a = state.agents.find((x) => x.key==='recall');
+  const now = Date.now(), day = 864e5;
+  const lapsed = (state.patients||[]).filter((p) => p.lastVisit && (now - Date.parse(p.lastVisit) > 180*day));
+  const bar = state.role==='realestate' ? 10000000 : 20000;
+  const high = (state.patients||[]).filter((p) => Number(p.value) >= bar);
+  const drafts = (state.drafts||[]).filter((d) => d.agent==='recall');
+  return `${agentHead(a)}<div class="split"><section><h2>Lapsed</h2>${peopleTable(lapsed,'recall')}</section><section><h2>High value</h2>${peopleTable(high,'recall')}</section></div>
+    <h2>Follow-up drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No drafts yet.</p>'}${rulesBox(a)}`;
+}
+function reviews() {
+  const a = state.agents.find((x) => x.key==='reviews');
+  const drafts = (state.drafts||[]).filter((d) => d.kind==='review');
+  return `${agentHead(a)}<h2>Ask after a visit</h2><p class="sub">The draft includes a WhatsApp click-to-chat link. There is no SMS and no paid WhatsApp API.</p>
+    <div class="scroll"><table><thead><tr><th>Name</th><th>Phone</th><th></th></tr></thead><tbody>
+      ${(state.patients||[]).slice(0,12).map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}</td><td>${esc(p.phone)}</td><td><button class="btn" type="button" data-act="review" data-id="${p.id}">Draft review request</button></td></tr>`).join('')}
+    </tbody></table></div>
+    <h2>Drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No review drafts yet.</p>'}${rulesBox(a)}`;
+}
+function social() {
+  const a = state.agents.find((x) => x.key==='social');
+  const start = state.stats.weekStart;
+  const days = [...Array(7)].map((_, i) => { const [y,m,d] = start.split('-').map(Number); const dt = new Date(Date.UTC(y, m-1, d+i)); const key = dt.toISOString().slice(0,10); const label = dt.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }); return { key, label }; });
+  return `${agentHead(a)}<h2>This week</h2>
+    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
+    <h2>Draft a post</h2>
+    <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="Weekend cleaning slots"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
+    <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
+    ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
+}
+function insights() {
+  const a = state.agents.find((x) => x.key==='insights');
+  return `${agentHead(a)}${kpis()}<h2>Weekly summary</h2><article class="draft"><p>${esc((state.summary&&state.summary.text) || 'No summary yet.')}</p>
+    <button class="btn-ghost" type="button" data-act="refresh">Refresh summary</button></article>${rulesBox(a)}`;
+}
+function approvals() {
+  const items = state.pending || [];
+  return `${banner()}<h1>Approvals inbox</h1><p class="sub">Every outbound draft waits here. Approve records your OK. Reject skips it. Nothing is emailed, texted, or posted.</p>
+    ${items.map((d) => draftCard(d)).join('') || '<p class="small">Nothing is waiting.</p>'}`;
+}
+function connections() {
+  return `${banner()}<h1>Connections</h1><p class="sub">Bring in the records you already have. External clinic software stays a placeholder.</p>
+    ${(state.connections||[]).map((c) => `<div class="draft" style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}</div><div>${c.status==='placeholder'?'<button class="btn-ghost placeholder" type="button" disabled>Not connected</button>':'<span class="pill approved">Ready</span>'}</div></div>`).join('')}
+    <h2>Import a CSV</h2>
+    <p class="small">Columns: type, name, phone, email, last_visit, value, when, service, status, fee. Use type patient or appointment. Up to 2000 rows. Nothing is sent.</p>
+    <form class="form" data-act="csv"><label class="full">CSV file<input name="file" type="file" accept=".csv,text/csv"></label><div><button class="btn" type="submit">Import</button></div></form>
+    <pre class="small" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto">type,name,phone,email,last_visit,value,when,service,status,fee
+patient,Demo Import,919000000099,import@example.com,2026-10-01,1800,,,,
+appointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,Check-up,booked,900</pre>`;
+}
+function chat() {
+  if (!state || !state.role) return '';
+  const who = (state.labels && state.labels.who) || 'patients';
+  return `<button class="chat-fab" type="button" data-act="chat-toggle">${chatOpen?'Close chat':'Chat'}</button>
+    ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
+      <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="How many ${esc(who)} in the last 2 months?" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`:''}`;
+}
+function render() {
+  let body = '';
+  if (!token) body = loginView();
+  else if (!state || !state.role) body = roleView();
+  else {
+    const page = { dash, front, recall, reviews, social, insights, approvals, connections }[screen] || dash;
+    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${chat()}`;
+  }
+  if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
+  root.innerHTML = body;
+  const input = document.getElementById('chatIn');
+  if (input && chatOpen) input.focus();
+}
+async function reload() { state = await api('/api/clinic'); if (!state.role) screen = 'role'; render(); }
+async function act(name, el) {
+  try {
+    if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
+    if (name === 'go') { go(el.dataset.screen); return; }
+    if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
+    if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; render(); return; }
+    if (name === 'auth') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const path = mode === 'create' ? '/api/auth/signup' : '/api/auth/login';
+      const d = await api(path, { email:f.email, password:f.password, name:f.name || 'Clinic owner' });
+      token = d.token; sessionStorage.setItem('aaas_clinic_token', token); err = '';
+      await reload(); return;
+    }
+    if (name === 'demo') {
+      const d = await api('/api/clinic/demo', {});
+      token = d.token; sessionStorage.setItem('aaas_clinic_token', token);
+      await reload(); return;
+    }
+    if (name === 'pick') {
+      state = await api('/api/clinic/role', { role: el.dataset.role });
+      if (screen === 'role' || screen === 'login') screen = wanted();
+      flash(state.role === 'realestate' ? 'Real estate labels are on. The records stayed.' : 'Dental team is ready.');
+      render(); return;
+    }
+    if (name === 'add-enq') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/enquiries', f); flash('Enquiry added.'); }
+    else if (name === 'enq-status') await api('/api/clinic/enquiries/update', { id:Number(el.dataset.id), status:el.dataset.status });
+    else if (name === 'enq-del') { if (!confirm('Delete this enquiry?')) return; await api('/api/clinic/enquiries/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'add-appt') { const f = Object.fromEntries(new FormData(el).entries()); if (f.at) f.at = new Date(f.at).toISOString(); f.patientId = Number(f.patientId); f.fee = Number(f.fee||0); await api('/api/clinic/appointments', f); flash('Appointment added.'); }
+    else if (name === 'appt-status') await api('/api/clinic/appointments/update', { id:Number(el.dataset.id), status:el.dataset.status });
+    else if (name === 'appt-del') { if (!confirm('Delete this appointment?')) return; await api('/api/clinic/appointments/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'remind') { await api('/api/clinic/reminders', { appointmentId:Number(el.dataset.id) }); flash('Reminder queued for approval. Nothing was sent.'); }
+    else if (name === 'recall') { await api('/api/clinic/recall/draft', { patientId:Number(el.dataset.id) }); flash('Follow-up drafted. It is waiting in Approvals.'); }
+    else if (name === 'review') { await api('/api/clinic/reviews/draft', { patientId:Number(el.dataset.id) }); flash('Review request drafted with a WhatsApp link.'); }
+    else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
+    else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }
+    else if (name === 'rules') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/rules', f); flash('Rules saved.'); }
+    else if (name === 'pause') { const a = state.agents.find((x) => x.key===el.dataset.key); await api('/api/clinic/agent', { key:el.dataset.key, paused:!a.paused }); }
+    else if (name === 'edit-draft') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/drafts/edit', { id:Number(f.id), body:f.body }); flash('Draft updated.'); }
+    else if (name === 'decide') { await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision }); flash(el.dataset.decision==='approve' ? 'Approved. Nothing was sent.' : 'Rejected. Nothing was sent.'); }
+    else if (name === 'csv') {
+      const file = el.querySelector('input[type=file]').files[0]; if (!file) throw new Error('Choose a CSV file.');
+      const csv = await file.text(); const r = await api('/api/clinic/import', { csv });
+      flash(`Imported ${r.patients} people and ${r.appointments} visits.` + (r.errors.length?` ${r.errors.length} rows skipped.` : ''));
+    }
+    else if (name === 'chat') {
+      const message = (new FormData(el).get('message') || '').trim();
+      if (!message) return;
+      chatDraft = ''; chatLog.push({ r:'u', t:message }); chatBusy = true; render();
+      const hist = chatLog.slice(0, -1).slice(-6);
+      const d = await api('/api/clinic/chat', { message, history: hist });
+      chatLog.push({ r:'a', t:d.answer }); chatBusy = false; await reload(); return;
+    }
+    if (token) await reload();
+  } catch (e) { err = e.message; toast = e.message; chatBusy = false; render(); }
+}
+root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out')) { e.preventDefault(); act(b.dataset.act, b); } });
+root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
+root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
+(async () => {
+  try { meta = await (await fetch('/api/clinic/meta')).json(); } catch { /* offline */ }
+  if (token) { try { await reload(); screen = state && state.role ? wanted() : 'role'; render(); } catch { screen = 'login'; render(); } }
+  else render();
+})();
+</script>
+</body>
+</html>

@@ -13,10 +13,15 @@ const PW = 'Cos-pass-123!';
 const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
 const CRON = 'c'.repeat(32);
 const DAY = 864e5;
-const TUE = Date.UTC(2026, 9, 13, 15);
-const THU = Date.UTC(2026, 9, 15, 15);
-const FRI = Date.UTC(2026, 9, 16, 15);
-const REVIEW = Date.UTC(2026, 9, 21, 15);
+// Opens are stamped with the wall clock, and attribution only counts a hit inside 14 days of the send.
+// Keep Tuesday a few days ago so that window still contains "now", with the same gaps as the old fixture.
+const utcDay = (offsetDays) => { const n = new Date(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + offsetDays, 15); };
+let tueOffset = -4;
+while (new Date(utcDay(tueOffset)).getUTCDay() !== 2) tueOffset--;
+const TUE = utcDay(tueOffset);
+const THU = TUE + 2 * DAY;
+const FRI = TUE + 3 * DAY;
+const REVIEW = TUE + 8 * DAY;
 
 async function req(s, method, p, body, token, extra = {}) {
   const r = await fetch(s.base + p, { method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}), ...(extra.headers || {}) }, body: body === undefined ? undefined : JSON.stringify(body) });

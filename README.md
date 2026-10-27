@@ -82,6 +82,30 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 3. Chat with **Chief of Staff**, the first tile in My Workplace. It delegates to your agents, creates new agents from a description and teaches them.
 4. Add agents from **Plugins → Agents** and apps from **Plugins → Connectors**.
 
+### Dental clinic demo (AaaS v2)
+
+One command, then the clinic team:
+
+```bash
+npm start
+```
+
+Open http://localhost:3000/clinic. Create an account, or on this computer choose **Explore the sample clinic** (that button stays off on a hosted deploy unless `CLINIC_DEMO=1`). Pick **Dental**. The same screens switch to **Real estate** by changing labels only.
+
+What you can click through, all on sample rows marked demo:
+
+- The owner dashboard counts enquiries, bookings, no-shows, recalls, review requests, scheduled posts, and estimated revenue from the saved records.
+- **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted.
+- **Patient Recall** lists lapsed and high-value patients and drafts a follow-up.
+- **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS and no paid WhatsApp API.
+- **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it.
+- **Owner Insights** shows the weekly summary.
+- **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
+- **Connections** imports a CSV of patients and visits. The website form is `/book/<token>` (also `POST /api/clinic/form/<token>`). Clinic software such as Eka.care is a placeholder card.
+- The corner **Chat** asks the Chief. “How many patients in the last 2 months?” is answered from these records.
+
+Check it with `npm run test:clinic`.
+
 ## Features
 
 - **Agent workers** with their own knowledge base, memory, routines (scheduled work) and app screens; build new ones from a description or a pasted spec.

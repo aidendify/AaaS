@@ -1,0 +1,170 @@
+// AaaS v2 clinic team: role, seeded numbers, CRUD, approvals, CSV, public form, Chief chat.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { startServer } from './helpers.mjs';
+import { waMe, parseCsv } from '../lib/clinic.js';
+
+const PW = 'Clinic-pass-123!';
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+
+test('WhatsApp links are click-to-chat URLs and CSV rows parse', () => {
+  assert.equal(waMe('919000000001', 'Hello there'), 'https://wa.me/919000000001?text=Hello%20there');
+  assert.equal(waMe('9000000001', 'Hi'), 'https://wa.me/919000000001?text=Hi');
+  assert.equal(waMe('123', 'Hi'), '');
+  const rows = parseCsv('type,name,phone,email,last_visit,value\npatient,Asha Rao,919000000111,asha@example.com,2026-10-01,1200\n');
+  assert.equal(rows[0].name, 'Asha Rao');
+  assert.equal(rows[0].type, 'patient');
+});
+
+test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', async () => {
+  const s = await startServer(MOCK);
+  try {
+    const meta = await fetch(s.base + '/api/clinic/meta').then((r) => r.json());
+    assert.equal(meta.product, 'AaaS');
+    assert.equal(meta.demoLogin, true);
+    const demo = await s.api('/api/clinic/demo', {});
+    assert.equal(demo.status, 200, JSON.stringify(demo.d));
+    const token = demo.d.token;
+    const page = await fetch(s.base + '/clinic');
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /AaaS/);
+
+    let clinic = await s.api('/api/clinic/role', { role: 'dental' }, token);
+    assert.equal(clinic.status, 200, JSON.stringify(clinic.d));
+    const d = clinic.d;
+    assert.equal(d.product, 'AaaS');
+    assert.equal(d.demo, true);
+    assert.equal(d.biz, 'Smile Dental (sample)');
+    assert.deepEqual(d.agents.map((a) => a.name), ['Front Desk', 'Patient Recall', 'Reviews & Referrals', 'Social Media', 'Owner Insights']);
+    assert.equal(d.stats.patientsLast2Months, 11);
+    assert.equal(d.stats.patientsTotal, 18);
+    assert.equal(d.stats.recallsDue, 6);
+    assert.equal(d.stats.highValue, 4);
+    assert.equal(d.stats.bookingsWeek, 5);
+    assert.equal(d.stats.noshows, 1);
+    assert.equal(d.stats.enquiriesWeek, 3);
+    assert.equal(d.stats.enquiriesOpen, 3);
+    assert.ok(d.stats.revenue > 0);
+    assert.equal(d.stats.reviews, 2);
+    assert.equal(d.stats.posts, 2);
+    assert.match(d.summary.text, new RegExp('₹' + d.stats.revenue.toLocaleString('en-IN').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.equal(d.connections.find((c) => c.id === 'eka').status, 'placeholder');
+    assert.ok(d.patients.every((p) => p.demo === true && /@example\.com$/.test(p.email)));
+    assert.ok(d.pending.length >= 3);
+    assert.ok(d.pending.every((x) => x.approvalId));
+
+    const leads = await s.api('/api/leads?limit=50', undefined, token);
+    assert.equal(leads.status, 200);
+    assert.ok(leads.d.leads.some((l) => l.first_name === 'Ananya' && (l.tags || []).includes('demo')));
+
+    const en = await s.api('/api/clinic/enquiries', { name: 'Test Enquiry', phone: '919000009999', message: 'Pain', channel: 'Phone' }, token);
+    assert.equal(en.status, 200, JSON.stringify(en.d));
+    assert.equal((await s.api('/api/clinic/enquiries/update', { id: en.d.enquiry.id, status: 'booked' }, token)).status, 200);
+    assert.equal((await s.api('/api/clinic/enquiries/delete', { id: en.d.enquiry.id }, token)).status, 200);
+
+    const patientId = d.patients[0].id;
+    const ap = await s.api('/api/clinic/appointments', { patientId, at: new Date().toISOString(), service: 'Filling', fee: 1800, status: 'booked' }, token);
+    assert.equal(ap.status, 200, JSON.stringify(ap.d));
+    assert.equal((await s.api('/api/clinic/appointments/update', { id: ap.d.appointment.id, status: 'completed', fee: 2000 }, token)).status, 200);
+    const rem = await s.api('/api/clinic/reminders', { appointmentId: ap.d.appointment.id }, token);
+    assert.equal(rem.status, 200, JSON.stringify(rem.d));
+    assert.equal(rem.d.draft.status, 'pending');
+    assert.match(rem.d.draft.waLink, /^https:\/\/wa\.me\/919000000001\?text=/);
+    assert.match(rem.d.draft.body, /does not send/i);
+    assert.equal((await s.api('/api/clinic/appointments/delete', { id: ap.d.appointment.id }, token)).status, 200);
+
+    const lapsed = d.patients.find((p) => p.name === 'Suresh Patil');
+    const follow = await s.api('/api/clinic/recall/draft', { patientId: lapsed.id }, token);
+    assert.equal(follow.status, 200, JSON.stringify(follow.d));
+    assert.match(follow.d.draft.waLink, /^https:\/\/wa\.me\//);
+    const review = d.pending.find((x) => x.kind === 'review');
+    assert.match(review.waLink, /^https:\/\/wa\.me\//);
+    assert.doesNotMatch(review.body + review.waLink, /graph\.facebook|twilio|sms/i);
+
+    const edited = await s.api('/api/clinic/drafts/edit', { id: review.id, body: 'Edited review request for the owner. DEMO.' }, token);
+    assert.equal(edited.status, 200, JSON.stringify(edited.d));
+    const approved = await s.api('/api/clinic/decide', { id: review.approvalId, decision: 'approve' }, token);
+    assert.equal(approved.status, 200, JSON.stringify(approved.d));
+    assert.equal(approved.d.approval.status, 'done');
+    assert.match(approved.d.approval.result, /Nothing was sent/);
+    const other = d.pending.find((x) => x.kind === 'followup');
+    const rejected = await s.api('/api/clinic/decide', { id: other.approvalId, decision: 'reject' }, token);
+    assert.equal(rejected.d.approval.status, 'declined');
+
+    const post = await s.api('/api/clinic/social/draft', { topic: 'weekend cleaning slots', when: new Date(Date.now() + 2 * 864e5).toISOString() }, token);
+    assert.equal(post.status, 200, JSON.stringify(post.d));
+    assert.equal(post.d.post.status, 'draft');
+    assert.match(post.d.post.text, /weekend cleaning slots/);
+    const sum = await s.api('/api/clinic/insights/refresh', {}, token);
+    assert.match(sum.d.summary.text, /Estimated revenue this month is ₹/);
+
+    const csv = 'type,name,phone,email,last_visit,value,when,service,status,fee\npatient,Demo Import,919000000099,import@example.com,2026-10-01,1800,,,,\nappointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,Check-up,booked,900\n';
+    const imp = await s.api('/api/clinic/import', { csv }, token);
+    assert.equal(imp.status, 200, JSON.stringify(imp.d));
+    assert.equal(imp.d.patients, 1);
+    assert.equal(imp.d.appointments, 1);
+    assert.ok(imp.d.clinic.patients.some((p) => p.name === 'Demo Import' && p.demo === false));
+
+    const formToken = d.formPath.split('/').pop();
+    const html = await fetch(s.base + '/book/' + formToken);
+    assert.equal(html.status, 200);
+    assert.match(await html.text(), /Book a visit/);
+    const sent = await fetch(s.base + '/api/clinic/form/' + formToken, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'Website Guest', phone: '919000008888', message: 'Cleaning please', service: 'Cleaning' }) });
+    assert.equal(sent.status, 200, await sent.clone().text());
+    const after = await s.api('/api/clinic', undefined, token);
+    assert.ok(after.d.enquiries.some((e) => e.name === 'Website Guest' && e.source === 'Website form'));
+    const crm = await s.api('/api/leads?q=Website', undefined, token);
+    assert.ok(crm.d.leads.some((l) => l.first_name === 'Website'));
+    assert.equal((await fetch(s.base + '/book/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).status, 404);
+
+    const chat = await s.api('/api/clinic/chat', { message: 'how many patients last 2 months', run_id: 'clinic-run-01' }, token);
+    assert.equal(chat.status, 200, JSON.stringify(chat.d));
+    assert.equal(chat.d.mode, 'agent');
+    assert.match(chat.d.answer, new RegExp('There are ' + chat.d.facts.patientsLast2Months + ' patients in the last 2 months'));
+    assert.ok(chat.d.facts.patientsLast2Months >= 11);
+
+    const rules = await s.api('/api/clinic/rules', { from: '10:00', to: '19:00', tone: 'Short and kind' }, token);
+    assert.equal(rules.d.rules.from, '10:00');
+    const paused = await s.api('/api/clinic/agent', { key: 'front', paused: true }, token);
+    assert.equal(paused.d.paused, true);
+
+    const re = await s.api('/api/clinic/role', { role: 'realestate' }, token);
+    assert.equal(re.d.agents[0].name, 'Lead Desk');
+    assert.equal(re.d.agents[1].name, 'Lead Follow-up');
+    assert.equal(re.d.labels.who, 'leads');
+    assert.equal(re.d.biz, 'Sample Realty');
+    assert.ok(re.d.patients.some((p) => p.name === 'Ananya Reddy'));
+    const chat2 = await s.api('/api/clinic/chat', { message: 'how many leads in the last 2 months' }, token);
+    assert.match(chat2.d.answer, /leads in the last 2 months/);
+  } finally { await s.stop(); }
+});
+
+test('another account cannot read or decide the clinic, and delete removes the form', async () => {
+  const s = await startServer(MOCK);
+  try {
+    const a = await s.api('/api/auth/signup', { email: 'owner-a@example.com', name: 'Owner A', password: PW });
+    const b = await s.api('/api/auth/signup', { email: 'owner-b@example.com', name: 'Owner B', password: PW });
+    const clinic = await s.api('/api/clinic/role', { role: 'dental' }, a.d.token);
+    assert.equal(clinic.status, 200, JSON.stringify(clinic.d));
+    const approval = clinic.d.pending[0].approvalId;
+    const secretName = 'Ananya Reddy';
+    const peek = await s.api('/api/clinic', undefined, b.d.token);
+    assert.equal(peek.d.needsRole, true);
+    assert.doesNotMatch(JSON.stringify(peek.d), new RegExp(secretName));
+    assert.equal((await s.api('/api/clinic/decide', { id: approval, decision: 'approve' }, b.d.token)).status, 404);
+    assert.equal((await s.api('/api/clinic/enquiries/delete', { id: 1 }, b.d.token)).status, 409);
+    const still = await s.api('/api/clinic', undefined, a.d.token);
+    assert.equal(still.d.pending.find((x) => x.approvalId === approval).status, 'pending');
+
+    const token = clinic.d.formPath.split('/').pop();
+    assert.match(await (await fetch(s.base + '/book/' + token)).text(), /Book a visit/);
+    const del = await s.api('/api/auth/delete', { password: PW }, a.d.token);
+    assert.equal(del.status, 200, JSON.stringify(del.d));
+    assert.equal((await fetch(s.base + '/book/' + token)).status, 404);
+    const kv = JSON.parse(fs.readFileSync(path.join(s.dir, 'data', 'kv.json'), 'utf8'));
+    const left = Object.values(kv).filter((r) => r && r.v && String(r.v).includes('owner-a@example.com'));
+    assert.deepEqual(left.map((r) => r.k), []);
+  } finally { await s.stop(); }
+});

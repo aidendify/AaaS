@@ -23,7 +23,7 @@ async function inner(req, res) {
   const url = new URL(req.url, 'http://x');
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'vercel';
   res.setHeader('Cache-Control', 'no-store');
-  if (url.pathname.startsWith('/c/')) {
+  if (url.pathname.startsWith('/c/') || url.pathname.startsWith('/book/') || url.pathname.startsWith('/api/clinic/form/')) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'content-type');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
