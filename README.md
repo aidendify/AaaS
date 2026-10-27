@@ -103,7 +103,7 @@ What you can click through. Sample rows are marked DEMO.
 - **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS and no paid WhatsApp API.
 - **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it. It also drafts a short message a customer can forward on WhatsApp, with that person’s booking link. The draft waits in Approvals. Nothing is sent. A booking that arrives with that link is counted as a referral booking.
 - **Owner Insights** shows the weekly summary. The dashboard can also draft that summary as a WhatsApp message. It waits in Approvals.
-- **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected. UPI ID and a payment-link line are text on the invoice.
+- **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The invoice and the reminder include a payment link. A Razorpay **test** key pair creates a Payment Link (`RAZORPAY_KEY_ID` must start with `rzp_test_`, plus `RAZORPAY_KEY_SECRET`). Otherwise the link is a UPI deep link. `POST /api/clinic/payments/razorpay` verifies `RAZORPAY_WEBHOOK_SECRET` and marks the invoice paid. The sample business simulates that webhook and does not call Razorpay. Nothing is sent until you approve a draft, and AaaS does not charge a card.
 - **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
 - **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). **Eka.care** syncs from their public API when `EKA_CLIENT_ID` and `EKA_CLIENT_SECRET` are set on the server. The sample business shows **Connected (demo)** and does not call Eka.care. A new account shows **Available, connect with credentials** until those env vars are set. Other clinic software can use the same CSV or `POST /api/clinic/connectors/webhook/<form token>` once `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. Google Calendar is still coming soon.
 - The dashboard lists which people came from the connected software and the paid amount AaaS brought back from them this month.
@@ -141,6 +141,9 @@ Set these on that project (values stay in Vercel, not in git):
 | `EKA_CLIENT_ID` | optional | Live Eka.care sync. Leave empty and the sample business stays Connected (demo). A new account shows Available, connect with credentials. |
 | `EKA_CLIENT_SECRET` | with the id | Server only. Never commit it. |
 | `CLINIC_CONNECTOR_WEBHOOK_SECRET` | optional | Opens the other-software webhook. Unset keeps that URL closed. |
+| `RAZORPAY_KEY_ID` | optional | Test Payment Links only. Must start with `rzp_test_`. A live key is ignored. |
+| `RAZORPAY_KEY_SECRET` | with the test id | Server only. Never commit it. |
+| `RAZORPAY_WEBHOOK_SECRET` | optional | Verifies `POST /api/clinic/payments/razorpay`. Unset keeps that URL closed. |
 | `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
 
 Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.

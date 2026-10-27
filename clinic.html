@@ -464,13 +464,14 @@ function insights() {
 function billing() {
   const a = (state.agents||[]).find((x) => x.key==='billing');
   const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  const rows = (state.invoices||[]).map((inv) => `<tr><td>${esc(inv.number)}${inv.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(pname(inv.patientId))}</div></td><td>${inr(inv.total)}</td><td>${pill(inv.state)}</td><td class="row-actions">
+  const rows = (state.invoices||[]).map((inv) => `<tr><td>${esc(inv.number)}${inv.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(pname(inv.patientId))}</div>${inv.payLink?`<div class="small"><a class="link" href="${esc(inv.payLink)}"${String(inv.payLink).startsWith('http')?' target="_blank" rel="noopener"':''}>${inv.payMode==='razorpay'?'Payment link':'UPI link'}</a></div>`:''}</td><td>${inr(inv.total)}</td><td>${pill(inv.state)}</td><td class="row-actions">
     <button class="btn-ghost" type="button" data-act="paid" data-id="${inv.id}" data-status="${inv.state==='paid'?'unpaid':'paid'}">${inv.state==='paid'?'Mark unpaid':'Mark paid'}</button>
+    ${state.demo && inv.state!=='paid'?`<button class="btn-ghost" type="button" data-act="pay-sim" data-id="${inv.id}">Simulate payment</button>`:''}
     <button class="btn-ghost" type="button" data-act="remind-inv" data-id="${inv.id}">Queue reminder</button>
     <button class="btn-ghost" type="button" data-act="print" data-id="${inv.id}">Print</button>
     <button class="btn-ghost" type="button" data-act="pdf" data-id="${inv.id}" data-number="${esc(inv.number)}">PDF</button>
   </td></tr>`).join('');
-  return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. A reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected.</p>
+  return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. Each invoice and its reminder draft includes a payment link: a Razorpay test link when those keys are set, otherwise a UPI link. The sample business can simulate the paid webhook. Nothing is sent, and AaaS does not take the payment itself.</p>
     <form class="form" data-act="add-inv">
       <label>Person<select name="patientId">${opts}</select></label>
       <label>Description<input name="desc" required placeholder="${esc((state.labels&&state.labels.service)||'What this invoice is for')}"></label>
@@ -676,6 +677,7 @@ async function act(name, el) {
     }
     else if (name === 'paid') { await api('/api/clinic/invoices/update', { id: Number(el.dataset.id), status: el.dataset.status }); flash(el.dataset.status==='paid' ? 'Marked paid. The dashboard uses paid invoices.' : 'Marked unpaid.'); }
     else if (name === 'remind-inv') { await api('/api/clinic/invoices/remind', { id: Number(el.dataset.id) }); flash('Payment reminder queued. Nothing was sent.'); }
+    else if (name === 'pay-sim') { await api('/api/clinic/payments/simulate', { id: Number(el.dataset.id) }); flash('Simulated the paid webhook. The invoice is marked paid. Razorpay was not called.'); }
     else if (name === 'print' || name === 'pdf') {
       const r = await fetch('/api/clinic/invoices/' + el.dataset.id + (name==='pdf'?'/pdf':'/print'), { headers: { authorization: 'Bearer ' + token } });
       if (!r.ok) throw new Error('That invoice did not open.');

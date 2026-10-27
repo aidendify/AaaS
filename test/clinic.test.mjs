@@ -221,6 +221,8 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(made.d.invoice.gst, null);
     assert.equal(made.d.invoice.total, 1800);
     assert.equal(made.d.invoice.state, 'unpaid');
+    assert.equal(made.d.invoice.payMode, 'demo');
+    assert.match(made.d.invoice.payLink, /^upi:\/\/pay\?pa=/);
     const pdf = await fetch(s.base + '/api/clinic/invoices/' + made.d.invoice.id + '/pdf', { headers: { authorization: 'Bearer ' + token } });
     assert.equal(pdf.status, 200);
     assert.match(pdf.headers.get('content-type'), /pdf/);
@@ -228,6 +230,7 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     const remind = await s.api('/api/clinic/invoices/remind', { id: made.d.invoice.id }, token);
     assert.match(remind.d.draft.waLink, /^https:\/\/wa\.me\//);
     assert.match(remind.d.draft.body, /Email draft/);
+    assert.match(remind.d.draft.body, /Payment link: upi:\/\/pay\?/);
     assert.equal((await s.api('/api/clinic/invoices/update', { id: made.d.invoice.id, status: 'paid' }, token)).status, 200);
     const paid = await s.api('/api/clinic', undefined, token);
     assert.ok(paid.d.stats.revenue >= 15200 + 1800);
