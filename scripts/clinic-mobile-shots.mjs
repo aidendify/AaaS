@@ -28,25 +28,23 @@ async function shot(page, name) {
 }
 
 async function boot(page, base, token, hash) {
-  await page.goto(base + '/clinic', { waitUntil: 'domcontentloaded' });
-  if (token) {
-    await page.evaluate((t) => sessionStorage.setItem('aaas_clinic_token', t), token);
-    await page.goto(base + '/clinic' + (hash || ''), { waitUntil: 'networkidle' });
-  }
+  if (token) await page.addInitScript((t) => sessionStorage.setItem('aaas_clinic_token', t), token);
+  // A query forces a real load. A hash-only change would keep the previous signed-in page.
+  await page.goto(base + '/clinic?shot=' + Date.now() + (hash || ''), { waitUntil: 'networkidle' });
   await page.waitForTimeout(250);
 }
 
 const server = await startServer({ RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO: '1' });
 const browser = await chromium.launch({ headless: true });
 try {
-  const owner = await server.api('/api/auth/signup', { email: 'mobile-owner@example.com', name: 'Mobile Owner', password: 'Clinic-pass-123!' });
-  if (owner.status !== 200) throw new Error('signup failed ' + JSON.stringify(owner.d));
   const demo = await server.api('/api/clinic/demo', {});
   const ready = await server.api('/api/clinic/role', { role: 'dental' }, demo.d.token);
   if (ready.status !== 200) throw new Error('demo role failed ' + JSON.stringify(ready.d));
   const book = server.base + ready.d.formPath;
 
   for (const width of widths) {
+    const owner = await server.api('/api/auth/signup', { email: 'mobile-' + width + '@example.com', name: 'Mobile Owner', password: 'Clinic-pass-123!' });
+    if (owner.status !== 200) throw new Error('signup failed ' + JSON.stringify(owner.d));
     const page = await browser.newPage({ viewport: { width, height: 812 }, deviceScaleFactor: 1 });
     const tag = 'mobile_' + width;
 
@@ -76,7 +74,7 @@ try {
     await page.getByRole('heading', { name: 'Approvals inbox' }).waitFor();
     await shot(page, tag + '_approvals');
 
-    await page.locator('nav').getByRole('button', { name: 'Billing & Invoicing' }).click();
+    await page.locator('nav').getByRole('button', { name: 'Billing & Invoicing' }).first().click();
     await page.getByRole('button', { name: 'Create invoice' }).waitFor();
     await shot(page, tag + '_billing');
 

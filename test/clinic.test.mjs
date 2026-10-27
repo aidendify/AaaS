@@ -4,10 +4,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { startServer } from './helpers.mjs';
-import { waMe, parseCsv } from '../lib/clinic.js';
+import { waMe, parseCsv, buildSeed, forecastOf } from '../lib/clinic.js';
 
 const PW = 'Clinic-pass-123!';
 const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+
+test('forecast includes sample invoices even before 11:00 India time', () => {
+  const now = Date.parse('2026-10-27T19:00:00.000Z');
+  const f = forecastOf(buildSeed('dental', now), now);
+  assert.ok(f.collections > 0, JSON.stringify(f));
+  assert.ok(f.revenue > f.collections);
+});
 
 test('WhatsApp links are click-to-chat URLs and CSV rows parse', () => {
   assert.equal(waMe('919000000001', 'Hello there'), 'https://wa.me/919000000001?text=Hello%20there');
@@ -192,6 +199,9 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
 
     const re = await s.api('/api/clinic/role', { role: 'realestate' }, token);
     assert.equal(re.d.agents[0].name, 'Lead Desk');
+    assert.equal(re.d.usage.sample, true);
+    assert.ok(re.d.usage.runs.filter((r) => r.source === 'sample').length >= 6);
+    assert.ok(re.d.forecast.collections > 0);
     assert.equal(re.d.agents[1].name, 'Lead Follow-up');
     assert.equal(re.d.labels.who, 'leads');
     assert.equal(re.d.biz, 'Sample Realty');

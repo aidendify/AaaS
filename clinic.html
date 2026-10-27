@@ -250,7 +250,6 @@ function side() {
     <nav class="nav">
       ${item('dash','Dashboard')}
       ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
-      ${item('billing','Billing & Invoicing')}
       ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
       ${item('connections','Connections')}
       ${item('visit','Clinic visit')}
