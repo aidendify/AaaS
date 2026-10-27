@@ -581,12 +581,12 @@ async function act(name, el) {
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
     if (name === 'go') { go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
-    if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; render(); return; }
+    if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
     if (name === 'auth') {
       const f = Object.fromEntries(new FormData(el).entries());
       const path = mode === 'create' ? '/api/auth/signup' : '/api/auth/login';
       const d = await api(path, { email:f.email, password:f.password, name:f.name || 'Clinic owner' });
-      token = d.token; sessionStorage.setItem('aaas_clinic_token', token); err = '';
+      token = d.token; sessionStorage.setItem('aaas_clinic_token', token); err = ''; skipProfile = false;
       await reload(); return;
     }
     if (name === 'demo') {
