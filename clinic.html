@@ -660,7 +660,11 @@ async function act(name, el) {
     else if (name === 'tone-reset') { await api('/api/clinic/tone/reset', {}); flash('Learned tone cleared. Later drafts use the standard wording.'); }
     else if (name === 'pause') { const a = state.agents.find((x) => x.key===el.dataset.key); await api('/api/clinic/agent', { key:el.dataset.key, paused:!a.paused }); }
     else if (name === 'edit-draft') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/drafts/edit', { id:Number(f.id), body:f.body }); flash('Draft updated.'); }
-    else if (name === 'decide') { await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision }); flash(el.dataset.decision==='approve' ? 'Approved. Nothing was sent.' : 'Rejected. Nothing was sent.'); }
+    else if (name === 'decide') {
+      const r = await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision });
+      const result = (r.approval && r.approval.result) || '';
+      flash(el.dataset.decision==='reject' ? 'Rejected. Nothing was sent.' : (/Sent on WhatsApp/.test(result) ? result : 'Approved. Nothing was sent.'));
+    }
     else if (name === 'form-done') { await api('/api/clinic/checklist', { id: 'form' }); flash('Booking form marked as connected.'); }
     else if (name === 'sync-eka') {
       const r = await api('/api/clinic/connectors/sync', { provider: 'eka' });
