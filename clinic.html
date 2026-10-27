@@ -84,6 +84,9 @@ tr:last-child td { border-bottom:0; }
 .hero h1 { font-size:40px; letter-spacing:-.04em; line-height:1.1; }
 .plans { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:16px; }
 .banner.ended { background:#fde8e8; color:#8a1f1f; border-color:#f3c7c7; }
+.recovered { background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; margin:8px 0 16px; }
+.recovered .v { font-size:40px; font-weight:650; letter-spacing:-.03em; }
+.recovered ul { display:flex; flex-wrap:wrap; gap:8px 18px; margin:10px 0 0; padding:0; list-style:none; }
 .banner .btn { margin:8px 8px 0 0; }
 .panel { width:min(440px, 100%); background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
 .panel h1 { font-size:28px; }
@@ -307,10 +310,18 @@ function checklistCard() {
   const go = { import: 'connections', form: 'connections', approve: 'approvals' };
   return `<div class="callout"><b>First run</b><p class="small">Three steps, then the team is working from your records.</p><ol>${steps.map((s) => `<li>${s.done?'Done: ':''}<button type="button" class="btn-ghost" data-act="go" data-screen="${go[s.id]||'dash'}">${esc(s.title)}</button> <span class="small">${esc(s.detail)}</span></li>`).join('')}</ol></div>`;
 }
+function recoveredCard() {
+  const r = (state.stats && state.stats.recovered) || { total: 0, bookings: 0, reactivated: 0, referrals: 0, invoices: 0, method: '' };
+  return `<section class="recovered"><div class="k">₹ recovered this month</div><div class="v">${inr(r.total)}</div>
+    <ul><li>Bookings ${inr(r.bookings)}</li><li>Reactivated ${inr(r.reactivated)}</li><li>Referrals ${inr(r.referrals)}</li><li>Paid invoices ${inr(r.invoices)}</li></ul>
+    <p class="small">${esc(r.method || '')}</p>
+    <button class="btn" type="button" data-act="weekly">Draft weekly WhatsApp summary</button></section>`;
+}
 function dash() {
   const L = state.labels || {};
   return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
     <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
+    ${recoveredCard()}
     ${checklistCard()}
     ${softwareCard()}
     ${forecastCard()}
@@ -635,6 +646,7 @@ async function act(name, el) {
     else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
     else if (name === 'referral') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/referrals/draft', { patientId: Number(f.patientId) }); flash('Referral message drafted. It waits in Approvals. Nothing was sent.'); }
     else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }
+    else if (name === 'weekly') { await api('/api/clinic/summary/weekly', {}); flash('Weekly summary drafted. It is waiting in Approvals. Nothing was sent.'); }
     else if (name === 'rules') {
       const f = Object.fromEntries(new FormData(el).entries());
       if (f.everyDays) f.everyDays = Number(f.everyDays);

@@ -97,12 +97,12 @@ Industries, same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real es
 What you can click through. Sample rows are marked DEMO.
 
 - A first-run checklist: import a CSV, connect the booking form, approve the first drafts.
-- The owner dashboard counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
+- The owner dashboard leads with **₹ recovered this month**: bookings, reactivated customers, referrals and paid invoices the agents brought in. Each rupee is in one part. A button drafts the weekly WhatsApp summary into Approvals. Nothing is sent. The same screen counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
 - **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
 - **Recall** lists lapsed and high-value people and drafts a follow-up.
 - **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS and no paid WhatsApp API.
 - **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it. It also drafts a short message a customer can forward on WhatsApp, with that person’s booking link. The draft waits in Approvals. Nothing is sent. A booking that arrives with that link is counted as a referral booking.
-- **Owner Insights** shows the weekly summary.
+- **Owner Insights** shows the weekly summary. The dashboard can also draft that summary as a WhatsApp message. It waits in Approvals.
 - **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected. UPI ID and a payment-link line are text on the invoice.
 - **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
 - **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). **Eka.care** syncs from their public API when `EKA_CLIENT_ID` and `EKA_CLIENT_SECRET` are set on the server. The sample business shows **Connected (demo)** and does not call Eka.care. A new account shows **Available, connect with credentials** until those env vars are set. Other clinic software can use the same CSV or `POST /api/clinic/connectors/webhook/<form token>` once `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. Google Calendar is still coming soon.

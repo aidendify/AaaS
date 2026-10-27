@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { startServer } from './helpers.mjs';
-import { waMe, parseCsv, buildSeed, forecastOf, trialOf, assertWritable } from '../lib/clinic.js';
+import { waMe, parseCsv, buildSeed, forecastOf, trialOf, assertWritable, recoveredOf, weeklySummaryText } from '../lib/clinic.js';
 
 const PW = 'Clinic-pass-123!';
 const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
@@ -33,6 +33,28 @@ test('forecast includes sample invoices even before 11:00 India time', () => {
   const f = forecastOf(buildSeed('dental', now), now);
   assert.ok(f.collections > 0, JSON.stringify(f));
   assert.ok(f.revenue > f.collections);
+});
+
+test('recovered this month counts bookings, referrals, reactivated customers and other paid invoices once', () => {
+  const now = Date.parse('2026-10-27T19:00:00.000Z');
+  const seed = buildSeed('dental', now);
+  const rec = recoveredOf(seed, now);
+  assert.equal(rec.bookings, 13700);
+  assert.equal(rec.referrals, 1500);
+  assert.equal(rec.reactivated, 4500);
+  assert.equal(rec.invoices, 15200);
+  assert.equal(rec.total, rec.bookings + rec.referrals + rec.reactivated + rec.invoices);
+  assert.equal(rec.total, 34900);
+  assert.match(rec.method, /counted once/);
+  const text = weeklySummaryText(seed, now);
+  assert.match(text, /₹34,900/);
+  assert.match(text, /Nothing is sent until you approve/);
+  assert.doesNotMatch(text, /patient/i);
+  const weekly = seed.drafts.find((d) => d.kind === 'weekly');
+  assert.equal(weekly.agent, 'insights');
+  assert.equal(weekly.status, 'pending');
+  assert.match(weekly.waLink, /^https:\/\/wa\.me\//);
+  assert.match(weekly.body, /recovered this month/i);
 });
 
 test('corner chat renders markdown without raw stars', () => {
@@ -94,6 +116,17 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(d.stats.reviews, 2);
     assert.equal(d.stats.posts, 2);
     assert.equal(d.stats.referralBookings, 1);
+    const rec = d.stats.recovered;
+    assert.equal(rec.reactivated, 4500);
+    assert.ok(rec.total > 0);
+    assert.equal(rec.total, Math.round((rec.bookings + rec.referrals + rec.reactivated + rec.invoices) * 100) / 100);
+    assert.match(rec.method, /counted once/);
+    const weekly = d.pending.find((x) => x.kind === 'weekly');
+    assert.equal(weekly.agent, 'insights');
+    assert.match(weekly.body, /recovered this month/i);
+    assert.match(weekly.waLink, /^https:\/\/wa\.me\//);
+    assert.match(weekly.body, /Nothing is sent until you approve/);
+    assert.ok(weekly.approvalId);
     assert.match(d.patients.find((p) => p.name === 'Ananya Reddy').ref, /^[a-f0-9]{10}$/);
     assert.match(d.forecast.method, /28 days/);
     assert.match(d.forecast.method, /not a promise/);
@@ -177,6 +210,11 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.match(post.d.post.text, /weekend cleaning slots/);
     const sum = await s.api('/api/clinic/insights/refresh', {}, token);
     assert.match(sum.d.summary.text, /Paid invoices this month: ₹/);
+    const weeklyAgain = await s.api('/api/clinic/summary/weekly', {}, token);
+    assert.equal(weeklyAgain.status, 200, JSON.stringify(weeklyAgain.d));
+    assert.equal(weeklyAgain.d.draft.kind, 'weekly');
+    assert.equal(weeklyAgain.d.draft.id, weekly.id);
+    assert.match(weeklyAgain.d.draft.body, /recovered this month/i);
     const billTo = d.patients.find((p) => p.name === 'Rohan Mehta');
     const made = await s.api('/api/clinic/invoices', { patientId: billTo.id, items: [{ desc: 'Filling', qty: 1, rate: 1800 }], gst: '' }, token);
     assert.equal(made.status, 200, JSON.stringify(made.d));
@@ -236,6 +274,7 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     const kv = JSON.parse(fs.readFileSync(path.join(s.dir, 'data', 'kv.json'), 'utf8'));
     const approvalRows = JSON.parse(Object.values(kv).find((r) => r && r.k && r.k.startsWith('as_appr:')).v);
     assert.equal(approvalRows.find((a) => /Forwardable referral/.test(a.summary)).kind, 'draft');
+    assert.equal(approvalRows.find((a) => /Weekly WhatsApp summary/.test(a.summary)).kind, 'draft');
     const crm = await s.api('/api/leads?q=Website', undefined, token);
     assert.ok(crm.d.leads.some((l) => l.first_name === 'Website'));
     assert.equal((await fetch(s.base + '/book/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).status, 404);
@@ -304,6 +343,14 @@ test('every industry pack creates the same six screens with its own labels', asy
       assert.deepEqual(clinic.d.agents.map((a) => a.name), pack.agents);
       assert.equal(clinic.d.agents[5].key, 'billing');
       assert.ok(clinic.d.stats.revenue > 0);
+      const rec = clinic.d.stats.recovered;
+      assert.equal(rec.reactivated, 4500);
+      assert.equal(rec.total, Math.round((rec.bookings + rec.referrals + rec.reactivated + rec.invoices) * 100) / 100);
+      const weekly = clinic.d.pending.find((x) => x.kind === 'weekly');
+      assert.equal(weekly.agent, 'insights');
+      assert.match(weekly.waLink, /^https:\/\/wa\.me\//);
+      assert.match(weekly.body, /recovered this month/i);
+      if (pack.id !== 'dental') assert.doesNotMatch(weekly.body, /Check-up|cleaning|RCT|patient/i);
       assert.equal(clinic.d.connections.find((c) => c.id === 'eka').name, 'Eka.care');
       assert.equal(clinic.d.connections.find((c) => c.id === 'eka').status, 'needs_credentials');
       assert.equal(clinic.d.connections.find((c) => c.id === 'eka').label, 'Available, connect with credentials');
