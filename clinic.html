@@ -374,7 +374,8 @@ function draftCard(d) {
   const link = String(d.waLink || '').startsWith('https://wa.me/') ? d.waLink : '';
   return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)} ${d.demo?'<span class="pill">DEMO</span>':''}
     <p>${esc(d.body)}</p>
-    ${link?`<p><a class="link" href="${esc(link)}" target="_blank" rel="noopener">WhatsApp link</a> <span class="small">Opens on your phone. AaaS does not send it.</span></p>`:''}
+    ${d.waStatus?`<p class="small">WhatsApp ${esc(d.waStatus)}${d.waProvider?' · '+esc(d.waProvider):''}. Only an approved draft is handed to the provider.</p>`:''}
+    ${link?`<p><a class="link" href="${esc(link)}" target="_blank" rel="noopener">WhatsApp link</a> <span class="small">${(state.whatsapp&&state.whatsapp.configured)?'Click-to-chat stays available.':'Opens on your phone. AaaS does not send it.'}</span></p>`:''}
     ${d.status==='pending'?`<form data-act="edit-draft"><input type="hidden" name="id" value="${d.id}"><textarea name="body" rows="3">${esc(d.body)}</textarea><div class="row-actions" style="margin-top:8px"><button class="btn-ghost" type="submit">Save edit</button><button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button><button class="btn-danger" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="reject">Reject</button></div></form>`:''}
     ${d.result?`<p class="small">${esc(d.result)}</p>`:''}
   </article>`;
@@ -436,9 +437,10 @@ function reviews() {
   const a = state.agents.find((x) => x.key==='reviews');
   const drafts = (state.drafts||[]).filter((d) => d.kind==='review');
   const visit = (state.labels && state.labels.visit) || 'visit';
-  return `${agentHead(a)}<h2>Ask after a ${esc(visit)}</h2><p class="sub">The draft includes a WhatsApp click-to-chat link. There is no SMS and no paid WhatsApp API.</p>
-    <div class="scroll"><table><thead><tr><th>Name</th><th>Phone</th><th></th></tr></thead><tbody>
-      ${(state.patients||[]).slice(0,12).map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}</td><td>${esc(p.phone)}</td><td><button class="btn" type="button" data-act="review" data-id="${p.id}">Draft review request</button></td></tr>`).join('')}
+  const waOn = !!(state.whatsapp && state.whatsapp.configured);
+  return `${agentHead(a)}<h2>Ask after a ${esc(visit)}</h2><p class="sub">${waOn?'Approving a draft sends the WhatsApp template. Opt-out is honoured. Nothing goes out before you approve.':'The draft includes a WhatsApp click-to-chat link. Nothing is sent until a Meta or Gupshup key is set, and only after you approve.'}</p>
+    <div class="scroll"><table><thead><tr><th>Name</th><th>Phone</th><th>WhatsApp</th><th></th></tr></thead><tbody>
+      ${(state.patients||[]).slice(0,12).map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}</td><td>${esc(p.phone)}</td><td>${p.waOpt==='out'?'Opted out':p.waOpt==='in'?'Opted in':'No opt-in'}</td><td class="row-actions"><button class="btn" type="button" data-act="review" data-id="${p.id}">Draft review request</button><button class="btn-ghost" type="button" data-act="wa-opt" data-id="${p.id}" data-status="in">Opt in</button><button class="btn-ghost" type="button" data-act="wa-opt" data-id="${p.id}" data-status="out">Opt out</button></td></tr>`).join('')}
     </tbody></table></div>
     <h2>Drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No review drafts yet.</p>'}${rulesBox(a)}`;
 }
@@ -644,6 +646,7 @@ async function act(name, el) {
     else if (name === 'remind') { await api('/api/clinic/reminders', { appointmentId:Number(el.dataset.id) }); flash('Reminder queued for approval. Nothing was sent.'); }
     else if (name === 'recall') { await api('/api/clinic/recall/draft', { patientId:Number(el.dataset.id) }); flash('Follow-up drafted. It is waiting in Approvals.'); }
     else if (name === 'review') { await api('/api/clinic/reviews/draft', { patientId:Number(el.dataset.id) }); flash('Review request drafted with a WhatsApp link.'); }
+    else if (name === 'wa-opt') { await api('/api/clinic/whatsapp/opt', { patientId:Number(el.dataset.id), status:el.dataset.status }); flash(el.dataset.status==='out'?'Opt-out recorded. WhatsApp will not be sent.':'Opt-in recorded. Nothing was sent.'); }
     else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
     else if (name === 'referral') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/referrals/draft', { patientId: Number(f.patientId) }); flash('Referral message drafted. It waits in Approvals. Nothing was sent.'); }
     else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }

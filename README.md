@@ -100,7 +100,7 @@ What you can click through. Sample rows are marked DEMO.
 - The owner dashboard leads with **₹ recovered this month**: bookings, reactivated customers, referrals and paid invoices the agents brought in. Each rupee is in one part. A button drafts the weekly WhatsApp summary into Approvals. Nothing is sent. The same screen counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
 - **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
 - **Recall** lists lapsed and high-value people and drafts a follow-up.
-- **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS and no paid WhatsApp API.
+- **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS. Official WhatsApp (Meta Cloud API or Gupshup) sends that draft only after you approve, and only when that provider’s env keys are set. Otherwise the link stays click-to-chat and nothing is sent. Opt-out is recorded and blocks a later send.
 - **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it. It also drafts a short message a customer can forward on WhatsApp, with that person’s booking link. The draft waits in Approvals. Nothing is sent. A booking that arrives with that link is counted as a referral booking.
 - **Owner Insights** shows the weekly summary. The dashboard can also draft that summary as a WhatsApp message. It waits in Approvals.
 - **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The invoice and the reminder include a payment link. A Razorpay **test** key pair creates a Payment Link (`RAZORPAY_KEY_ID` must start with `rzp_test_`, plus `RAZORPAY_KEY_SECRET`). Otherwise the link is a UPI deep link. `POST /api/clinic/payments/razorpay` verifies `RAZORPAY_WEBHOOK_SECRET` and marks the invoice paid. The sample business simulates that webhook and does not call Razorpay. Nothing is sent until you approve a draft, and AaaS does not charge a card.
@@ -144,6 +144,16 @@ Set these on that project (values stay in Vercel, not in git):
 | `RAZORPAY_KEY_ID` | optional | Test Payment Links only. Must start with `rzp_test_`. A live key is ignored. |
 | `RAZORPAY_KEY_SECRET` | with the test id | Server only. Never commit it. |
 | `RAZORPAY_WEBHOOK_SECRET` | optional | Verifies `POST /api/clinic/payments/razorpay`. Unset keeps that URL closed. |
+| `CLINIC_WA_PROVIDER` | optional | `meta` or `gupshup`. Official WhatsApp for approved clinic drafts. Unset keeps `wa.me` and sends nothing. |
+| `CLINIC_WA_META_TOKEN` | with Meta | Cloud API token. Server only. |
+| `CLINIC_WA_META_PHONE_ID` | with Meta | Phone number id from the Meta app. |
+| `CLINIC_WA_META_APP_SECRET` | with Meta | Checks `X-Hub-Signature-256` on the webhook. Unset keeps it closed. |
+| `CLINIC_WA_META_VERIFY_TOKEN` | with Meta | Answers the webhook verify GET. |
+| `CLINIC_WA_GUPSHUP_API_KEY` | with Gupshup | Server only. |
+| `CLINIC_WA_GUPSHUP_SOURCE` | with Gupshup | The business WhatsApp number. |
+| `CLINIC_WA_GUPSHUP_APP_NAME` | with Gupshup | Gupshup app name (`src.name`). |
+| `CLINIC_WA_TEMPLATE` | optional | Template name. Default `aaas_note`. |
+| `CLINIC_WA_WEBHOOK_SECRET` | with Gupshup | Header `X-AaaS-Wa-Secret`. Unset keeps that webhook closed. |
 | `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
 
 Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
