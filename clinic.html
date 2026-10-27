@@ -35,8 +35,8 @@ h1 { font-size:26px; letter-spacing:-.03em; margin:0 0 4px; font-weight:650; }
 .sub { color:var(--muted); margin:0 0 18px; }
 .callout { background:#fff; border:1px solid var(--line); border-left:3px solid var(--blue); border-radius:10px; padding:12px 14px; margin-bottom:16px; }
 .kpis, .team, .split, .days { display:grid; gap:12px; }
-.kpis { grid-template-columns:repeat(4, minmax(0,1fr)); margin-bottom:18px; }
-.team { grid-template-columns:repeat(5, minmax(0,1fr)); }
+.kpis { grid-template-columns:repeat(auto-fit, minmax(148px, 1fr)); margin-bottom:18px; }
+.team { grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); }
 .card, .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
 .tile { padding:14px; }
 .tile .k { color:var(--muted); font-size:13px; }
@@ -55,7 +55,9 @@ tr:last-child td { border-bottom:0; }
 .pill { display:inline-block; border-radius:99px; padding:2px 8px; font-size:12px; background:#eef2f6; }
 .pill.new, .pill.pending, .pill.draft, .pill.queued { background:#fff6e5; color:var(--amber); }
 .pill.booked, .pill.scheduled, .pill.approved, .pill.completed { background:var(--green-bg); color:var(--green); }
-.pill.noshow, .pill.rejected, .pill.cancelled, .pill.closed { background:var(--red-bg); color:var(--red); }
+.pill.noshow, .pill.rejected, .pill.cancelled, .pill.closed, .pill.overdue { background:var(--red-bg); color:var(--red); }
+.pill.paid { background:var(--green-bg); color:var(--green); }
+.pill.unpaid { background:var(--amber-bg); color:var(--amber); }
 .btn, .btn-ghost, .btn-danger { border-radius:8px; padding:8px 12px; border:1px solid transparent; }
 .btn { background:var(--blue); color:#fff; }
 .btn:hover { background:var(--blue-d); }
@@ -77,6 +79,9 @@ tr:last-child td { border-bottom:0; }
 .draft p { margin:6px 0; white-space:pre-wrap; }
 .rules { margin-top:16px; }
 .auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
+.landing { min-height:100vh; display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding:32px 6vw; }
+.hero h1 { font-size:40px; letter-spacing:-.04em; line-height:1.1; }
+.plans { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
 .panel { width:min(440px, 100%); background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
 .panel h1 { font-size:28px; }
 .stack { display:flex; flex-direction:column; gap:10px; }
@@ -100,16 +105,18 @@ tr:last-child td { border-bottom:0; }
 .link { color:var(--blue); }
 .placeholder { opacity:.85; }
 @media (max-width:1100px) {
-  .kpis, .team { grid-template-columns:repeat(2, minmax(0,1fr)); }
-  .days, .split, .form, .roles { grid-template-columns:1fr 1fr; }
+  .days, .split, .form, .roles, .plans { grid-template-columns:1fr 1fr; }
   .side { width:210px; }
+  .landing { grid-template-columns:1fr; padding:24px 16px; }
+  .hero h1 { font-size:32px; }
 }
 @media (max-width:760px) {
   .app { flex-direction:column; }
   .side { width:auto; height:auto; position:relative; }
   .nav { flex-direction:row; overflow:auto; }
-  .kpis, .team, .days, .split, .form, .roles { grid-template-columns:1fr; }
+  .days, .split, .form, .roles, .plans { grid-template-columns:1fr; }
   .main { padding:16px 14px 96px; }
+  .side .grow { display:none; }
 }
 </style>
 </head>
@@ -121,9 +128,9 @@ const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 const when = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Date(t).toLocaleString('en-IN', { timeZone:'Asia/Kolkata', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); };
 const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kolkata', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date(t)); };
 const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
-const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued' };
+const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
 const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
-const SCREENS = ['dash','front','recall','reviews','social','insights','approvals','connections'];
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy'];
 
 let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
@@ -137,6 +144,7 @@ let chatLog = [];
 let chatDraft = '';
 let chatBusy = false;
 let showAdd = '';
+let skipProfile = false;
 
 const root = document.getElementById('root');
 async function api(path, body) {
@@ -151,30 +159,55 @@ function go(s) { screen = s; showAdd = ''; history.replaceState(null, '', '#' + 
 function pname(id) { const p = (state.patients || []).find((x) => x.id === id); return p ? p.name : 'Unknown'; }
 function wanted() { const h = location.hash.replace('#',''); return SCREENS.includes(h) ? h : 'dash'; }
 
+function planCards() {
+  const plans = meta.plans || [];
+  return `<div class="plans">${plans.map((p) => `<div class="tile"><div class="k">${esc(p.name)}${p.launch?' · launch pricing':''}</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><div class="hint">${esc(p.blurb)}</div></div>`).join('')}</div>`;
+}
 function loginView() {
-  return `<div class="auth"><form class="panel stack" data-act="auth">
-    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Clinic team</span></div></div>
-    <h1>Sign in</h1>
-    <p class="sub">Then pick Dental or Real estate. A team of five is created for you, with sample records so you can look around.</p>
+  const hero = meta.hero || "A small team's work, without hiring one";
+  return `<div class="landing"><section class="hero">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>For the owner</span></div></div>
+    <h1>${esc(hero)}</h1>
+    <p class="sub">A personal AI team for a small business: daily sales, follow-up, marketing and billing. Not an enterprise suite. You approve anything that would leave the building.</p>
+    ${planCards()}
+    <p class="small">Nothing is charged on this page. WhatsApp is a link you open. No SMS.</p>
+  </section><form class="panel stack" data-act="auth">
+    <h1>${mode==='create'?'Create your account':'Sign in'}</h1>
+    <p class="sub">Email and password. Then your business, then an industry. The team is created for you.</p>
     <div class="tabs"><button type="button" class="${mode==='signin'?'on':''}" data-act="mode" data-mode="signin">Sign in</button><button type="button" class="${mode==='create'?'on':''}" data-act="mode" data-mode="create">Create account</button></div>
     ${mode==='create'?'<label>Your name<input name="name" autocomplete="name" required></label>':''}
     <label>Email<input name="email" type="email" autocomplete="username" required></label>
     <label>Password<input name="password" type="password" autocomplete="${mode==='create'?'new-password':'current-password'}" required minlength="8"></label>
     <div class="err">${esc(err)}</div>
     <button class="btn" type="submit">${mode==='create'?'Create account':'Sign in'}</button>
-    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample clinic</button><p class="small">Local only. Opens a sample owner account. No password is shown or stored in the page.</p>':''}
+    ${meta.google?'<a class="btn-ghost" href="/api/auth/google/start?next=clinic" style="text-align:center;text-decoration:none">Continue with Google</a>':''}
+    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample clinic</button><p class="small">Local or staging only. Opens a sample owner account. No password is shown.</p>':''}
+  </form></div>`;
+}
+function profileView() {
+  const p = (state && state.profile) || {};
+  return `<div class="auth"><form class="panel stack" data-act="profile" style="width:min(560px,100%)">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Your business</span></div></div>
+    <h1>Tell the team who you are</h1>
+    <p class="sub">This stays in your account. It is the context the drafts start from. You can change it later.</p>
+    <label>Business name<input name="biz" required value="${esc(state && state.biz || '')}"></label>
+    <label>City<input name="city" required value="${esc(state && state.city || '')}"></label>
+    <label>Services<input name="services" required value="${esc(p.services||'')}" placeholder="Check-up, cleaning, RCT"></label>
+    <label>Prices<input name="prices" required value="${esc(p.prices||'')}" placeholder="Check-up ₹1,200"></label>
+    <label>Who you want to reach<input name="audience" required value="${esc(p.audience||'')}"></label>
+    <label>The offer<input name="offer" required value="${esc(p.offer||'')}"></label>
+    <div class="err">${esc(err)}</div>
+    <button class="btn" type="submit">Continue to industry</button>
   </form></div>`;
 }
 function roleView() {
-  const card = (role, title, blurb, names) => `<button class="tile" type="button" data-act="pick" data-role="${role}"><b>${esc(title)}</b><div class="small" style="margin-top:6px">${esc(blurb)}</div><ul>${names.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></button>`;
-  return `<div class="auth"><div class="panel" style="width:min(760px,100%)">
-    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Pick a role</span></div></div>
-    <h1>Who is this for?</h1>
-    <p class="sub">One click loads that team. The screens stay the same. Real estate only changes the labels.</p>
-    <div class="roles">
-      ${card('dental','Dental clinic','Private clinic in Hyderabad. Enquiries, recall, reviews, social, and whether the week made money.',['Front Desk','Patient Recall','Reviews & Referrals','Social Media','Owner Insights'])}
-      ${card('realestate','Real estate','The same five screens for a desk that follows leads instead of patients.',['Lead Desk','Lead Follow-up','Reviews & Referrals','Social Media','Owner Insights'])}
-    </div>
+  const packs = (state && state.packs) || meta.packs || [];
+  const card = (p) => `<button class="tile" type="button" data-act="pick" data-role="${esc(p.id)}"><b>${esc(p.title)}</b><div class="small" style="margin-top:6px">${esc(p.blurb)}</div><ul>${(p.agents||[]).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></button>`;
+  return `<div class="auth"><div class="panel" style="width:min(980px,100%)">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Pick an industry</span></div></div>
+    <h1>Which business is this?</h1>
+    <p class="sub">One click creates the team. The screens stay the same. Labels, sample rows and prompts follow the industry.</p>
+    <div class="roles">${packs.map(card).join('')}</div>
     <div class="err">${esc(err)}</div>
   </div></div>`;
 }
@@ -186,8 +219,12 @@ function side() {
     <nav class="nav">
       ${item('dash','Dashboard')}
       ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
+      ${item('billing','Billing & Invoicing')}
       ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
       ${item('connections','Connections')}
+      ${item('pricing','Pricing')}
+      ${item('usage','Usage & cost')}
+      ${item('privacy','Privacy')}
     </nav>
     <div class="grow"></div>
     <div class="role-switch">
@@ -213,13 +250,20 @@ function kpis() {
   return `<div class="kpis">${tiles.map(([k,v,h]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="hint">${esc(h)}</div></div>`).join('')}</div>`;
 }
 function banner() {
-  if (!state.demo) return '';
-  return `<div class="banner">Sample data for ${esc(state.biz)}, ${esc(state.city)}. These people, phones and fees are fake and marked demo. AaaS does not email, text, or post anything.</div>`;
+  if (!state.demo && !state.sample) return '';
+  return `<div class="banner">Sample rows for ${esc(state.biz)}, ${esc(state.city)} are fake and marked DEMO. This screen is for the owner, not a patient login. AaaS does not email, text, post, or collect a payment.</div>`;
+}
+function checklistCard() {
+  const steps = state.checklist || [];
+  if (!steps.length || steps.every((s) => s.done)) return '';
+  const go = { import: 'connections', form: 'connections', approve: 'approvals' };
+  return `<div class="callout"><b>First run</b><p class="small">Three steps, then the team is working from your records.</p><ol>${steps.map((s) => `<li>${s.done?'Done: ':''}<button type="button" class="btn-ghost" data-act="go" data-screen="${go[s.id]||'dash'}">${esc(s.title)}</button> <span class="small">${esc(s.detail)}</span></li>`).join('')}</ol></div>`;
 }
 function dash() {
   const L = state.labels || {};
   return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
-    <div class="callout">${esc(state.pitch || '')}</div>
+    <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
+    ${checklistCard()}
     ${kpis()}
     <h2>Your team</h2>
     <div class="team">${(state.agents||[]).map((a) => `<button class="tile" type="button" data-act="go" data-screen="${a.key}"><b>${esc(a.name)}</b><div class="small">${a.paused?'Paused':'Active'} · ${a.waiting? a.waiting + ' waiting':'last action in the sample'}</div></button>`).join('')}</div>
@@ -327,6 +371,53 @@ function insights() {
   return `${agentHead(a)}${kpis()}<h2>Weekly summary</h2><article class="draft"><p>${esc((state.summary&&state.summary.text) || 'No summary yet.')}</p>
     <button class="btn-ghost" type="button" data-act="refresh">Refresh summary</button></article>${rulesBox(a)}`;
 }
+function billing() {
+  const a = (state.agents||[]).find((x) => x.key==='billing');
+  const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const rows = (state.invoices||[]).map((inv) => `<tr><td>${esc(inv.number)}${inv.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(pname(inv.patientId))}</div></td><td>${inr(inv.total)}</td><td>${pill(inv.state)}</td><td class="row-actions">
+    <button class="btn-ghost" type="button" data-act="paid" data-id="${inv.id}" data-status="${inv.state==='paid'?'unpaid':'paid'}">${inv.state==='paid'?'Mark unpaid':'Mark paid'}</button>
+    <button class="btn-ghost" type="button" data-act="remind-inv" data-id="${inv.id}">Queue reminder</button>
+    <button class="btn-ghost" type="button" data-act="print" data-id="${inv.id}">Print</button>
+    <button class="btn-ghost" type="button" data-act="pdf" data-id="${inv.id}" data-number="${esc(inv.number)}">PDF</button>
+  </td></tr>`).join('');
+  return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. A reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected.</p>
+    <form class="form" data-act="add-inv">
+      <label>Person<select name="patientId">${opts}</select></label>
+      <label>Description<input name="desc" required placeholder="Cleaning"></label>
+      <label>Qty<input name="qty" type="number" min="1" value="1"></label>
+      <label>Rate ₹<input name="rate" type="number" min="0" value="1500"></label>
+      <label>GST % (optional)<input name="gst" placeholder="Leave blank"></label>
+      <label>Due<input name="due" type="date"></label>
+      <label>UPI ID<input name="upi" value="${esc((state.profile&&state.profile.upi)||'')}" placeholder="name@upi"></label>
+      <label class="wide">Payment link text<input name="payLink" value="${esc((state.profile&&state.profile.payLink)||'')}" placeholder="upi://pay?pa=name@upi"></label>
+      <div><button class="btn" type="submit">Create invoice</button></div>
+    </form>
+    <div class="scroll"><table><thead><tr><th>Invoice</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="4">No invoices yet.</td></tr>'}</tbody></table></div>${rulesBox(a)}`;
+}
+function pricing() {
+  const plans = state.plans || meta.plans || [];
+  return `${banner()}<h1>Launch pricing</h1><p class="sub">For a small business owner. This app does not take a payment. Prices are what we tell you it costs, next to the token meter on Usage.</p>
+    <div class="plans">${plans.map((p) => `<article class="tile"><div class="k">${esc(p.name)} · launch pricing</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><p>${esc(p.blurb)}</p><ul>${(p.includes||[]).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}</div>
+    <p class="small">Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month. The full team is the six agents, still with a human approval on anything outbound.</p>`;
+}
+function usage() {
+  const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '' };
+  return `${banner()}<h1>Usage and cost</h1><p class="sub">Tokens and estimated rupees from model calls on this account this month. Launch prices are not added on top inside the app.</p>
+    <div class="kpis">
+      <div class="tile"><div class="k">Model calls</div><div class="v">${esc(u.calls||0)}</div></div>
+      <div class="tile"><div class="k">Tokens in</div><div class="v">${esc(u.tokensIn||0)}</div></div>
+      <div class="tile"><div class="k">Tokens out</div><div class="v">${esc(u.tokensOut||0)}</div></div>
+      <div class="tile"><div class="k">Estimated cost</div><div class="v">${inr(u.costInr||0)}</div><div class="hint">$${Number(u.costUsd||0).toFixed(4)} · ₹${esc(u.inrPerUsd||84)} / USD estimate</div></div>
+    </div>
+    <p class="small">${esc(u.note||'')}</p>`;
+}
+function privacy() {
+  return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records stay on this account. Another customer cannot read them.</p>
+    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Neither one sends an email, a text, or a post.</p></article>
+    <article class="draft"><b>Export</b><p>Download the records in this account as JSON. The public form token is left out.</p><button class="btn" type="button" data-act="export">Download my data</button></article>
+    <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes the team’s patients, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
+    <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample clinic password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
+}
 function approvals() {
   const items = state.pending || [];
   return `${banner()}<h1>Approvals inbox</h1><p class="sub">Every outbound draft waits here. Approve records your OK. Reject skips it. Nothing is emailed, texted, or posted.</p>
@@ -334,7 +425,8 @@ function approvals() {
 }
 function connections() {
   return `${banner()}<h1>Connections</h1><p class="sub">Bring in the records you already have. External clinic software stays a placeholder.</p>
-    ${(state.connections||[]).map((c) => `<div class="draft" style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}</div><div>${c.status==='placeholder'?'<button class="btn-ghost placeholder" type="button" disabled>Not connected</button>':'<span class="pill approved">Ready</span>'}</div></div>`).join('')}
+    ${(state.connections||[]).map((c) => `<div class="draft" style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}</div><div>${c.status==='placeholder'?'<button class="btn-ghost placeholder" type="button" disabled>Coming soon</button>':'<span class="pill approved">Ready</span>'}</div></div>`).join('')}
+    <p><button class="btn" type="button" data-act="form-done">I have put the booking form on my site</button></p>
     <h2>Import a CSV</h2>
     <p class="small">Columns: type, name, phone, email, last_visit, value, when, service, status, fee. Use type patient or appointment. Up to 2000 rows. Nothing is sent.</p>
     <form class="form" data-act="csv"><label class="full">CSV file<input name="file" type="file" accept=".csv,text/csv"></label><div><button class="btn" type="submit">Import</button></div></form>
@@ -352,9 +444,10 @@ function chat() {
 function render() {
   let body = '';
   if (!token) body = loginView();
-  else if (!state || !state.role) body = roleView();
+  else if (!state) body = roleView();
+  else if (!state.role) body = screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, approvals, connections }[screen] || dash;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy }[screen] || dash;
     body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${chat()}`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
@@ -362,7 +455,11 @@ function render() {
   const input = document.getElementById('chatIn');
   if (input && chatOpen) input.focus();
 }
-async function reload() { state = await api('/api/clinic'); if (!state.role) screen = 'role'; render(); }
+async function reload() {
+  state = await api('/api/clinic');
+  if (!state.role) screen = skipProfile ? 'role' : ((state.profile && state.profile.services) ? 'role' : 'profile');
+  render();
+}
 async function act(name, el) {
   try {
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
@@ -379,11 +476,17 @@ async function act(name, el) {
     if (name === 'demo') {
       const d = await api('/api/clinic/demo', {});
       token = d.token; sessionStorage.setItem('aaas_clinic_token', token);
-      await reload(); return;
+      skipProfile = true; await reload(); return;
+    }
+    if (name === 'profile') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      state = { ...(state||{}), ...(await api('/api/clinic/profile', f)), packs: (state&&state.packs)||meta.packs, plans: (state&&state.plans)||meta.plans };
+      if (!state.packs) state.packs = meta.packs;
+      screen = 'role'; render(); return;
     }
     if (name === 'pick') {
       state = await api('/api/clinic/role', { role: el.dataset.role });
-      if (screen === 'role' || screen === 'login') screen = wanted();
+      if (screen === 'role' || screen === 'login' || screen === 'profile') screen = wanted();
       flash(state.role === 'realestate' ? 'Real estate labels are on. The records stayed.' : 'Dental team is ready.');
       render(); return;
     }
@@ -402,6 +505,41 @@ async function act(name, el) {
     else if (name === 'pause') { const a = state.agents.find((x) => x.key===el.dataset.key); await api('/api/clinic/agent', { key:el.dataset.key, paused:!a.paused }); }
     else if (name === 'edit-draft') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/drafts/edit', { id:Number(f.id), body:f.body }); flash('Draft updated.'); }
     else if (name === 'decide') { await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision }); flash(el.dataset.decision==='approve' ? 'Approved. Nothing was sent.' : 'Rejected. Nothing was sent.'); }
+    else if (name === 'form-done') { await api('/api/clinic/checklist', { id: 'form' }); flash('Booking form marked as connected.'); }
+    else if (name === 'add-inv') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      await api('/api/clinic/invoices', { patientId: Number(f.patientId), items: [{ desc: f.desc, qty: Number(f.qty||1), rate: Number(f.rate||0) }], gst: f.gst, due: f.due ? new Date(f.due + 'T18:00:00+05:30').toISOString() : '', upi: f.upi, payLink: f.payLink });
+      flash('Invoice saved. Nothing was collected.');
+    }
+    else if (name === 'paid') { await api('/api/clinic/invoices/update', { id: Number(el.dataset.id), status: el.dataset.status }); flash(el.dataset.status==='paid' ? 'Marked paid. The dashboard uses paid invoices.' : 'Marked unpaid.'); }
+    else if (name === 'remind-inv') { await api('/api/clinic/invoices/remind', { id: Number(el.dataset.id) }); flash('Payment reminder queued. Nothing was sent.'); }
+    else if (name === 'print' || name === 'pdf') {
+      const r = await fetch('/api/clinic/invoices/' + el.dataset.id + (name==='pdf'?'/pdf':'/print'), { headers: { authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('That invoice did not open.');
+      const blob = await r.blob(); const url = URL.createObjectURL(blob);
+      if (name === 'print') window.open(url, '_blank', 'noopener');
+      else { const a = document.createElement('a'); a.href = url; a.download = (el.dataset.number || 'invoice') + '.pdf'; a.click(); }
+      return;
+    }
+    else if (name === 'export') {
+      const r = await fetch('/api/clinic/export', { headers: { authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('Export did not download.');
+      const blob = await r.blob(); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'aaas-clinic-export.json'; a.click();
+      return;
+    }
+    else if (name === 'wipe') {
+      const confirm = new FormData(el).get('confirm');
+      await api('/api/clinic/data/delete', { confirm });
+      flash('Records deleted. Your sign-in is still here.');
+      skipProfile = false; await reload(); return;
+    }
+    else if (name === 'wipe-account') {
+      const password = new FormData(el).get('password');
+      await api('/api/auth/delete', { password });
+      token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login';
+      flash('Account deleted.'); render(); return;
+    }
     else if (name === 'csv') {
       const file = el.querySelector('input[type=file]').files[0]; if (!file) throw new Error('Choose a CSV file.');
       const csv = await file.text(); const r = await api('/api/clinic/import', { csv });
@@ -422,8 +560,10 @@ root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]')
 root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
 root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
 (async () => {
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+  if (hash.get('as_auth')) { token = hash.get('as_auth'); sessionStorage.setItem('aaas_clinic_token', token); history.replaceState(null, '', '/clinic'); }
   try { meta = await (await fetch('/api/clinic/meta')).json(); } catch { /* offline */ }
-  if (token) { try { await reload(); screen = state && state.role ? wanted() : 'role'; render(); } catch { screen = 'login'; render(); } }
+  if (token) { try { await reload(); if (state && state.role) { screen = wanted(); render(); } } catch { token = ''; screen = 'login'; render(); } }
   else render();
 })();
 </script>

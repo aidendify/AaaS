@@ -37,7 +37,13 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(d.product, 'AaaS');
     assert.equal(d.demo, true);
     assert.equal(d.biz, 'Smile Dental (sample)');
-    assert.deepEqual(d.agents.map((a) => a.name), ['Front Desk', 'Patient Recall', 'Reviews & Referrals', 'Social Media', 'Owner Insights']);
+    assert.deepEqual(d.agents.map((a) => a.name), ['Front Desk', 'Patient Recall', 'Reviews & Referrals', 'Social Media', 'Owner Insights', 'Billing & Invoicing']);
+    assert.equal(d.hero, "A small team's work, without hiring one");
+    assert.equal(d.plans.find((p) => p.id === 'social').priceInr, 8000);
+    assert.equal(d.plans.find((p) => p.id === 'team').priceInr, 15000);
+    assert.equal(d.invoices.filter((i) => i.state === 'paid').length, 2);
+    assert.equal(d.invoices.filter((i) => i.state === 'overdue').length, 1);
+    assert.equal(d.invoices.every((i) => i.gst == null), true);
     assert.equal(d.stats.patientsLast2Months, 11);
     assert.equal(d.stats.patientsTotal, 18);
     assert.equal(d.stats.recallsDue, 6);
@@ -98,7 +104,28 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(post.d.post.status, 'draft');
     assert.match(post.d.post.text, /weekend cleaning slots/);
     const sum = await s.api('/api/clinic/insights/refresh', {}, token);
-    assert.match(sum.d.summary.text, /Estimated revenue this month is ₹/);
+    assert.match(sum.d.summary.text, /Paid invoices this month: ₹/);
+    const made = await s.api('/api/clinic/invoices', { patientId, items: [{ desc: 'Filling', qty: 1, rate: 1800 }], gst: '' }, token);
+    assert.equal(made.status, 200, JSON.stringify(made.d));
+    assert.equal(made.d.invoice.gst, null);
+    assert.equal(made.d.invoice.total, 1800);
+    assert.equal(made.d.invoice.state, 'unpaid');
+    const pdf = await fetch(s.base + '/api/clinic/invoices/' + made.d.invoice.id + '/pdf', { headers: { authorization: 'Bearer ' + token } });
+    assert.equal(pdf.status, 200);
+    assert.match(pdf.headers.get('content-type'), /pdf/);
+    assert.match(Buffer.from(await pdf.arrayBuffer()).toString('latin1'), /^%PDF-1.4/);
+    const remind = await s.api('/api/clinic/invoices/remind', { id: made.d.invoice.id }, token);
+    assert.match(remind.d.draft.waLink, /^https:\/\/wa\.me\//);
+    assert.match(remind.d.draft.body, /Email draft/);
+    assert.equal((await s.api('/api/clinic/invoices/update', { id: made.d.invoice.id, status: 'paid' }, token)).status, 200);
+    const paid = await s.api('/api/clinic', undefined, token);
+    assert.ok(paid.d.stats.revenue >= 15200 + 1800);
+
+    const exp = await fetch(s.base + '/api/clinic/export', { headers: { authorization: 'Bearer ' + token } });
+    const exported = JSON.parse(Buffer.from(await exp.arrayBuffer()).toString('utf8'));
+    assert.equal(exported.clinic.formToken, 'redacted');
+    assert.ok(exported.clinic.patients.some((p) => p.name === 'Ananya Reddy'));
+    assert.equal((await s.api('/api/clinic/checklist', { id: 'form' }, token)).d.checklist.find((x) => x.id === 'form').done, true);
 
     const csv = 'type,name,phone,email,last_visit,value,when,service,status,fee\npatient,Demo Import,919000000099,import@example.com,2026-10-01,1800,,,,\nappointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,Check-up,booked,900\n';
     const imp = await s.api('/api/clinic/import', { csv }, token);
@@ -138,6 +165,43 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.ok(re.d.patients.some((p) => p.name === 'Ananya Reddy'));
     const chat2 = await s.api('/api/clinic/chat', { message: 'how many leads in the last 2 months' }, token);
     assert.match(chat2.d.answer, /leads in the last 2 months/);
+    const usage = await s.api('/api/clinic/usage', undefined, token);
+    assert.equal(usage.status, 200, JSON.stringify(usage.d));
+    assert.ok(usage.d.usage.calls >= 1, JSON.stringify(usage.d));
+    assert.ok(usage.d.usage.tokens > 0);
+    assert.equal(usage.d.usage.inrPerUsd, 84);
+    assert.equal(usage.d.plans[0].priceInr, 8000);
+  } finally { await s.stop(); }
+});
+
+test('every industry pack creates the same six screens with its own labels', async () => {
+  const s = await startServer(MOCK);
+  try {
+    const meta = await fetch(s.base + '/api/clinic/meta').then((r) => r.json());
+    assert.equal(meta.hero, "A small team's work, without hiring one");
+    assert.equal(typeof meta.google, 'boolean');
+    assert.equal(meta.plans.length, 2);
+    const ids = meta.packs.map((p) => p.id);
+    assert.deepEqual(ids, ['dental', 'aesthetic', 'coach', 'realestate', 'studio', 'home', 'institute']);
+    for (const pack of meta.packs) {
+      const email = pack.id + '-owner@example.com';
+      const signed = await s.api('/api/auth/signup', { email, name: pack.title, password: PW });
+      assert.equal(signed.status, 200, JSON.stringify(signed.d));
+      const prof = await s.api('/api/clinic/profile', { biz: pack.title + ' Co', city: 'Hyderabad', services: 'Sample service', prices: '₹1000', audience: 'Local owners', offer: 'A visit this week' }, signed.d.token);
+      assert.equal(prof.status, 200, JSON.stringify(prof.d));
+      const clinic = await s.api('/api/clinic/role', { role: pack.id }, signed.d.token);
+      assert.equal(clinic.status, 200, JSON.stringify(clinic.d));
+      assert.equal(clinic.d.role, pack.id);
+      assert.equal(clinic.d.biz, pack.title + ' Co');
+      assert.equal(clinic.d.agents.length, 6);
+      assert.deepEqual(clinic.d.agents.map((a) => a.name), pack.agents);
+      assert.equal(clinic.d.agents[5].key, 'billing');
+      assert.ok(clinic.d.stats.revenue > 0);
+      assert.equal(clinic.d.connections.find((c) => c.id === 'eka').detail.includes('CSV'), true);
+      assert.equal(clinic.d.connections.find((c) => c.id === 'gcal').status, 'placeholder');
+      assert.equal(clinic.d.connections.find((c) => c.id === 'whatsapp').status, 'ready');
+      assert.ok(clinic.d.patients.some((p) => p.name === 'Ananya Reddy' && p.demo === true));
+    }
   } finally { await s.stop(); }
 });
 

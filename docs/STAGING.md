@@ -1,5 +1,13 @@
 # Staging and test tooling
 
+## Clinic team on a new Vercel project
+
+`/clinic` is already in `vercel.json` (static page, `/api` and `/book` rewrite to `api/index.js`). Create a **new** Vercel project for a CEO review. Do not link, deploy, or promote `aidentify` or `aidentify-demo`. The existing `aidentify-staging` project is a separate app; leave it alone unless someone asks to update that one.
+
+Minimum env for the new project: `SESSION_SECRET`, `DATABASE_URL`, `APP_URL`, `CRON_SECRET`. Add `CLINIC_DEMO=1` so **Explore the sample clinic** is visible. `OPENROUTER_API_KEY` is optional: without it, invoices, CSV, the form and record answers still work, and the token meter stays at zero. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` turn on **Continue with Google**. The full table is in the README under “Small-business team”. No secrets belong in git.
+
+## Staging copy
+
 ## Staging copy
 - URL: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`, team `aidentify`). Deploys are CLI-only, from a separate folder linked to that project, so a deploy can never land on `aidentify-demo` or `aidentify`.
 - Database: the same Neon database as the demo, but its own schema `staging`. The app creates the schema and tables on first start (`DATABASE_SCHEMA=staging`).

@@ -82,29 +82,57 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 3. Chat with **Chief of Staff**, the first tile in My Workplace. It delegates to your agents, creates new agents from a description and teaches them.
 4. Add agents from **Plugins → Agents** and apps from **Plugins → Connectors**.
 
-### Dental clinic demo (AaaS v2)
+### Small-business team (AaaS v2)
 
-One command, then the clinic team:
+One command, then the owner’s team:
 
 ```bash
 npm start
 ```
 
-Open http://localhost:3000/clinic. Create an account, or on this computer choose **Explore the sample clinic** (that button stays off on a hosted deploy unless `CLINIC_DEMO=1`). Pick **Dental**. The same screens switch to **Real estate** by changing labels only.
+Open http://localhost:3000/clinic. The pitch is **A small team's work, without hiring one**. Create an account (or **Continue with Google** when Google sign-in is configured), add the business profile, and pick an industry. On this computer you can also choose **Explore the sample clinic** (that button stays off on a hosted deploy unless `CLINIC_DEMO=1`).
 
-What you can click through, all on sample rows marked demo:
+Industries, same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real estate, Salon/Gym/Studio, Interior design/Home services, Coaching institute.
 
-- The owner dashboard counts enquiries, bookings, no-shows, recalls, review requests, scheduled posts, and estimated revenue from the saved records.
-- **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted.
-- **Patient Recall** lists lapsed and high-value patients and drafts a follow-up.
+What you can click through. Sample rows are marked DEMO.
+
+- A first-run checklist: import a CSV, connect the booking form, approve the first drafts.
+- The owner dashboard counts enquiries, bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
+- **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
+- **Recall** lists lapsed and high-value people and drafts a follow-up.
 - **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS and no paid WhatsApp API.
 - **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it.
 - **Owner Insights** shows the weekly summary.
+- **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected. UPI ID and a payment-link line are text on the invoice.
 - **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
-- **Connections** imports a CSV of patients and visits. The website form is `/book/<token>` (also `POST /api/clinic/form/<token>`). Clinic software such as Eka.care is a placeholder card.
-- The corner **Chat** asks the Chief. “How many patients in the last 2 months?” is answered from these records.
+- **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). Google Calendar is marked coming soon. Clinic software such as Eka.care is coming soon; CSV is the way in today.
+- **Pricing** shows launch prices: ₹8,000/month Social starter and ₹15,000/month for the full team. The app does not charge a card.
+- **Usage & cost** shows tokens and an estimated rupee cost from model calls on this account (₹84 per US dollar, a fixed estimate).
+- **Privacy** exports this account’s records and can delete them. Deleting the account still needs the password.
+- The corner **Chat** asks the Chief. “How many patients in the last 2 months?” is answered from these records. Chat is a corner box, not the product.
 
 Check it with `npm run test:clinic`.
+
+#### Vercel staging
+
+Use a **new** Vercel project. Do not link or deploy `aidentify` or `aidentify-demo`. `vercel.json` already serves `/clinic` and routes `/api` and `/book` to the serverless function. Data on Vercel needs Postgres. Without an AI key the screens, drafts and sample clinic still run; the cost meter stays at zero until a model is called.
+
+Set these on that project (values stay in Vercel, not in git):
+
+| Variable | Required | Why |
+| --- | --- | --- |
+| `SESSION_SECRET` | yes | Signs the login token. `openssl rand -hex 32` |
+| `DATABASE_URL` | yes on Vercel | Neon or any Postgres. The table name stays `agentsphere_kv`. |
+| `APP_URL` | yes | `https://<this-staging-host>` so Google’s redirect matches. |
+| `CRON_SECRET` | yes if cron is on | Vercel calls `/api/cron/tick` with it. |
+| `CLINIC_DEMO` | for the sample button | `1` shows **Explore the sample clinic**. `0` hides it. |
+| `OPENROUTER_API_KEY` | optional | Real drafts and chat. Empty: local draft text, records answers still work. |
+| `OPENROUTER_MODEL` | with the key | A tool-calling model, for example `anthropic/claude-sonnet-4.5`. |
+| `GOOGLE_CLIENT_ID` | optional | Turns on **Continue with Google**. |
+| `GOOGLE_CLIENT_SECRET` | with the id | Redirect URI: `<APP_URL>/api/auth/google/callback` |
+| `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
+
+Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
 
 ## Features
 
