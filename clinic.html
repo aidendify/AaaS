@@ -25,11 +25,12 @@ button { cursor:pointer; }
 .badge { background:#eef2f6; color:var(--ink); border-radius:99px; font-size:12px; padding:0 7px; min-width:20px; text-align:center; }
 .nav button[aria-current="page"] .badge { background:#d7e4ff; color:var(--blue); }
 .side .grow { flex:1; }
+.side select { width:100%; margin-top:4px; border:1px solid var(--line); border-radius:8px; padding:8px; background:#fff; font-size:16px; }
 .role-switch { display:flex; gap:6px; padding:8px; }
 .role-switch button { flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 4px; font-size:12px; }
 .role-switch button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
 .out { margin:6px 8px 0; background:transparent; border:0; color:var(--muted); text-align:left; padding:6px; }
-.main { flex:1; min-width:0; padding:28px 32px 96px; }
+.main { flex:1; min-width:0; padding:28px 32px 96px; overflow-x:auto; }
 .banner { background:var(--amber-bg); color:#6b4700; border:1px solid #f3e2c0; border-radius:10px; padding:10px 12px; margin-bottom:16px; font-size:13px; }
 h1 { font-size:26px; letter-spacing:-.03em; margin:0 0 4px; font-weight:650; }
 .sub { color:var(--muted); margin:0 0 18px; }
@@ -100,23 +101,53 @@ tr:last-child td { border-bottom:0; }
 .bubble.u { align-self:flex-end; background:var(--soft); }
 .bubble.a { align-self:flex-start; background:#f6f8fb; }
 .chat form { display:flex; gap:6px; padding:10px; border-top:1px solid var(--line); }
-.chat input { flex:1; border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; }
-.toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1b2430; color:#fff; padding:10px 14px; border-radius:10px; z-index:6; max-width:min(480px, 90vw); }
+.chat input { flex:1; min-width:0; border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; font-size:16px; }
+.chat form .btn { flex:none; }
+.toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1b2430; color:#fff; padding:10px 14px; border-radius:10px; z-index:6; max-width:min(480px, calc(100vw - 24px)); }
 .link { color:var(--blue); }
 .placeholder { opacity:.85; }
+.conn { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+.conn .actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:none; }
+.src { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
+.src li { background:#f6f8fb; border-radius:999px; padding:4px 10px; font-size:13px; }
+.visit-q { margin:0 0 12px; }
+.terms { margin:8px 0 0; padding-left:18px; }
+.scroll { overflow:auto; -webkit-overflow-scrolling:touch; }
+table { min-width:520px; }
 @media (max-width:1100px) {
   .days, .split, .form, .roles, .plans { grid-template-columns:1fr 1fr; }
-  .side { width:210px; }
-  .landing { grid-template-columns:1fr; padding:24px 16px; }
+  .side { width:220px; }
+  .landing { grid-template-columns:1fr; padding:24px 16px 40px; }
   .hero h1 { font-size:32px; }
+  .panel { width:min(560px, 100%); }
 }
-@media (max-width:760px) {
+@media (max-width:800px) {
   .app { flex-direction:column; }
-  .side { width:auto; height:auto; position:relative; }
-  .nav { flex-direction:row; overflow:auto; }
-  .days, .split, .form, .roles, .plans { grid-template-columns:1fr; }
-  .main { padding:16px 14px 96px; }
+  .side { width:auto; height:auto; position:relative; border-right:0; border-bottom:1px solid var(--line); padding:12px 10px 8px; }
+  .nav { flex-direction:row; overflow:auto; gap:4px; padding-bottom:4px; }
+  .nav button { white-space:nowrap; flex:none; min-height:40px; }
+  .brand span { max-width:70vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .role-switch { flex-wrap:wrap; }
+  .days, .roles { grid-template-columns:1fr 1fr; }
+  .split, .form, .plans, .agent-kpis { grid-template-columns:1fr !important; }
+  .main { padding:16px 14px 108px; }
   .side .grow { display:none; }
+  h1 { font-size:22px; }
+  .hero h1 { font-size:30px; }
+  .tile .v { font-size:22px; }
+  .form input, .form select, .form textarea, .stack input, .stack select, .stack textarea { font-size:16px; }
+  .conn { flex-direction:column; }
+  .conn .actions { align-items:flex-start; flex-direction:row; flex-wrap:wrap; }
+  .chat { left:8px; right:8px; width:auto; height:min(70vh, 520px); bottom:64px; }
+  .chat-fab { right:12px; bottom:12px; min-height:44px; }
+  .auth { padding:12px; align-items:start; }
+  .landing { padding:16px 12px 32px; gap:16px; }
+}
+@media (max-width:480px) {
+  .days, .roles, .plans { grid-template-columns:1fr; }
+  .hero h1 { font-size:26px; }
+  .panel { padding:18px 14px; }
+  th, td { padding:8px; }
 }
 </style>
 </head>
@@ -130,7 +161,7 @@ const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return n
 const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
 const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
-const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy'];
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings'];
 
 let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
@@ -181,7 +212,7 @@ function loginView() {
     <div class="err">${esc(err)}</div>
     <button class="btn" type="submit">${mode==='create'?'Create account':'Sign in'}</button>
     ${meta.google?'<a class="btn-ghost" href="/api/auth/google/start?next=clinic" style="text-align:center;text-decoration:none">Continue with Google</a>':''}
-    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample clinic</button><p class="small">Local or staging only. Opens a sample owner account. No password is shown.</p>':''}
+    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample business</button><p class="small">Local or staging only. Opens a sample owner account. No password is shown.</p>':''}
   </form></div>`;
 }
 function profileView() {
@@ -192,8 +223,8 @@ function profileView() {
     <p class="sub">This stays in your account. It is the context the drafts start from. You can change it later.</p>
     <label>Business name<input name="biz" required value="${esc(state && state.biz || '')}"></label>
     <label>City<input name="city" required value="${esc(state && state.city || '')}"></label>
-    <label>Services<input name="services" required value="${esc(p.services||'')}" placeholder="Check-up, cleaning, RCT"></label>
-    <label>Prices<input name="prices" required value="${esc(p.prices||'')}" placeholder="Check-up ₹1,200"></label>
+    <label>Services<input name="services" required value="${esc(p.services||'')}" placeholder="What you offer"></label>
+    <label>Prices<input name="prices" required value="${esc(p.prices||'')}" placeholder="What you charge"></label>
     <label>Who you want to reach<input name="audience" required value="${esc(p.audience||'')}"></label>
     <label>The offer<input name="offer" required value="${esc(p.offer||'')}"></label>
     <div class="err">${esc(err)}</div>
@@ -222,15 +253,16 @@ function side() {
       ${item('billing','Billing & Invoicing')}
       ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
       ${item('connections','Connections')}
+      ${item('visit','Clinic visit')}
       ${item('pricing','Pricing')}
       ${item('usage','Usage & cost')}
+      ${item('settings','Settings')}
       ${item('privacy','Privacy')}
     </nav>
     <div class="grow"></div>
-    <div class="role-switch">
-      <button type="button" class="${state.role==='dental'?'on':''}" data-act="pick" data-role="dental">Dental</button>
-      <button type="button" class="${state.role==='realestate'?'on':''}" data-act="pick" data-role="realestate">Real estate</button>
-    </div>
+    <label class="small" style="padding:8px">Industry
+      <select data-act="pick" aria-label="Industry">${((state.packs)||[]).map((p) => `<option value="${esc(p.id)}" ${state.role===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</select>
+    </label>
     <button class="out" type="button" data-act="logout">Sign out</button>
   </aside>`;
 }
@@ -241,17 +273,17 @@ function kpis() {
     ['Enquiries this week', s.enquiriesWeek, s.enquiriesOpen + ' still open'],
     [L.booking || 'Bookings this week', s.bookingsWeek, 'Booked or completed'],
     [L.noshow || 'No-shows', s.noshows, 'This week'],
-    [L.recall || 'Recalls due', s.recallsDue, 'No visit in 6 months'],
+    [L.recall || 'Recalls due', s.recallsDue, 'No ' + (L.visit || 'visit') + ' in 6 months'],
     ['Reviews requested', s.reviews, 'Drafts on file'],
     ['Posts scheduled', s.posts, 'On the calendar, not published'],
-    [L.revenue || 'Est. revenue this month', inr(s.revenue), 'Booked and completed visits'],
+    [L.revenue || 'Paid this month', inr(s.revenue), 'Invoices marked paid'],
     [(L.who || 'Patients') + ' last 2 months', s.patientsLast2Months, s.patientsTotal + ' on file'],
   ];
   return `<div class="kpis">${tiles.map(([k,v,h]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="hint">${esc(h)}</div></div>`).join('')}</div>`;
 }
 function banner() {
   if (!state.demo && !state.sample) return '';
-  return `<div class="banner">Sample rows for ${esc(state.biz)}, ${esc(state.city)} are fake and marked DEMO. This screen is for the owner, not a patient login. AaaS does not email, text, post, or collect a payment.</div>`;
+  return `<div class="banner">Sample rows for ${esc(state.biz)}, ${esc(state.city)} are fake and marked DEMO. This screen is for the owner, not a login for ${esc((state.labels&&state.labels.who)||'customers')}. AaaS does not email, text, post, or collect a payment.</div>`;
 }
 function checklistCard() {
   const steps = state.checklist || [];
@@ -264,22 +296,48 @@ function dash() {
   return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
     <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
     ${checklistCard()}
+    ${softwareCard()}
+    ${forecastCard()}
     ${kpis()}
     <h2>Your team</h2>
     <div class="team">${(state.agents||[]).map((a) => `<button class="tile" type="button" data-act="go" data-screen="${a.key}"><b>${esc(a.name)}</b><div class="small">${a.paused?'Paused':'Active'} · ${a.waiting? a.waiting + ' waiting':'last action in the sample'}</div></button>`).join('')}</div>
     <p class="small" style="margin-top:14px">${esc(L.who || 'Records')} in the last 2 months are counted from the database, not typed in by hand.</p>`;
+}
+function softwareCard() {
+  const s = state.stats || {};
+  const rows = s.fromSoftwareNames || [];
+  return `<section class="card" style="padding:14px;margin-bottom:16px"><h2 style="margin-top:0">From connected software</h2>
+    <p class="small">People whose row came from Eka.care or another system you connect. Brought-back rupees are paid invoices this month for those people, after AaaS marked the follow-up.</p>
+    <div class="kpis">
+      <div class="tile"><div class="k">From connected software</div><div class="v">${esc(s.fromSoftware || 0)}</div></div>
+      <div class="tile"><div class="k">Brought back by AaaS</div><div class="v">${inr(s.broughtBackInr || 0)}</div><div class="hint">${(s.broughtBackNames || []).join(', ') || 'No paid return yet'}</div></div>
+    </div>
+    ${rows.length ? `<ul class="src">${rows.map((p) => `<li><b>${esc(p.name)}</b> <span class="pill">${esc(p.source)}</span>${p.broughtBack ? ' <span class="pill paid">Brought back</span>' : ''}</li>`).join('')}</ul>` : '<p class="small">None yet. Connect Eka.care or import a CSV.</p>'}
+  </section>`;
+}
+function forecastCard() {
+  const f = state.forecast || {};
+  return `<section class="card" style="padding:14px;margin-bottom:16px"><h2 style="margin-top:0">Next month</h2>
+    <div class="kpis">
+      <div class="tile"><div class="k">${esc((state.labels&&state.labels.booking)||'Bookings')}</div><div class="v">${esc(f.bookings||0)}</div><div class="hint">${esc(f.bookingsBase||0)} in the last ${esc(f.days||28)} days</div></div>
+      <div class="tile"><div class="k">Revenue</div><div class="v">${inr(f.revenue||0)}</div><div class="hint">Invoices issued, scaled</div></div>
+      <div class="tile"><div class="k">Collections</div><div class="v">${inr(f.collections||0)}</div><div class="hint">Invoices marked paid, scaled</div></div>
+    </div>
+    <p class="small">${esc(f.method||'')}</p>
+  </section>`;
 }
 function rulesBox(agent) {
   const r = state.rules || {};
   return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules</div>
     <div style="margin:6px 0 8px">Send only between <input name="from" value="${esc(r.from)}" style="width:90px"> and <input name="to" value="${esc(r.to)}" style="width:90px"> · Ask before anything new · Tone: <input name="tone" value="${esc(r.tone)}" style="width:min(360px,100%)"></div>
     <button class="btn-ghost" type="submit">Save rules</button>
+    <button class="btn-ghost" type="button" data-act="go" data-screen="settings">Reminder settings</button>
     <button class="btn-ghost" type="button" data-act="pause" data-key="${esc(agent.key)}">${agent.paused?'Resume agent':'Pause agent'}</button>
   </form>`;
 }
 function agentHead(agent) {
   return `${banner()}<h1>${esc(agent.name)}</h1><p class="sub">${esc(agent.d)}</p>
-    <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="kpis agent-kpis">
       <div class="tile"><div class="k">Done this week</div><div class="v">${agent.done}</div></div>
       <div class="tile"><div class="k">Waiting for approval</div><div class="v">${agent.waiting}</div></div>
       <div class="tile"><div class="k">Scheduled</div><div class="v">${agent.scheduled}</div></div>
@@ -318,13 +376,13 @@ function front() {
         <form class="form" data-act="add-appt" style="grid-template-columns:1fr 1fr">
           <label>Person<select name="patientId">${opts}</select></label>
           <label>When<input name="at" type="datetime-local" required></label>
-          <label>Service<input name="service" value="${state.role==='realestate'?'Site visit':'Check-up'}"></label>
+          <label>Service<input name="service" value="${esc((state.labels&&state.labels.service)||'Visit')}"></label>
           <label>Fee<input name="fee" type="number" min="0" value="1500"></label>
           <div><button class="btn" type="submit">Add appointment</button></div>
         </form>
         <div class="scroll"><table><thead><tr><th>When</th><th>Who</th><th>Status</th><th></th></tr></thead><tbody>
           ${(state.appointments||[]).map((ap) => `<tr><td>${esc(when(ap.at))}<div class="small">${esc(ap.service)} · ${inr(ap.fee)}</div></td><td>${esc(pname(ap.patientId))}${ap.demo?' <span class="pill">DEMO</span>':''}</td><td>${pill(ap.status)}${ap.reminder?`<div class="small">Reminder ${esc(ap.reminder.status)}</div>`:''}</td><td class="row-actions">
-            <button class="btn-ghost" type="button" data-act="appt-status" data-id="${ap.id}" data-status="noshow">No-show</button>
+            <button class="btn-ghost" type="button" data-act="appt-status" data-id="${ap.id}" data-status="noshow">Mark missed</button>
             <button class="btn-ghost" type="button" data-act="remind" data-id="${ap.id}">Queue reminder</button>
             <button class="btn-danger" type="button" data-act="appt-del" data-id="${ap.id}">Delete</button>
           </td></tr>`).join('') || '<tr><td colspan="4">No appointments yet.</td></tr>'}
@@ -334,13 +392,14 @@ function front() {
 }
 function peopleTable(list, act) {
   if (!list.length) return '<p class="small">Nobody in this list.</p>';
-  return `<div class="scroll"><table><thead><tr><th>Name</th><th>Last visit</th><th>Value</th><th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(p.phone)}</div></td><td>${esc(when(p.lastVisit))}</td><td>${inr(p.value)}</td><td><button class="btn" type="button" data-act="${act}" data-id="${p.id}">Draft follow-up</button></td></tr>`).join('')}</tbody></table></div>`;
+  const visit = (state.labels && state.labels.visit) || 'visit';
+  return `<div class="scroll"><table><thead><tr><th>Name</th><th>Last ${esc(visit)}</th><th>Value</th><th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(p.phone)}</div></td><td>${esc(when(p.lastVisit))}</td><td>${inr(p.value)}</td><td><button class="btn" type="button" data-act="${act}" data-id="${p.id}">Draft follow-up</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 function recall() {
   const a = state.agents.find((x) => x.key==='recall');
   const now = Date.now(), day = 864e5;
   const lapsed = (state.patients||[]).filter((p) => p.lastVisit && (now - Date.parse(p.lastVisit) > 180*day));
-  const bar = state.role==='realestate' ? 10000000 : 20000;
+  const bar = Number(state.labels && state.labels.highValue) || 20000;
   const high = (state.patients||[]).filter((p) => Number(p.value) >= bar);
   const drafts = (state.drafts||[]).filter((d) => d.agent==='recall');
   return `${agentHead(a)}<div class="split"><section><h2>Lapsed</h2>${peopleTable(lapsed,'recall')}</section><section><h2>High value</h2>${peopleTable(high,'recall')}</section></div>
@@ -349,7 +408,8 @@ function recall() {
 function reviews() {
   const a = state.agents.find((x) => x.key==='reviews');
   const drafts = (state.drafts||[]).filter((d) => d.kind==='review');
-  return `${agentHead(a)}<h2>Ask after a visit</h2><p class="sub">The draft includes a WhatsApp click-to-chat link. There is no SMS and no paid WhatsApp API.</p>
+  const visit = (state.labels && state.labels.visit) || 'visit';
+  return `${agentHead(a)}<h2>Ask after a ${esc(visit)}</h2><p class="sub">The draft includes a WhatsApp click-to-chat link. There is no SMS and no paid WhatsApp API.</p>
     <div class="scroll"><table><thead><tr><th>Name</th><th>Phone</th><th></th></tr></thead><tbody>
       ${(state.patients||[]).slice(0,12).map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}</td><td>${esc(p.phone)}</td><td><button class="btn" type="button" data-act="review" data-id="${p.id}">Draft review request</button></td></tr>`).join('')}
     </tbody></table></div>
@@ -362,7 +422,7 @@ function social() {
   return `${agentHead(a)}<h2>This week</h2>
     <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
     <h2>Draft a post</h2>
-    <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="Weekend cleaning slots"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
+    <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="${esc((state.labels&&state.labels.example)||'What to say this week')}"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
     <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
     ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
 }
@@ -383,7 +443,7 @@ function billing() {
   return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. A reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected.</p>
     <form class="form" data-act="add-inv">
       <label>Person<select name="patientId">${opts}</select></label>
-      <label>Description<input name="desc" required placeholder="Cleaning"></label>
+      <label>Description<input name="desc" required placeholder="${esc((state.labels&&state.labels.service)||'What this invoice is for')}"></label>
       <label>Qty<input name="qty" type="number" min="1" value="1"></label>
       <label>Rate ₹<input name="rate" type="number" min="0" value="1500"></label>
       <label>GST % (optional)<input name="gst" placeholder="Leave blank"></label>
@@ -401,38 +461,84 @@ function pricing() {
     <p class="small">Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month. The full team is the six agents, still with a human approval on anything outbound.</p>`;
 }
 function usage() {
-  const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '' };
-  return `${banner()}<h1>Usage and cost</h1><p class="sub">Tokens and estimated rupees from model calls on this account this month. Launch prices are not added on top inside the app.</p>
+  const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '', runs: [], byAgent: [] };
+  const rows = (u.runs || []).map((r) => `<tr><td>${esc(r.name)}<div class="small">${esc(when(r.at))}</div></td><td>${esc(r.tokensIn)}</td><td>${esc(r.tokensOut)}</td><td>${inr(r.costInr)}</td><td>${r.source==='sample'?'<span class="pill">Sample run</span>':'<span class="pill approved">Logged</span>'}</td></tr>`).join('');
+  const agents = (u.byAgent || []).map((r) => `<div class="tile"><div class="k">${esc(r.name)}</div><div class="v">${inr(r.costInr)}</div><div class="hint">${esc(r.tokensIn + r.tokensOut)} tokens · ${esc(r.calls)} runs</div></div>`).join('');
+  return `${banner()}<h1>Usage and cost</h1><p class="sub">Token counts per agent run, converted to rupees. Logged rows come from the model response. A sample business also shows recorded sample runs.</p>
     <div class="kpis">
-      <div class="tile"><div class="k">Model calls</div><div class="v">${esc(u.calls||0)}</div></div>
+      <div class="tile"><div class="k">Logged model calls</div><div class="v">${esc(u.calls||0)}</div></div>
       <div class="tile"><div class="k">Tokens in</div><div class="v">${esc(u.tokensIn||0)}</div></div>
       <div class="tile"><div class="k">Tokens out</div><div class="v">${esc(u.tokensOut||0)}</div></div>
       <div class="tile"><div class="k">Estimated cost</div><div class="v">${inr(u.costInr||0)}</div><div class="hint">$${Number(u.costUsd||0).toFixed(4)} · ₹${esc(u.inrPerUsd||84)} / USD estimate</div></div>
     </div>
+    <h2>By agent</h2><div class="kpis">${agents || '<p class="small">No runs yet.</p>'}</div>
+    <h2>Runs</h2><div class="scroll"><table><thead><tr><th>Agent</th><th>In</th><th>Out</th><th>Rupees</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="5">No runs yet.</td></tr>'}</tbody></table></div>
     <p class="small">${esc(u.note||'')}</p>`;
 }
 function privacy() {
-  return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records stay on this account. Another customer cannot read them.</p>
+  return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records of ${esc((state.labels&&state.labels.who)||'people')} stay on this account. Another customer cannot read them.</p>
     <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Neither one sends an email, a text, or a post.</p></article>
     <article class="draft"><b>Export</b><p>Download the records in this account as JSON. The public form token is left out.</p><button class="btn" type="button" data-act="export">Download my data</button></article>
-    <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes the team’s patients, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
-    <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample clinic password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
+    <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes this team’s ${esc((state.labels&&state.labels.who)||'people')}, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
+    <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample business password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
+}
+function settings() {
+  const r = state.rules || { from: '09:00', to: '20:00', everyDays: 7, cap: 2, tone: '' };
+  const who = (state.labels && state.labels.whoSingular) || 'person';
+  const examples = state.toneExamples || [];
+  return `${banner()}<h1>Settings</h1><p class="sub">Reminder rhythm for this business, and the wording you taught the drafts by editing them.</p>
+    <form class="card stack" data-act="rules" style="padding:14px">
+      <b>Reminders</b>
+      <p class="small">How often a person can be reminded, the cap in any 7 days, and the send window. Quiet hours are everything outside that window. Drafts still wait for approval. Nothing is sent.</p>
+      <label>How often (days)<input name="everyDays" type="number" min="1" max="30" value="${esc(r.everyDays||7)}"></label>
+      <label>Cap per ${esc(who)} in 7 days<input name="cap" type="number" min="1" max="10" value="${esc(r.cap||2)}"></label>
+      <label>Send window starts<input name="from" value="${esc(r.from||'09:00')}" placeholder="09:00"></label>
+      <label>Send window ends<input name="to" value="${esc(r.to||'20:00')}" placeholder="20:00"></label>
+      <label>Tone<input name="tone" value="${esc(r.tone||'')}"></label>
+      <button class="btn" type="submit">Save reminder settings</button>
+    </form>
+    <article class="draft"><b>Learned tone</b>
+      <p class="small">When you edit a draft in Approvals, the before and after are kept here and used as the wording for the next draft of that agent.</p>
+      ${examples.length ? examples.map((e) => `<p><span class="pill">${esc(e.agent)}</span> <span class="small">${esc(when(e.at))}</span><br><span class="small">Before:</span> ${esc(e.before)}<br><span class="small">After:</span> ${esc(e.after)}</p>`).join('') : '<p class="small">No edits yet. Change a draft in Approvals and it will show up here.</p>'}
+      ${examples.length ? '<button class="btn-danger" type="button" data-act="tone-reset">Reset learned tone</button>' : ''}
+    </article>`;
+}
+function visit() {
+  const kit = state.visit || { questions: [], terms: [], saved: null };
+  const saved = kit.saved && kit.saved.answers ? kit.saved.answers : {};
+  return `${banner()}<h1>Clinic visit kit</h1><p class="sub">Ten questions for the owner, the free-pilot terms, and a place to write what they said. Saving stays in this account. Nothing is emailed.</p>
+    <article class="draft"><b>Free pilot</b><ul class="terms">${(kit.terms||[]).map((t) => `<li>${esc(t)}</li>`).join('')}</ul></article>
+    <form class="draft stack" data-act="visit">
+      <label>Who did you speak with?<input name="who" value="${esc((kit.saved&&kit.saved.who)||'')}" maxlength="80"></label>
+      ${(kit.questions||[]).map((q) => `<label class="visit-q">${esc(q.n)}. ${esc(q.text)}<textarea name="${esc(q.id)}" rows="3" maxlength="2000">${esc(saved[q.id]||'')}</textarea></label>`).join('')}
+      <label>Notes<input name="notes" value="${esc((kit.saved&&kit.saved.notes)||'')}" maxlength="2000"></label>
+      <label style="flex-direction:row;align-items:center;gap:8px;color:inherit"><input type="checkbox" name="accept" value="yes" style="width:auto" ${kit.saved?'checked':''}> The owner heard the free-pilot terms.</label>
+      <button class="btn" type="submit">Save visit notes</button>
+      ${kit.saved?'<p class="small">Last saved '+esc(when(kit.saved.at))+'.</p>':''}
+    </form>`;
 }
 function approvals() {
   const items = state.pending || [];
   return `${banner()}<h1>Approvals inbox</h1><p class="sub">Every outbound draft waits here. Approve records your OK. Reject skips it. Nothing is emailed, texted, or posted.</p>
     ${items.map((d) => draftCard(d)).join('') || '<p class="small">Nothing is waiting.</p>'}`;
 }
+function connState(c) {
+  if (c.status === 'demo') return '<span class="pill booked">Connected (demo)</span>';
+  if (c.status === 'ready') return '<span class="pill approved">' + esc(c.label || 'Ready') + '</span>';
+  if (c.status === 'placeholder') return '<button class="btn-ghost placeholder" type="button" disabled>Coming soon</button>';
+  return '<span class="pill pending">' + esc(c.label || 'Needs server env') + '</span>';
+}
 function connections() {
-  return `${banner()}<h1>Connections</h1><p class="sub">Bring in the records you already have. External clinic software stays a placeholder.</p>
-    ${(state.connections||[]).map((c) => `<div class="draft" style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}</div><div>${c.status==='placeholder'?'<button class="btn-ghost placeholder" type="button" disabled>Coming soon</button>':'<span class="pill approved">Ready</span>'}</div></div>`).join('')}
+  const place = (state.labels && state.labels.place) || 'business';
+  return `${banner()}<h1>Connections</h1><p class="sub">Eka.care reads from their API when the server has credentials. A sample ${esc(place)} stays on sample rows and shows Connected (demo). Other software can use CSV or a webhook. Nothing is sent back out.</p>
+    ${(state.connections||[]).map((c) => `<div class="draft conn"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}${c.docs?`<div class="small"><a class="link" href="${esc(c.docs)}" target="_blank" rel="noopener">API docs</a></div>`:''}</div><div class="actions">${connState(c)}${c.id==='eka' && (c.status==='demo' || c.status==='ready')?'<button class="btn" type="button" data-act="sync-eka">Sync</button>':''}</div></div>`).join('')}
     <p><button class="btn" type="button" data-act="form-done">I have put the booking form on my site</button></p>
     <h2>Import a CSV</h2>
-    <p class="small">Columns: type, name, phone, email, last_visit, value, when, service, status, fee. Use type patient or appointment. Up to 2000 rows. Nothing is sent.</p>
+    <p class="small">Columns: type, name, phone, email, last_visit, value, when, service, status, fee. The file uses type patient for a person and appointment for a ${esc((state.labels&&state.labels.visit)||'visit')}. Up to 2000 rows. Nothing is sent.</p>
     <form class="form" data-act="csv"><label class="full">CSV file<input name="file" type="file" accept=".csv,text/csv"></label><div><button class="btn" type="submit">Import</button></div></form>
     <pre class="small" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto">type,name,phone,email,last_visit,value,when,service,status,fee
 patient,Demo Import,919000000099,import@example.com,2026-10-01,1800,,,,
-appointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,Check-up,booked,900</pre>`;
+appointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,${esc((state.labels&&state.labels.service)||'Visit')},booked,900</pre>`;
 }
 function chat() {
   if (!state || !state.role) return '';
@@ -447,7 +553,7 @@ function render() {
   else if (!state) body = roleView();
   else if (!state.role) body = screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy }[screen] || dash;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings }[screen] || dash;
     body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${chat()}`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
@@ -485,9 +591,11 @@ async function act(name, el) {
       screen = 'role'; render(); return;
     }
     if (name === 'pick') {
-      state = await api('/api/clinic/role', { role: el.dataset.role });
+      const role = el.dataset.role || el.value;
+      if (!role || role === (state && state.role)) return;
+      state = await api('/api/clinic/role', { role });
       if (screen === 'role' || screen === 'login' || screen === 'profile') screen = wanted();
-      flash(state.role === 'realestate' ? 'Real estate labels are on. The records stayed.' : 'Dental team is ready.');
+      flash((state.roleTitle || 'Team') + ' is ready.');
       render(); return;
     }
     if (name === 'add-enq') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/enquiries', f); flash('Enquiry added.'); }
@@ -501,11 +609,28 @@ async function act(name, el) {
     else if (name === 'review') { await api('/api/clinic/reviews/draft', { patientId:Number(el.dataset.id) }); flash('Review request drafted with a WhatsApp link.'); }
     else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
     else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }
-    else if (name === 'rules') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/rules', f); flash('Rules saved.'); }
+    else if (name === 'rules') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      if (f.everyDays) f.everyDays = Number(f.everyDays);
+      if (f.cap) f.cap = Number(f.cap);
+      await api('/api/clinic/rules', f); flash('Reminder settings saved. Nothing is sent.');
+    }
+    else if (name === 'tone-reset') { await api('/api/clinic/tone/reset', {}); flash('Learned tone cleared. Later drafts use the standard wording.'); }
     else if (name === 'pause') { const a = state.agents.find((x) => x.key===el.dataset.key); await api('/api/clinic/agent', { key:el.dataset.key, paused:!a.paused }); }
     else if (name === 'edit-draft') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/drafts/edit', { id:Number(f.id), body:f.body }); flash('Draft updated.'); }
     else if (name === 'decide') { await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision }); flash(el.dataset.decision==='approve' ? 'Approved. Nothing was sent.' : 'Rejected. Nothing was sent.'); }
     else if (name === 'form-done') { await api('/api/clinic/checklist', { id: 'form' }); flash('Booking form marked as connected.'); }
+    else if (name === 'sync-eka') {
+      const r = await api('/api/clinic/connectors/sync', { provider: 'eka' });
+      flash(r.mode === 'demo' ? 'Connected (demo). Sample rows only. Eka.care was not called.' : 'Synced from Eka.care. Nothing was sent back.');
+    }
+    else if (name === 'visit') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const answers = {};
+      for (const q of ((state.visit && state.visit.questions) || [])) answers[q.id] = f[q.id] || '';
+      await api('/api/clinic/visit', { who: f.who || '', notes: f.notes || '', accept: f.accept === 'yes', answers });
+      flash('Visit notes saved in this account.');
+    }
     else if (name === 'add-inv') {
       const f = Object.fromEntries(new FormData(el).entries());
       await api('/api/clinic/invoices', { patientId: Number(f.patientId), items: [{ desc: f.desc, qty: Number(f.qty||1), rate: Number(f.rate||0) }], gst: f.gst, due: f.due ? new Date(f.due + 'T18:00:00+05:30').toISOString() : '', upi: f.upi, payLink: f.payLink });
@@ -543,7 +668,10 @@ async function act(name, el) {
     else if (name === 'csv') {
       const file = el.querySelector('input[type=file]').files[0]; if (!file) throw new Error('Choose a CSV file.');
       const csv = await file.text(); const r = await api('/api/clinic/import', { csv });
-      flash(`Imported ${r.patients} people and ${r.appointments} visits.` + (r.errors.length?` ${r.errors.length} rows skipped.` : ''));
+      const who = (state.labels && state.labels.who) || 'people';
+      const visitWord = (state.labels && state.labels.visit) || 'visit';
+      const visits = /class$/.test(visitWord) ? visitWord + 'es' : visitWord + 's';
+      flash(`Imported ${r.patients} ${who} and ${r.appointments} ${visits}.` + (r.errors.length?` ${r.errors.length} rows skipped.` : ''));
     }
     else if (name === 'chat') {
       const message = (new FormData(el).get('message') || '').trim();
@@ -557,6 +685,7 @@ async function act(name, el) {
   } catch (e) { err = e.message; toast = e.message; chatBusy = false; render(); }
 }
 root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out')) { e.preventDefault(); act(b.dataset.act, b); } });
+root.addEventListener('change', (e) => { if (e.target && e.target.dataset && e.target.dataset.act === 'pick') act('pick', e.target); });
 root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
 root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
 (async () => {

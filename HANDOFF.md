@@ -1,5 +1,27 @@
 # AaaS handoff
 
+## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
+
+Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
+
+What this branch adds on top of `main`, still in PR #13:
+
+- Owner sign-up, business profile, seven industry packs, six agents including Billing & Invoicing. Launch prices ₹8,000 and ₹15,000 are shown. The app does not charge a card. Drafts stay in Approvals and approving does not send anything. WhatsApp is `https://wa.me/` only.
+- **Eka.care** (`lib/clinic-connectors.js`). Login `POST /connect-auth/v1/account/login`, directory `GET /profiles/v1/patient/minified/`, visits `GET /dr/v1/appointment` (7-day window). Docs: https://developer.eka.care. Env only: `EKA_CLIENT_ID`, `EKA_CLIENT_SECRET`, optional `EKA_BASE_URL`, `EKA_CLINIC_ID`. Tokens are not stored. The sample clinic is **Connected (demo)** and sync does not call the network. Other software: CSV, or `POST /api/clinic/connectors/webhook/<form token>` with `X-AaaS-Connector-Secret` when `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. The webhook stays 404 without that secret.
+- Dashboard: people whose source is Eka.care or Clinic software, and paid invoices this month for the ones marked brought back (a return invoice on the sample, or an approved recall draft for a connector patient).
+- **Clinic visit** at `/clinic#visit` and `docs/clinic-visit-kit.md`. Ten questions, free-pilot terms, answers saved on `as_clinic:<email>`.
+- Usage meter: each model response logs tokens in and out on `as_cusage:<email>`, shown per agent in rupees at ₹84 per dollar. The sample clinic also stores six recorded sample runs (`source: sample`). Those are not a bill.
+- Forecast card: last 28 days of bookings, issued invoices and paid invoices, scaled by 30/28. The method is written on the card.
+- Settings: `everyDays`, `cap` per person in 7 days, send window `from`–`to` (quiet hours are outside it). A new reminder, follow-up or payment draft is refused when the cap or the gap says so. Nothing is sent either way.
+- Tone: editing a pending draft stores before/after on the clinic record (last 12). The next draft for that agent reuses the edited wording, with the name swapped when it appears. `POST /api/clinic/tone/reset` clears it. Visible on `/clinic#settings`.
+- Pack copy: labels, sample posts and agent text follow the industry. Dental wording is not reused on the other six.
+- Phone layouts. Screenshots from Playwright at 375 and 768 are artifacts on the PR, not committed.
+- AWS kit is documentation only: `Dockerfile`, `docker-compose.yml`, `deploy/aws/README.md`, `deploy/aws/docker-compose.yml`, `deploy/aws/nginx-clinic.conf.example`. Health is `GET /api/health` and `GET /api/health/deep`. Do not deploy this from the PR. Do not touch Vercel projects `aidentify` or `aidentify-demo`.
+
+Staging env, if someone later creates a **new** Vercel project: `SESSION_SECRET`, `DATABASE_URL`, `APP_URL`, `CRON_SECRET`. Optional: `CLINIC_DEMO=1`, `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, the Eka vars, `CLINIC_CONNECTOR_WEBHOOK_SECRET`. Leave `ALLOW_FILE_STORE` unset.
+
+Tests: `npm run test:clinic` and `node --test test/clinic-connector.test.mjs`. Full suite is `npm test`.
+
 ## v2.4.1 audience update (20 Oct 2026, IST)
 - Phanindra approved the wider small-business audience from /workspace/aaas-run/audience-research-2026-10-20.md. Landing (waitlist.html) and app onboarding (index.html) updated; lib/waitlist.js BUSINESS_TYPES matches the 15 options (server still accepts any 2-60 char type, so older entries stay valid).
 - Onboarding `VERTICALS` keys changed (clinic_skin, coach, …). Old saved profiles with `clinic`/`coaching`/`ecommerce` keep working: the key is only shown in the CoS profile line, and onboarding runs once.

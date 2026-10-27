@@ -105,11 +105,18 @@ What you can click through. Sample rows are marked DEMO.
 - **Owner Insights** shows the weekly summary.
 - **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The reminder is a draft with a WhatsApp link and an email note. Nothing is sent and nothing is collected. UPI ID and a payment-link line are text on the invoice.
 - **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
-- **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). Google Calendar is marked coming soon. Clinic software such as Eka.care is coming soon; CSV is the way in today.
+- **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). **Eka.care** syncs from their public API when `EKA_CLIENT_ID` and `EKA_CLIENT_SECRET` are set on the server. The sample clinic shows **Connected (demo)** and does not call Eka.care. Other clinic software can use the same CSV or `POST /api/clinic/connectors/webhook/<form token>` once `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. Google Calendar is still coming soon.
+- The dashboard lists which people came from the connected software and the paid amount AaaS brought back from them this month.
+- **Clinic visit** (`/clinic#visit`, and `docs/clinic-visit-kit.md`) is the 10-question interview, the free-pilot terms, and a form that saves the answers in the account.
 - **Pricing** shows launch prices: ₹8,000/month Social starter and ₹15,000/month for the full team. The app does not charge a card.
-- **Usage & cost** shows tokens and an estimated rupee cost from model calls on this account (₹84 per US dollar, a fixed estimate).
+- **Usage & cost** shows token counts per agent run, logged from the model response, and the rupee estimate at ₹84 per US dollar. The sample clinic also shows recorded sample runs.
+- **Next month** on the dashboard scales the last 28 days of bookings, invoices issued, and invoices marked paid up to 30 days. The card states that method. It is not a promise.
+- **Settings** holds the reminder rhythm: how often, a cap per person in 7 days, and the send window. Quiet hours are outside that window. Editing a draft stores the before and after, and the next draft of that agent uses it. Reset clears the learned tone.
 - **Privacy** exports this account’s records and can delete them. Deleting the account still needs the password.
 - The corner **Chat** asks the Chief. “How many patients in the last 2 months?” is answered from these records. Chat is a corner box, not the product.
+- Layouts fit a phone (375px) and a tablet (768px): sign-up, onboarding, the dashboard, approvals, billing, pricing, the booking form and the chat panel.
+
+An existing EC2 box can run the same image. The steps (nginx, TLS, env file, backups, `GET /api/health`) are in `deploy/aws/README.md`. That guide does not deploy anything by itself.
 
 Check it with `npm run test:clinic`.
 
@@ -130,6 +137,9 @@ Set these on that project (values stay in Vercel, not in git):
 | `OPENROUTER_MODEL` | with the key | A tool-calling model, for example `anthropic/claude-sonnet-4.5`. |
 | `GOOGLE_CLIENT_ID` | optional | Turns on **Continue with Google**. |
 | `GOOGLE_CLIENT_SECRET` | with the id | Redirect URI: `<APP_URL>/api/auth/google/callback` |
+| `EKA_CLIENT_ID` | optional | Live Eka.care sync. Leave empty and the sample clinic stays Connected (demo). |
+| `EKA_CLIENT_SECRET` | with the id | Server only. Never commit it. |
+| `CLINIC_CONNECTOR_WEBHOOK_SECRET` | optional | Opens the other-software webhook. Unset keeps that URL closed. |
 | `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
 
 Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
