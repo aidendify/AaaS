@@ -173,12 +173,13 @@ const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return n
 const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
 const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
-const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings'];
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup'];
 
 let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
 let state = null;
 let screen = 'login';
+let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizDrafts = [];
 let mode = 'signin';
 let err = '';
 let toast = '';
@@ -241,7 +242,8 @@ function profileView() {
     <label>The offer<input name="offer" required value="${esc(p.offer||'')}"></label>
     <div class="err">${esc(err)}</div>
     <button class="btn" type="submit">Continue to industry</button>
-  </form></div>`;
+  </form>
+  <p class="small" style="text-align:center"><button class="btn-ghost" type="button" data-act="go" data-screen="setup">15-minute setup</button> <button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="call">Book a setup call</button></p></div>`;
 }
 function roleView() {
   const packs = (state && state.packs) || meta.packs || [];
@@ -253,6 +255,44 @@ function roleView() {
     <div class="roles">${packs.map(card).join('')}</div>
     <div class="err">${esc(err)}</div>
   </div></div>`;
+}
+function setupView() {
+  const packs = (state && state.packs) || meta.packs || [];
+  const wa = (state && state.whatsapp) || {};
+  const booked = state && state.setupCall;
+  const call = `<form class="form" data-act="setup-call" style="margin-top:16px"><h2>Book a setup call</h2><p class="small">About 15 minutes with a person. This saves the request in your account. Nothing is emailed.</p>
+    ${booked ? `<p class="small" role="status">Saved for ${esc(booked.name)} · ${esc(booked.phone)} · ${esc(booked.when)}. Nothing was emailed.</p>` : ''}
+    <label>Name<input name="name" required value="${esc((booked && booked.name) || '')}"></label>
+    <label>Phone<input name="phone" required value="${esc((booked && booked.phone) || '')}" placeholder="9198…"></label>
+    <label>A time that suits you<input name="when" required value="${esc((booked && booked.when) || '')}" placeholder="Tuesday 11:00"></label>
+    <label class="wide">Note<input name="note" placeholder="What you want help with"></label>
+    <div><button class="btn" type="submit">Book a setup call</button></div></form>`;
+  if (wiz === 'call') return `<div class="auth"><div class="panel" style="width:min(640px,100%)"><h1>Book a setup call</h1>${call}<p><button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="1">Back to the 15-minute setup</button></p></div></div>`;
+  const steps = ['Industry', 'Business', 'Import', 'WhatsApp', 'Tone', 'Drafts'];
+  const head = `<p class="small">Step ${wiz} of 6 · about 15 minutes. Nothing is sent.</p><p class="small">${steps.map((s, i) => (i + 1 === Number(wiz) ? '<b>' + s + '</b>' : s)).join(' · ')}</p>`;
+  let body = '';
+  if (Number(wiz) === 1) body = `<h1>Which business is this?</h1>${head}<div class="roles">${packs.map((p) => `<button class="tile" type="button" data-act="setup-role" data-role="${esc(p.id)}"><b>${esc(p.title)}</b><div class="small">${esc(p.blurb)}</div></button>`).join('')}</div>`;
+  else if (Number(wiz) === 2) body = `<h1>Business details</h1>${head}<form class="stack" data-act="setup-details">
+    <label>Business name<input name="biz" required></label><label>City<input name="city" required></label>
+    <label>Services<input name="services" required></label><label>Prices<input name="prices" required></label>
+    <label>Who you want to reach<input name="audience" required></label><label>The offer<input name="offer" required></label>
+    <button class="btn" type="submit">Save and continue</button></form>`;
+  else if (Number(wiz) === 3) body = `<h1>Import customers</h1>${head}<p class="sub">CSV, a paste of name and phone, or Eka.care. You can skip this and add people later.</p>
+    <form class="stack" data-act="setup-import"><label>Paste one person per line<input name="paste" placeholder="Asha Rao, 919000000111"></label>
+    <label>CSV file<input name="file" type="file" accept=".csv,text/csv"></label>
+    <div><button class="btn" type="submit">Save import</button> <button class="btn-ghost" type="button" data-act="setup-skip">Skip</button> <button class="btn-ghost" type="button" data-act="sync-eka">Sync Eka.care</button></div></form>
+    <p class="small">Eka.care stays Available, connect with credentials, until the server has keys. The sample business shows Connected (demo). Sync does not email anyone.</p>`;
+  else if (Number(wiz) === 4) body = `<h1>Connect WhatsApp</h1>${head}<p class="sub">${wa.configured ? 'Official WhatsApp (' + esc(wa.provider) + ') is on. Approved drafts can send the template ' + esc(wa.template) + '. Opt-out is honoured.' : 'No provider key is set. Drafts keep a click-to-chat link. Nothing is sent.'}</p>
+    <form class="stack" data-act="setup-wa"><label>Business WhatsApp number<input name="phone" required placeholder="9198…"></label>
+    <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="ack" value="yes" style="width:auto" required> I understand nothing goes out until I approve it.</label>
+    <button class="btn" type="submit">Continue</button></form>`;
+  else if (Number(wiz) === 5) body = `<h1>A tone sample</h1>${head}<p class="sub">One message in your voice. Later drafts lean on it.</p>
+    <form class="stack" data-act="setup-tone"><label>How you write<textarea name="tone" rows="4" required placeholder="Hi, just checking in. Want me to hold Thursday?"></textarea></label>
+    <button class="btn" type="submit">Create the first 3 drafts</button></form>`;
+  else body = `<h1>The first 3 drafts are waiting</h1>${head}<p class="sub">They are in Approvals. Nothing has been sent.</p>
+    ${(wizDrafts || []).map((d) => `<article class="draft"><b>${esc(d.title)}</b><p>${esc(d.body)}</p></article>`).join('') || '<p class="small">Finish the earlier steps to queue them.</p>'}
+    <p><button class="btn" type="button" data-act="go" data-screen="approvals">Open Approvals</button></p>${call}`;
+  return `<div class="auth"><div class="panel" style="width:min(860px,100%)">${body}<div class="err">${esc(err)}</div></div></div>`;
 }
 function side() {
   const pending = (state.pending || []).length;
@@ -322,6 +362,7 @@ function dash() {
   return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
     <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
     ${recoveredCard()}
+    <p><button class="btn" type="button" data-act="go" data-screen="setup">15-minute setup</button> <button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="call">Book a setup call</button></p>
     ${checklistCard()}
     ${softwareCard()}
     ${forecastCard()}
@@ -585,9 +626,9 @@ function render() {
   let body = '';
   if (!token) body = loginView();
   else if (!state) body = roleView();
-  else if (!state.role) body = screen === 'role' ? roleView() : profileView();
+  else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings }[screen] || dash;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView }[screen] || dash;
     body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${screen==='pricing'?'':trialBanner()}${page()}</main></div>${chat()}`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
@@ -603,10 +644,10 @@ async function reload() {
 async function act(name, el) {
   try {
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
-    if (name === 'go') { go(el.dataset.screen); return; }
+    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
     if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
-    if (state && state.trial && state.trial.expired && !['mode','go','chat-toggle','logout','plan','auth','demo'].includes(name)) {
+    if (state && state.trial && state.trial.expired && !['mode','go','chat-toggle','logout','plan','auth','demo','setup-call'].includes(name)) {
       err = 'The 14-day free trial has ended. This workspace is read-only. Open Pricing to continue. No card is charged here.';
       toast = err; render(); return;
     }
@@ -621,6 +662,40 @@ async function act(name, el) {
       const d = await api('/api/clinic/demo', {});
       token = d.token; sessionStorage.setItem('aaas_clinic_token', token);
       skipProfile = true; await reload(); return;
+    }
+    if (name === 'setup-role') {
+      state = await api('/api/clinic/role', { role: el.dataset.role });
+      wiz = 2; screen = 'setup'; flash((state.roleTitle || 'Team') + ' is ready.'); render(); return;
+    }
+    if (name === 'setup-details') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      state = await api('/api/clinic/profile', f);
+      wiz = 3; screen = 'setup'; flash('Business details saved.'); render(); return;
+    }
+    if (name === 'setup-skip') { wiz = 4; screen = 'setup'; render(); return; }
+    if (name === 'setup-import') {
+      const file = el.querySelector('input[type=file]').files[0];
+      wizPaste = new FormData(el).get('paste') || '';
+      wizCsv = file ? await file.text() : '';
+      wiz = 4; screen = 'setup'; flash(wizPaste || wizCsv ? 'Import saved for the last step.' : 'No rows yet. You can add them later.'); render(); return;
+    }
+    if (name === 'setup-wa') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      if (f.ack !== 'yes') throw new Error('Tick the box. Nothing goes out until you approve it.');
+      wizPhone = f.phone || '';
+      wiz = 5; screen = 'setup'; render(); return;
+    }
+    if (name === 'setup-tone') {
+      const tone = new FormData(el).get('tone') || '';
+      const r = await api('/api/clinic/setup/finish', { tone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true });
+      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 6; screen = 'setup';
+      flash('Three drafts are waiting in Approvals. Nothing was sent.'); render(); return;
+    }
+    if (name === 'setup-call') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const r = await api('/api/clinic/setup/call', f);
+      if (state) state.setupCall = r.setupCall; else state = { setupCall: r.setupCall };
+      flash('Setup call saved. Nothing was emailed.'); render(); return;
     }
     if (name === 'profile') {
       const f = Object.fromEntries(new FormData(el).entries());

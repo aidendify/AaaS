@@ -97,6 +97,7 @@ Industries, same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real es
 What you can click through. Sample rows are marked DEMO.
 
 - A first-run checklist: import a CSV, connect the booking form, approve the first drafts.
+- **15-minute setup** (profile screen and dashboard) walks through industry, business details, import (CSV, paste, or Eka.care), the WhatsApp number, and a tone sample, then leaves the first three drafts in Approvals. **Book a setup call** saves a time on the account and does not email anyone. No extra env vars. The original profile-then-industry path stays.
 - The owner dashboard leads with **₹ recovered this month**: bookings, reactivated customers, referrals and paid invoices the agents brought in. Each rupee is in one part. A button drafts the weekly WhatsApp summary into Approvals. Nothing is sent. The same screen counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
 - **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
 - **Recall** lists lapsed and high-value people and drafts a follow-up.
@@ -155,6 +156,8 @@ Set these on that project (values stay in Vercel, not in git):
 | `CLINIC_WA_TEMPLATE` | optional | Template name. Default `aaas_note`. |
 | `CLINIC_WA_WEBHOOK_SECRET` | with Gupshup | Header `X-AaaS-Wa-Secret`. Unset keeps that webhook closed. |
 | `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
+
+The 15-minute setup and Book a setup call do not add a variable to this list.
 
 Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
 
