@@ -155,6 +155,13 @@ table { min-width:520px; }
 <div id="root"></div>
 <script>
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+function chatMd(raw) {
+  const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  let s = escHtml(raw);
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  return s;
+}
 const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 const when = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Date(t).toLocaleString('en-IN', { timeZone:'Asia/Kolkata', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); };
 const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kolkata', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date(t)); };
@@ -271,6 +278,7 @@ function kpis() {
   const tiles = [
     ['Enquiries this week', s.enquiriesWeek, s.enquiriesOpen + ' still open'],
     [L.booking || 'Bookings this week', s.bookingsWeek, 'Booked or completed'],
+    ['Referral bookings', s.referralBookings, 'From a forwarded link'],
     [L.noshow || 'No-shows', s.noshows, 'This week'],
     [L.recall || 'Recalls due', s.recallsDue, 'No ' + (L.visit || 'visit') + ' in 6 months'],
     ['Reviews requested', s.reviews, 'Drafts on file'],
@@ -423,6 +431,9 @@ function social() {
     <h2>Draft a post</h2>
     <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="${esc((state.labels&&state.labels.example)||'What to say this week')}"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
     <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
+    <h2>Forwardable referral</h2>
+    <p class="sub">A short message this person can forward on WhatsApp, with their own booking link. It waits in Approvals. Nothing is sent.</p>
+    <form class="form" data-act="referral"><label>Person<select name="patientId">${(state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label><div style="align-self:end"><button class="btn" type="submit">Draft referral message</button></div></form>
     ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
 }
 function insights() {
@@ -525,7 +536,7 @@ function connState(c) {
   if (c.status === 'demo') return '<span class="pill booked">Connected (demo)</span>';
   if (c.status === 'ready') return '<span class="pill approved">' + esc(c.label || 'Ready') + '</span>';
   if (c.status === 'placeholder') return '<button class="btn-ghost placeholder" type="button" disabled>Coming soon</button>';
-  return '<span class="pill pending">' + esc(c.label || 'Needs server env') + '</span>';
+  return '<span class="pill pending">' + esc(c.label || 'Available, connect with credentials') + '</span>';
 }
 function connections() {
   const place = (state.labels && state.labels.place) || 'business';
@@ -543,7 +554,7 @@ function chat() {
   if (!state || !state.role) return '';
   const who = (state.labels && state.labels.who) || 'patients';
   return `<button class="chat-fab" type="button" data-act="chat-toggle">${chatOpen?'Close chat':'Chat'}</button>
-    ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
+    ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r==='a'?chatMd(m.t):esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
       <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="How many ${esc(who)} in the last 2 months?" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`:''}`;
 }
 function render() {
@@ -607,6 +618,7 @@ async function act(name, el) {
     else if (name === 'recall') { await api('/api/clinic/recall/draft', { patientId:Number(el.dataset.id) }); flash('Follow-up drafted. It is waiting in Approvals.'); }
     else if (name === 'review') { await api('/api/clinic/reviews/draft', { patientId:Number(el.dataset.id) }); flash('Review request drafted with a WhatsApp link.'); }
     else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
+    else if (name === 'referral') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/referrals/draft', { patientId: Number(f.patientId) }); flash('Referral message drafted. It waits in Approvals. Nothing was sent.'); }
     else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }
     else if (name === 'rules') {
       const f = Object.fromEntries(new FormData(el).entries());

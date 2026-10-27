@@ -38,6 +38,9 @@ test('landing v2 reuses the waitlist business types, with no default on the main
   assert.match(wl, /₹14,999/);
   assert.match(main, /₹2,999/);
   assert.match(main, /₹5,999/);
+  assert.doesNotMatch(main, /\bSMS\b/);
+  assert.doesNotMatch(main, /\bsms\b/);
+  assert.doesNotMatch(main, /MSG91/);
   assert.match(main, /Product preview/);
   assert.doesNotMatch(main, /testimonial|trusted by|★★|customers love/i);
   assert.match(read('waitlist.html'), /Join the waitlist/);
@@ -76,6 +79,8 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   const html = await v2.text();
   assert.match(html, /Hire an AI team/);
   assert.match(html, /White Label/);
+  assert.doesNotMatch(html, /\bSMS\b/);
+  assert.doesNotMatch(html, /\bsms\b/);
   const wl = await fetch(s.base + '/white-label');
   assert.equal(wl.status, 200);
   assert.match(await wl.text(), /Resell AaaS under your brand/);

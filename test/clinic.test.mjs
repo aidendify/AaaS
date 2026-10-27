@@ -16,6 +16,15 @@ test('forecast includes sample invoices even before 11:00 India time', () => {
   assert.ok(f.revenue > f.collections);
 });
 
+test('corner chat renders markdown without raw stars', () => {
+  const src = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'clinic.html'), 'utf8');
+  const chatMd = new Function(src.match(/function chatMd\(raw\) \{[\s\S]*?\n\}/)[0] + '\nreturn chatMd;')();
+  assert.equal(chatMd('See **bold** and <script>'), 'See <strong>bold</strong> and &lt;script&gt;');
+  assert.equal(chatMd('use `wa.me` only'), 'use <code>wa.me</code> only');
+  assert.doesNotMatch(chatMd('**patients** last 2 months'), /\*\*/);
+  assert.match(src, /m\.r==='a'\?chatMd\(m\.t\):esc\(m\.t\)/);
+});
+
 test('WhatsApp links are click-to-chat URLs and CSV rows parse', () => {
   assert.equal(waMe('919000000001', 'Hello there'), 'https://wa.me/919000000001?text=Hello%20there');
   assert.equal(waMe('9000000001', 'Hi'), 'https://wa.me/919000000001?text=Hi');
@@ -62,6 +71,8 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.ok(d.stats.revenue > 0);
     assert.equal(d.stats.reviews, 2);
     assert.equal(d.stats.posts, 2);
+    assert.equal(d.stats.referralBookings, 1);
+    assert.match(d.patients.find((p) => p.name === 'Ananya Reddy').ref, /^[a-f0-9]{10}$/);
     assert.match(d.forecast.method, /28 days/);
     assert.match(d.forecast.method, /not a promise/);
     assert.ok(d.forecast.bookings > 0);
@@ -182,6 +193,27 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(sent.status, 200, await sent.clone().text());
     const after = await s.api('/api/clinic', undefined, token);
     assert.ok(after.d.enquiries.some((e) => e.name === 'Website Guest' && e.source === 'Website form'));
+    const ananya = after.d.patients.find((p) => p.name === 'Ananya Reddy');
+    const refPage = await fetch(s.base + '/book/' + formToken + '?ref=' + ananya.ref);
+    assert.match(await refPage.text(), new RegExp('name="ref" value="' + ananya.ref + '"'));
+    const referred = await s.api('/api/clinic/referrals/draft', { patientId: ananya.id }, token);
+    assert.equal(referred.status, 200, JSON.stringify(referred.d));
+    assert.equal(referred.d.draft.agent, 'social');
+    assert.equal(referred.d.draft.kind, 'referral');
+    assert.match(referred.d.draft.body, /Smile Dental \(sample\)/);
+    assert.match(referred.d.draft.body, /Check-up/);
+    assert.match(referred.d.draft.body, new RegExp('/book/' + formToken + '\\?ref=' + ananya.ref));
+    assert.match(referred.d.draft.waLink, /^https:\/\/wa\.me\/919000000001/);
+    const booked = await fetch(s.base + '/api/clinic/form/' + formToken, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'Referred Guest', phone: '919000007777', message: 'From a friend', service: 'Check-up', when: new Date(Date.now() + 2 * 864e5).toISOString(), ref: ananya.ref }) });
+    assert.equal(booked.status, 200, await booked.clone().text());
+    const withRef = await s.api('/api/clinic', undefined, token);
+    assert.ok(withRef.d.enquiries.some((e) => e.name === 'Referred Guest' && e.source === 'Referral' && e.referredBy === 'Ananya Reddy'));
+    assert.ok(withRef.d.appointments.some((a) => a.referral && a.referredBy === 'Ananya Reddy' && a.status === 'booked'));
+    assert.equal(withRef.d.stats.referralBookings, 2);
+    assert.ok(withRef.d.pending.some((x) => x.kind === 'referral' && x.approvalId));
+    const kv = JSON.parse(fs.readFileSync(path.join(s.dir, 'data', 'kv.json'), 'utf8'));
+    const approvalRows = JSON.parse(Object.values(kv).find((r) => r && r.k && r.k.startsWith('as_appr:')).v);
+    assert.equal(approvalRows.find((a) => /Forwardable referral/.test(a.summary)).kind, 'draft');
     const crm = await s.api('/api/leads?q=Website', undefined, token);
     assert.ok(crm.d.leads.some((l) => l.first_name === 'Website'));
     assert.equal((await fetch(s.base + '/book/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).status, 404);
@@ -205,6 +237,9 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(re.d.agents[1].name, 'Lead Follow-up');
     assert.equal(re.d.labels.who, 'leads');
     assert.equal(re.d.biz, 'Sample Realty');
+    assert.match(re.d.posts.map((p) => p.text).join(' '), /2BHK/);
+    assert.doesNotMatch(re.d.appointments.map((a) => a.service).join(' '), /Check-up|Cleaning|RCT/);
+    assert.equal(re.d.stats.referralBookings, 1);
     assert.ok(re.d.patients.some((p) => p.name === 'Ananya Reddy'));
     const chat2 = await s.api('/api/clinic/chat', { message: 'how many leads in the last 2 months' }, token);
     assert.match(chat2.d.answer, /leads in the last 2 months/);
@@ -247,10 +282,7 @@ test('every industry pack creates the same six screens with its own labels', asy
       assert.ok(clinic.d.stats.revenue > 0);
       assert.equal(clinic.d.connections.find((c) => c.id === 'eka').name, 'Eka.care');
       assert.equal(clinic.d.connections.find((c) => c.id === 'eka').status, 'needs_credentials');
-      assert.equal(clinic.d.connections.find((c) => c.id === 'other').detail.includes('CSV'), true);
-      assert.equal(clinic.d.connections.find((c) => c.id === 'gcal').status, 'placeholder');
-      assert.equal(clinic.d.connections.find((c) => c.id === 'whatsapp').status, 'ready');
-      assert.ok(clinic.d.patients.some((p) => p.name === 'Ananya Reddy' && p.demo === true));
+      assert.equal(clinic.d.connections.find((c) => c.id === 'eka').label, 'Available, connect with credentials');
       const word = {
         dental: ['patients', 'Check-up', 'clinic', /cleaning/],
         aesthetic: ['clients', 'Skin consult', 'clinic', /glow/],
@@ -260,6 +292,19 @@ test('every industry pack creates the same six screens with its own labels', asy
         home: ['customers', 'Site visit', 'business', /room/],
         institute: ['students', 'Trial class', 'centre', /trial/],
       }[pack.id];
+      const refPerson = clinic.d.patients.find((p) => p.name === 'Ananya Reddy');
+      const refDraft = await s.api('/api/clinic/referrals/draft', { patientId: refPerson.id }, signed.d.token);
+      assert.equal(refDraft.status, 200, JSON.stringify(refDraft.d));
+      assert.equal(refDraft.d.draft.kind, 'referral');
+      assert.equal(refDraft.d.draft.agent, 'social');
+      assert.match(refDraft.d.draft.body, new RegExp(word[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+      assert.match(refDraft.d.draft.waLink, /^https:\/\/wa\.me\//);
+      assert.match(refDraft.d.draft.body, /\/book\/[a-f0-9]{32}\?ref=[a-f0-9]{10}/);
+      if (pack.id !== 'dental') assert.doesNotMatch(refDraft.d.draft.body, /Check-up|cleaning|RCT|patient/i);
+      assert.equal(clinic.d.connections.find((c) => c.id === 'other').detail.includes('CSV'), true);
+      assert.equal(clinic.d.connections.find((c) => c.id === 'gcal').status, 'placeholder');
+      assert.equal(clinic.d.connections.find((c) => c.id === 'whatsapp').status, 'ready');
+      assert.ok(clinic.d.patients.some((p) => p.name === 'Ananya Reddy' && p.demo === true));
       assert.equal(clinic.d.labels.who, word[0]);
       assert.equal(clinic.d.labels.service, word[1]);
       assert.equal(clinic.d.labels.place, word[2]);
@@ -268,6 +313,20 @@ test('every industry pack creates the same six screens with its own labels', asy
       if (pack.id !== 'dental') assert.doesNotMatch(JSON.stringify(clinic.d.agents) + clinic.d.posts.map((p) => p.text).join(' '), /RCT|Patient Recall|receptionist|Check-up/);
       if (pack.id === 'realestate') assert.equal(clinic.d.labels.highValue, 10000000);
     }
+    const coach = await s.api('/api/auth/login', { email: 'coach-owner@example.com', password: PW });
+    const home = await s.api('/api/clinic/role', { role: 'home' }, coach.d.token);
+    assert.equal(home.status, 200, JSON.stringify(home.d));
+    assert.equal(home.d.biz, 'Coach or consultant Co');
+    assert.match(home.d.posts.map((p) => p.text).join(' '), /room/);
+    assert.doesNotMatch(home.d.appointments.map((a) => a.service).join(' '), /Discovery/);
+    assert.equal(home.d.labels.service, 'Site visit');
+    const plain = await s.api('/api/auth/signup', { email: 'sample-switch@example.com', name: 'Sample Switch', password: PW });
+    const dental = await s.api('/api/clinic/role', { role: 'dental' }, plain.d.token);
+    assert.equal(dental.d.biz, 'Smile Dental (sample)');
+    const realty = await s.api('/api/clinic/role', { role: 'realestate' }, plain.d.token);
+    assert.equal(realty.d.biz, 'Sample Realty');
+    assert.match(realty.d.posts.map((p) => p.text).join(' '), /2BHK/);
+    assert.doesNotMatch(realty.d.appointments.map((a) => a.service).join(' '), /Check-up|Cleaning|RCT/);
   } finally { await s.stop(); }
 });
 
