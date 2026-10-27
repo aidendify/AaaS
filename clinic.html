@@ -179,7 +179,7 @@ let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
 let state = null;
 let screen = 'login';
-let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizDrafts = [];
+let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizTone = '', wizDrafts = [];
 let mode = 'signin';
 let err = '';
 let toast = '';
@@ -214,7 +214,7 @@ function loginView() {
     <h1>${esc(hero)}</h1>
     <p class="sub">A personal AI team for a small business: daily sales, follow-up, marketing and billing. Not an enterprise suite. You approve anything that would leave the building.</p>
     ${planCards()}
-    <p class="small">Nothing is charged on this page. WhatsApp is a link you open. No SMS.</p>
+    <p class="small">Nothing is charged on this page. Own-key plans do not include token costs. WhatsApp is a link you open. No SMS.</p>
   </section><form class="panel stack" data-act="auth">
     <h1>${mode==='create'?'Create your account':'Sign in'}</h1>
     <p class="sub">Email and password. Then your business, then an industry. The team is created for you.</p>
@@ -268,8 +268,9 @@ function setupView() {
     <label class="wide">Note<input name="note" placeholder="What you want help with"></label>
     <div><button class="btn" type="submit">Book a setup call</button></div></form>`;
   if (wiz === 'call') return `<div class="auth"><div class="panel" style="width:min(640px,100%)"><h1>Book a setup call</h1>${call}<p><button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="1">Back to the 15-minute setup</button></p></div></div>`;
-  const steps = ['Industry', 'Business', 'Import', 'WhatsApp', 'Tone', 'Drafts'];
-  const head = `<p class="small">Step ${wiz} of 6 · about 15 minutes. Nothing is sent.</p><p class="small">${steps.map((s, i) => (i + 1 === Number(wiz) ? '<b>' + s + '</b>' : s)).join(' · ')}</p>`;
+  const steps = ['Industry', 'Business', 'Import', 'WhatsApp', 'Tone', 'AI key', 'Drafts'];
+  const head = `<p class="small">Step ${wiz} of 7 · about 15 minutes. Nothing is sent.</p><p class="small">${steps.map((s, i) => (i + 1 === Number(wiz) ? '<b>' + s + '</b>' : s)).join(' · ')}</p>`;
+  const provs = (state && state.aiKey && state.aiKey.providers) || [{ id: 'openrouter', name: 'OpenRouter' }, { id: 'openai', name: 'OpenAI' }, { id: 'xai', name: 'xAI Grok' }, { id: 'google', name: 'Google Gemini' }, { id: 'anthropic', name: 'Anthropic' }];
   let body = '';
   if (Number(wiz) === 1) body = `<h1>Which business is this?</h1>${head}<div class="roles">${packs.map((p) => `<button class="tile" type="button" data-act="setup-role" data-role="${esc(p.id)}"><b>${esc(p.title)}</b><div class="small">${esc(p.blurb)}</div></button>`).join('')}</div>`;
   else if (Number(wiz) === 2) body = `<h1>Business details</h1>${head}<form class="stack" data-act="setup-details">
@@ -288,7 +289,16 @@ function setupView() {
     <button class="btn" type="submit">Continue</button></form>`;
   else if (Number(wiz) === 5) body = `<h1>A tone sample</h1>${head}<p class="sub">One message in your voice. Later drafts lean on it.</p>
     <form class="stack" data-act="setup-tone"><label>How you write<textarea name="tone" rows="4" required placeholder="Hi, just checking in. Want me to hold Thursday?"></textarea></label>
-    <button class="btn" type="submit">Create the first 3 drafts</button></form>`;
+    <button class="btn" type="submit">Continue</button></form>`;
+  else if (Number(wiz) === 6) body = `<h1>Use your own AI key (optional)</h1>${head}
+    <p class="sub">OpenRouter, OpenAI, xAI, Gemini or Anthropic. The key is checked once and stored encrypted. Only the last 4 characters are shown. Every agent call for this business then uses that key only. Skip this and the team uses the platform key.</p>
+    ${(state && state.aiKey && state.aiKey.source === 'own') ? `<p class="small" role="status">Saved ${esc(state.aiKey.name)} key ${esc(state.aiKey.hint)}. Model: ${esc(state.aiKey.model)}. billed to your own key.</p>` : `<p class="small">No key saved yet. The platform key is in use${state && state.aiKey && state.aiKey.model ? ' · ' + esc(state.aiKey.model) : ''}.</p>`}
+    <form class="stack" data-act="setup-key">
+      <label>Provider<select name="provider">${provs.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
+      <label>API key<input name="key" type="password" autocomplete="off" placeholder="Paste the whole key"></label>
+      <div><button class="btn" type="submit">Test & save</button> <button class="btn-ghost" type="button" data-act="setup-key-skip">Skip</button></div>
+    </form>
+    <p class="small">Skip this step and the first 3 drafts are still created. Nothing is sent.</p>`;
   else body = `<h1>The first 3 drafts are waiting</h1>${head}<p class="sub">They are in Approvals. Nothing has been sent.</p>
     ${(wizDrafts || []).map((d) => `<article class="draft"><b>${esc(d.title)}</b><p>${esc(d.body)}</p></article>`).join('') || '<p class="small">Finish the earlier steps to queue them.</p>'}
     <p><button class="btn" type="button" data-act="go" data-screen="approvals">Open Approvals</button></p>${call}`;
@@ -533,13 +543,16 @@ function pricing() {
   const chosen = (state.trial && state.trial.plan) || '';
   return `${banner()}${trialBanner()}<h1>Launch pricing</h1><p class="sub">For a small business owner. This app does not take a payment. A new account has 14 days free, then the workspace is read-only until you continue. No card.</p>
     <div class="plans">${plans.map((p) => `<article class="tile"><div class="k">${esc(p.name)} · launch pricing</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><p>${esc(p.blurb)}</p><ul>${(p.includes||[]).map((x) => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn" type="button" data-act="plan" data-plan="${esc(p.id)}">${chosen===p.id?'Chosen':'Choose this plan'}</button></article>`).join('')}</div>
-    <p class="small">One agent is ₹2,999 a month, next to Social starter at ₹8,000 and the full team at ₹15,000. Choosing a plan records what you want. It does not charge a card. Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month.</p>`;
+    <p class="small">One agent is ₹2,999 a month, next to Social starter at ₹8,000 and the full team at ₹15,000. Choosing a plan records what you want. It does not charge a card. Own-key plans do not include token costs. Those tokens are billed by the provider on your key. Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month.</p>`;
 }
 function usage() {
   const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '', runs: [], byAgent: [] };
   const rows = (u.runs || []).map((r) => `<tr><td>${esc(r.name)}<div class="small">${esc(when(r.at))}</div></td><td>${esc(r.tokensIn)}</td><td>${esc(r.tokensOut)}</td><td>${inr(r.costInr)}</td><td>${r.source==='sample'?'<span class="pill">Sample run</span>':'<span class="pill approved">Logged</span>'}</td></tr>`).join('');
   const agents = (u.byAgent || []).map((r) => `<div class="tile"><div class="k">${esc(r.name)}</div><div class="v">${inr(r.costInr)}</div><div class="hint">${esc(r.tokensIn + r.tokensOut)} tokens · ${esc(r.calls)} runs</div></div>`).join('');
+  const own = u.billedTo === 'billed to your own key';
+  const who = (u.aiKey && (u.aiKey.name || u.aiKey.model)) ? `${u.aiKey.name || ''} ${u.aiKey.hint || ''} · ${u.aiKey.model || ''}`.trim() : '';
   return `${banner()}<h1>Usage and cost</h1><p class="sub">Token counts per agent run, converted to rupees. Logged rows come from the model response. A sample business also shows recorded sample runs.</p>
+    ${own ? `<p class="banner" role="status"><b>billed to your own key</b>${who ? ' · ' + esc(who) : ''}</p>` : `<p class="small">Platform key${u.aiKey && u.aiKey.model ? ' · ' + esc(u.aiKey.model) : ''}. Add your own key in Settings and later calls use that key only.</p>`}
     <div class="kpis">
       <div class="tile"><div class="k">Logged model calls</div><div class="v">${esc(u.calls||0)}</div></div>
       <div class="tile"><div class="k">Tokens in</div><div class="v">${esc(u.tokensIn||0)}</div></div>
@@ -561,7 +574,21 @@ function settings() {
   const r = state.rules || { from: '09:00', to: '20:00', everyDays: 7, cap: 2, tone: '' };
   const who = (state.labels && state.labels.whoSingular) || 'person';
   const examples = state.toneExamples || [];
-  return `${banner()}<h1>Settings</h1><p class="sub">Reminder rhythm for this business, and the wording you taught the drafts by editing them.</p>
+  const k = state.aiKey || { source: 'platform', providers: [], model: '', name: '', hint: '' };
+  if (!k.providers || !k.providers.length) k.providers = [{ id: 'openrouter', name: 'OpenRouter' }, { id: 'openai', name: 'OpenAI' }, { id: 'xai', name: 'xAI Grok' }, { id: 'google', name: 'Google Gemini' }, { id: 'anthropic', name: 'Anthropic' }];
+  const using = k.source === 'own'
+    ? `Your own ${k.name} key (${k.hint}). Model: ${k.model}. Agent calls for this business use this key only.`
+    : `Platform key${k.model ? '. Model: ' + k.model : ''}. Agent calls use the platform key until you save your own.`;
+  const opts = (k.providers || []).map((p) => `<option value="${esc(p.id)}" ${k.provider===p.id?'selected':''}>${esc(p.name)}</option>`).join('');
+  return `${banner()}<h1>Settings</h1><p class="sub">Reminder rhythm for this business, the wording you taught the drafts, and the AI key those drafts use.</p>
+    <form class="card stack" data-act="ai-key" style="padding:14px">
+      <b>AI key</b>
+      <p class="small" role="status">${esc(using)}</p>
+      <label>Provider<select name="provider">${opts}</select></label>
+      <label>API key<input name="key" type="password" autocomplete="off" placeholder="Paste the whole key"></label>
+      <p class="small">Test & save checks the key once. It is stored encrypted. Only the last 4 characters are shown again.</p>
+      <div><button class="btn" type="submit">Test & save</button>${k.source==='own'?' <button class="btn-danger" type="button" data-act="ai-key-del">Remove</button>':''}</div>
+    </form>
     <form class="card stack" data-act="rules" style="padding:14px">
       <b>Reminders</b>
       <p class="small">How often a person can be reminded, the cap in any 7 days, and the send window. Quiet hours are everything outside that window. Drafts still wait for approval. Nothing is sent.</p>
@@ -647,7 +674,7 @@ async function act(name, el) {
     if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
     if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
-    if (state && state.trial && state.trial.expired && !['mode','go','chat-toggle','logout','plan','auth','demo','setup-call'].includes(name)) {
+    if (state && state.trial && state.trial.expired && !['mode','go','chat-toggle','logout','plan','auth','demo','setup-call','ai-key','ai-key-del'].includes(name)) {
       err = 'The 14-day free trial has ended. This workspace is read-only. Open Pricing to continue. No card is charged here.';
       toast = err; render(); return;
     }
@@ -686,10 +713,30 @@ async function act(name, el) {
       wiz = 5; screen = 'setup'; render(); return;
     }
     if (name === 'setup-tone') {
-      const tone = new FormData(el).get('tone') || '';
-      const r = await api('/api/clinic/setup/finish', { tone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true });
-      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 6; screen = 'setup';
+      wizTone = new FormData(el).get('tone') || '';
+      wiz = 6; screen = 'setup'; render(); return;
+    }
+    if (name === 'setup-key' || name === 'setup-key-skip') {
+      if (name === 'setup-key') {
+        const f = Object.fromEntries(new FormData(el).entries());
+        const key = String(f.key || '').trim();
+        if (!key) throw new Error('Paste a key, or skip this step.');
+        await api('/api/ai/key', { provider: f.provider || 'openrouter', key });
+      }
+      const r = await api('/api/clinic/setup/finish', { tone: wizTone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true });
+      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 7; screen = 'setup';
       flash('Three drafts are waiting in Approvals. Nothing was sent.'); render(); return;
+    }
+    if (name === 'ai-key') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      await api('/api/ai/key', { provider: f.provider || 'openrouter', key: f.key });
+      flash('Key checked and saved. Only the last 4 characters are shown. Agent calls use this key only.');
+      await reload(); screen = 'settings'; render(); return;
+    }
+    if (name === 'ai-key-del') {
+      await api('/api/ai/key/delete', {});
+      flash('Key removed. Agent calls use the platform key again.');
+      await reload(); screen = 'settings'; render(); return;
     }
     if (name === 'setup-call') {
       const f = Object.fromEntries(new FormData(el).entries());

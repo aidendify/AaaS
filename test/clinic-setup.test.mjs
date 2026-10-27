@@ -19,15 +19,17 @@ test('a paste of name and phone becomes customer rows', () => {
   assert.deepEqual(parsePaste(''), []);
 });
 
-test('the setup screen is a six-step wizard plus a call request', () => {
+test('the setup screen is a wizard plus a call request and an optional AI key', () => {
   const src = html();
   assert.match(src, /15-minute setup/);
   assert.match(src, /Book a setup call/);
-  assert.match(src, /Create the first 3 drafts/);
+  assert.match(src, /Use your own AI key \(optional\)/);
+  assert.match(src, /data-act="setup-key"/);
+  assert.match(src, /data-act="setup-key-skip"/);
   assert.match(src, /data-act="setup-tone"/);
   assert.match(src, /data-act="setup-call"/);
   assert.match(src, /Nothing was emailed/);
-  assert.match(src, /let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizDrafts = \[\]/);
+  assert.match(src, /let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizTone = '', wizDrafts = \[\]/);
 });
 
 test('finishing setup queues three approval drafts and does not send them', async () => {
