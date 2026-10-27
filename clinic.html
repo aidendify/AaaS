@@ -82,7 +82,9 @@ tr:last-child td { border-bottom:0; }
 .auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
 .landing { min-height:100vh; display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding:32px 6vw; }
 .hero h1 { font-size:40px; letter-spacing:-.04em; line-height:1.1; }
-.plans { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+.plans { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:16px; }
+.banner.ended { background:#fde8e8; color:#8a1f1f; border-color:#f3c7c7; }
+.banner .btn { margin:8px 8px 0 0; }
 .panel { width:min(440px, 100%); background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
 .panel h1 { font-size:28px; }
 .stack { display:flex; flex-direction:column; gap:10px; }
@@ -292,6 +294,13 @@ function banner() {
   if (!state.demo && !state.sample) return '';
   return `<div class="banner">Sample rows for ${esc(state.biz)}, ${esc(state.city)} are fake and marked DEMO. This screen is for the owner, not a login for ${esc((state.labels&&state.labels.who)||'customers')}. AaaS does not email, text, post, or collect a payment.</div>`;
 }
+function trialBanner() {
+  const t = state && state.trial;
+  if (!t || t.sample || !state.role) return '';
+  if (t.expired) return `<div class="banner ended" role="status"><b>Your 14-day free trial has ended.</b> This workspace is read-only. <button class="btn" type="button" data-act="go" data-screen="pricing">See plans</button><span>One agent is ₹2,999 a month. Social starter is ₹8,000. The full team is ₹15,000. No card is taken here.</span></div>`;
+  const left = Number(t.daysLeft) === 1 ? '1 day left' : (t.daysLeft + ' days left');
+  return `<div class="banner" role="status"><b>Free trial.</b> ${esc(left)}. No card.</div>`;
+}
 function checklistCard() {
   const steps = state.checklist || [];
   if (!steps.length || steps.every((s) => s.done)) return '';
@@ -466,9 +475,10 @@ function billing() {
 }
 function pricing() {
   const plans = state.plans || meta.plans || [];
-  return `${banner()}<h1>Launch pricing</h1><p class="sub">For a small business owner. This app does not take a payment. Prices are what we tell you it costs, next to the token meter on Usage.</p>
-    <div class="plans">${plans.map((p) => `<article class="tile"><div class="k">${esc(p.name)} · launch pricing</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><p>${esc(p.blurb)}</p><ul>${(p.includes||[]).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}</div>
-    <p class="small">Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month. The full team is the six agents, still with a human approval on anything outbound.</p>`;
+  const chosen = (state.trial && state.trial.plan) || '';
+  return `${banner()}${trialBanner()}<h1>Launch pricing</h1><p class="sub">For a small business owner. This app does not take a payment. A new account has 14 days free, then the workspace is read-only until you continue. No card.</p>
+    <div class="plans">${plans.map((p) => `<article class="tile"><div class="k">${esc(p.name)} · launch pricing</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><p>${esc(p.blurb)}</p><ul>${(p.includes||[]).map((x) => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn" type="button" data-act="plan" data-plan="${esc(p.id)}">${chosen===p.id?'Chosen':'Choose this plan'}</button></article>`).join('')}</div>
+    <p class="small">One agent is ₹2,999 a month, next to Social starter at ₹8,000 and the full team at ₹15,000. Choosing a plan records what you want. It does not charge a card. Social starter is the outsourced-handler comparison: a person is often ₹15,000–₹20,000 a month.</p>`;
 }
 function usage() {
   const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '', runs: [], byAgent: [] };
@@ -564,7 +574,7 @@ function render() {
   else if (!state.role) body = screen === 'role' ? roleView() : profileView();
   else {
     const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings }[screen] || dash;
-    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${chat()}`;
+    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${screen==='pricing'?'':trialBanner()}${page()}</main></div>${chat()}`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
   root.innerHTML = body;
@@ -582,6 +592,10 @@ async function act(name, el) {
     if (name === 'go') { go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
     if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
+    if (state && state.trial && state.trial.expired && !['mode','go','chat-toggle','logout','plan','auth','demo'].includes(name)) {
+      err = 'The 14-day free trial has ended. This workspace is read-only. Open Pricing to continue. No card is charged here.';
+      toast = err; render(); return;
+    }
     if (name === 'auth') {
       const f = Object.fromEntries(new FormData(el).entries());
       const path = mode === 'create' ? '/api/auth/signup' : '/api/auth/login';
@@ -600,6 +614,7 @@ async function act(name, el) {
       if (!state.packs) state.packs = meta.packs;
       screen = 'role'; render(); return;
     }
+    if (name === 'plan') { await api('/api/clinic/plan', { plan: el.dataset.plan }); flash('Plan saved. No card was charged.'); await reload(); return; }
     if (name === 'pick') {
       const role = el.dataset.role || el.value;
       if (!role || role === (state && state.role)) return;
