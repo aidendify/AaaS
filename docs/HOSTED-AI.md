@@ -1,17 +1,20 @@
-# AI on the hosted demo: shared key, $10 cap, and bring-your-own-key
+# AI keys
 
-## How a new user gets AI
-1. They create an account on the demo home and can chat with Chief of Staff right away.
-2. During onboarding ("Tell Chief of Staff about the business") there is an optional **Use your own AI key** section.
-   Leave it empty → they use the shared platform key with a free daily allowance.
-   Paste an OpenRouter (or OpenAI / xAI / Google Gemini / Anthropic) key → it is checked once with the provider, stored
-   AES-256-GCM encrypted (`as_aikey:<email>`, key derived from `SESSION_SECRET`), and all their AI calls use it. No limits
-   from us; their provider bills them.
-3. Later: user menu → **AI key**, or Settings → **AI key**, to add, change or remove it. Only the last 4 characters are shown.
+Both AaaS plans (Self-hosted and Hosted, in `lib/pricing.js`) use the customer’s own AI key. AI usage is paid by the client directly to OpenRouter, OpenAI, xAI, Gemini or Anthropic. We do not sell a token allowance.
 
-With BYOK, the shared key is never used as a silent fallback for that user. Keys are never logged or returned by any API.
+## How a clinic gets AI
+1. Settings → **AI key**, or the required step in the 15-minute setup. Paste an OpenRouter, OpenAI, xAI, Gemini or Anthropic key.
+2. The key is checked once with the provider, stored AES-256-GCM encrypted (`as_aikey:<email>`, key derived from `SESSION_SECRET`), and only the last 4 characters are shown.
+3. Every clinic agent call for that account uses that key only. It does not fall back to the server key.
+4. With no saved key, those calls return 403 `needs_ai_key`.
+5. `CLINIC_DEMO_PLATFORM_KEY=1` is the only way the server key is used. The screen says **Demo key, demo only**. Set it on staging, with `CLINIC_DEMO=1`, so the sample business runs without a key prompt. Leave it unset in production and on a client’s own server.
 
-## The $10 cap on the shared key: two layers
+Keys are never logged or returned by any API.
+
+## Internal cap on the demo server key
+This is not a product allowance. It only limits spend if someone turns on `CLINIC_DEMO_PLATFORM_KEY` and a server key is set.
+
+## The cap on that server key: two layers
 ### 1. Hard cap at OpenRouter (recommended, do this once)
 OpenRouter enforces a credit limit per API key, so the demo can never spend more than the limit even if the app is wrong.
 1. Go to https://openrouter.ai/settings/keys and click **Create API key**.

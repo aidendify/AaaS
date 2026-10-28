@@ -7,6 +7,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { startServer, ROOT } from './helpers.mjs';
 import { BUSINESS_TYPES } from '../lib/waitlist.js';
+import { applyPriceTokens, SELF_HOSTED_INR, HOSTED_INR, SETUP_INR } from '../lib/pricing.js';
 
 const read = (name) => fs.readFileSync(path.join(ROOT, name), 'utf8');
 
@@ -36,8 +37,17 @@ test('landing v2 reuses the waitlist business types, with no default on the main
   assert.match(main, /class="tab" href="\/white-label"/);
   assert.doesNotMatch(main, /₹14,999/);
   assert.match(wl, /₹14,999/);
-  assert.match(main, /₹2,999/);
-  assert.match(main, /₹5,999/);
+  assert.match(main, /\{\{SELF_INR\}\}/);
+  assert.match(main, /\{\{HOSTED_INR\}\}/);
+  assert.match(main, /\{\{SETUP_INR\}\}/);
+  const priced = applyPriceTokens(main);
+  assert.match(priced, new RegExp(SELF_HOSTED_INR.toLocaleString('en-IN')));
+  assert.match(priced, new RegExp(HOSTED_INR.toLocaleString('en-IN')));
+  assert.match(priced, new RegExp(SETUP_INR.toLocaleString('en-IN')));
+  assert.doesNotMatch(priced, /₹5,999|₹8,000|₹15,000/);
+  assert.doesNotMatch(main, /\bSMS\b/);
+  assert.doesNotMatch(main, /\bsms\b/);
+  assert.doesNotMatch(main, /MSG91/);
   assert.match(main, /Product preview/);
   assert.doesNotMatch(main, /testimonial|trusted by|★★|customers love/i);
   assert.match(read('waitlist.html'), /Join the waitlist/);
@@ -57,9 +67,10 @@ test('landing build serves v2 at / and keeps v1 as waitlist.html', () => {
     build({ AIDENTIFY_SITE: '' });
     assert.equal(pub('index.html'), read('index.html'), 'product build keeps the app at /');
     build({ AIDENTIFY_SITE: 'landing' });
-    assert.equal(pub('index.html'), read('landing-v2.html'));
+    assert.equal(pub('index.html'), applyPriceTokens(read('landing-v2.html')));
     assert.notEqual(pub('index.html'), read('waitlist.html'));
-    for (const f of ['landing-v2.html', 'white-label.html', 'landing-v2.css', 'landing-v2.js', 'waitlist.html']) {
+    assert.equal(pub('landing-v2.html'), applyPriceTokens(read('landing-v2.html')));
+    for (const f of ['white-label.html', 'landing-v2.css', 'landing-v2.js', 'waitlist.html']) {
       assert.equal(pub(f), read(f));
     }
   } finally {
@@ -75,7 +86,12 @@ test('server serves /v2 and /white-label and leaves / on the app', async (t) => 
   assert.match(v2.headers.get('content-type'), /text\/html/);
   const html = await v2.text();
   assert.match(html, /Hire an AI team/);
+  assert.match(html, /₹4,999/);
+  assert.match(html, /₹9,999/);
+  assert.doesNotMatch(html, /\{\{SELF_INR\}\}/);
   assert.match(html, /White Label/);
+  assert.doesNotMatch(html, /\bSMS\b/);
+  assert.doesNotMatch(html, /\bsms\b/);
   const wl = await fetch(s.base + '/white-label');
   assert.equal(wl.status, 200);
   assert.match(await wl.text(), /Resell AaaS under your brand/);

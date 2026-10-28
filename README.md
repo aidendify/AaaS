@@ -82,6 +82,86 @@ and the remote browser are off in Docker. Everything else (agents, connectors, S
 3. Chat with **Chief of Staff**, the first tile in My Workplace. It delegates to your agents, creates new agents from a description and teaches them.
 4. Add agents from **Plugins → Agents** and apps from **Plugins → Connectors**.
 
+### Small-business team (AaaS v2)
+
+One command, then the owner’s team:
+
+```bash
+npm start
+```
+
+Open http://localhost:3000/clinic. The pitch is **A small team's work, without hiring one**. Create an account (or **Continue with Google** when Google sign-in is configured), add the business profile, and pick an industry. On this computer you can also choose **Explore the sample business** (that button stays off on a hosted deploy unless `CLINIC_DEMO=1`). Switching industry on that sample business switches the sample name and the sample rows.
+
+Industries, same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real estate, Salon/Gym/Studio, Interior design/Home services, Coaching institute.
+
+What you can click through. Sample rows are marked DEMO.
+
+- A first-run checklist: import a CSV, connect the booking form, approve the first drafts.
+- **15-minute setup** (profile screen and dashboard) walks through industry, business details, import (CSV, paste, or Eka.care), the WhatsApp number, a tone sample, and a required AI key, then leaves the first three drafts in Approvals. **Book a setup call** saves a time on the account and does not email anyone. The original profile-then-industry path stays.
+- **AI key.** Settings → AI key saves your own OpenRouter, OpenAI, xAI, Gemini or Anthropic key. It is checked once, stored encrypted, and only the last 4 characters are shown. Agent calls for this business use that key only. You pay that provider directly. Without a saved key, those calls are refused. `CLINIC_DEMO_PLATFORM_KEY=1` allows the server key for the sample business and the screen says Demo key, demo only. Leave that flag unset on a client server.
+- The owner dashboard leads with **₹ recovered this month**: bookings, reactivated customers, referrals and paid invoices the agents brought in. Each rupee is in one part. A button drafts the weekly WhatsApp summary into Approvals. Nothing is sent. The same screen counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
+- **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
+- **Recall** lists lapsed and high-value people and drafts a follow-up.
+- **Reviews & Referrals** drafts a review request with a `https://wa.me/` link. There is no SMS. Official WhatsApp (Meta Cloud API or Gupshup) sends that draft only after you approve, and only when that provider’s env keys are set. Otherwise the link stays click-to-chat and nothing is sent. Opt-out is recorded and blocks a later send.
+- **Social Media** drafts a post onto the week calendar through the same AI path as the rest of AaaS. Approving it does not publish it. It also drafts a short message a customer can forward on WhatsApp, with that person’s booking link. The draft waits in Approvals. Nothing is sent. A booking that arrives with that link is counted as a referral booking.
+- **Owner Insights** shows the weekly summary. The dashboard can also draft that summary as a WhatsApp message. It waits in Approvals.
+- **Billing & Invoicing** writes a manual invoice (line items, GST left blank unless you type a percent, no GSTIN), prints it or downloads a PDF, marks it paid, unpaid or overdue, and queues a payment reminder. The invoice and the reminder include a payment link. A Razorpay **test** key pair creates a Payment Link (`RAZORPAY_KEY_ID` must start with `rzp_test_`, plus `RAZORPAY_KEY_SECRET`). Otherwise the link is a UPI deep link. `POST /api/clinic/payments/razorpay` verifies `RAZORPAY_WEBHOOK_SECRET` and marks the invoice paid. The sample business simulates that webhook and does not call Razorpay. Nothing is sent until you approve a draft, and AaaS does not charge a card.
+- **Approvals** approves or rejects every outbound draft. Approving records the decision and still sends nothing.
+- **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). **Eka.care** syncs from their public API when `EKA_CLIENT_ID` and `EKA_CLIENT_SECRET` are set on the server. The sample business shows **Connected (demo)** and does not call Eka.care. A new account shows **Available, connect with credentials** until those env vars are set. Other clinic software can use the same CSV or `POST /api/clinic/connectors/webhook/<form token>` once `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. Google Calendar is still coming soon.
+- The dashboard lists which people came from the connected software and the paid amount AaaS brought back from them this month.
+- **Clinic visit** (`/clinic#visit`, and `docs/clinic-visit-kit.md`) is the 10-question interview, the free-pilot terms, and a form that saves the answers in the account.
+- **Pricing** shows two plans from `lib/pricing.js`. Self-hosted is ₹2,999/month for updates and support, plus a one-time setup and install of ₹9,999 that is waived on an annual plan. Hosted is ₹4,999/month: we run it, with backups, uptime and updates, and no install. Both plans include the same agents. AI usage is paid by the client to their provider. The app does not charge a card.
+- **Usage & cost** shows token counts per agent run, logged from the model response, and a rupee estimate at ₹84 per US dollar. The line reads “Usage on your &lt;provider&gt; key, paid to your provider”. The sample clinic also shows recorded sample runs. It is not a bill from AaaS.
+- **Next month** on the dashboard scales the last 28 days of bookings, invoices issued, and invoices marked paid up to 30 days. The card states that method. It is not a promise.
+- **Settings** holds the reminder rhythm: how often, a cap per person in 7 days, and the send window. Quiet hours are outside that window. Editing a draft stores the before and after, and the next draft of that agent uses it. Reset clears the learned tone.
+- **Privacy** exports this account’s records and can delete them. Deleting the account still needs the password.
+- The corner **Chat** asks the Chief. “How many patients in the last 2 months?” is answered from these records. Chat is a corner box, not the product. Assistant replies render markdown, so `**bold**` shows as bold.
+- Layouts fit a phone (375px) and a tablet (768px): sign-up, onboarding, the dashboard, approvals, billing, pricing, the booking form and the chat panel.
+
+An existing EC2 box can run the same image. The steps (nginx, TLS, env file, backups, `GET /api/health`) are in `deploy/aws/README.md`. That guide does not deploy anything by itself.
+
+Check it with `npm run test:clinic`.
+
+#### Vercel staging
+
+Use a **new** Vercel project. Do not link or deploy `aidentify` or `aidentify-demo`. `vercel.json` already serves `/clinic` and routes `/api` and `/book` to the serverless function. Data on Vercel needs Postgres. Set `CLINIC_DEMO=1` and `CLINIC_DEMO_PLATFORM_KEY=1` so the sample business runs without asking for a key. A real account still has to save its own key before agent calls run.
+
+Set these on that project (values stay in Vercel, not in git):
+
+| Variable | Required | Why |
+| --- | --- | --- |
+| `SESSION_SECRET` | yes | Signs the login token. `openssl rand -hex 32` |
+| `DATABASE_URL` | yes on Vercel | Neon or any Postgres. The table name stays `agentsphere_kv`. |
+| `APP_URL` | yes | `https://<this-staging-host>` so Google’s redirect matches. |
+| `CRON_SECRET` | yes if cron is on | Vercel calls `/api/cron/tick` with it. |
+| `CLINIC_DEMO` | for the sample button | `1` shows **Explore the sample business**. `0` hides it. |
+| `CLINIC_DEMO_PLATFORM_KEY` | staging sample only | `1` lets clinic agent calls use the server key and labels it Demo key, demo only. Leave unset in production and on a client’s own server. |
+| `OPENROUTER_API_KEY` | optional | Real drafts and chat. Empty: local draft text, records answers still work. |
+| `OPENROUTER_MODEL` | with the key | A tool-calling model, for example `anthropic/claude-sonnet-4.5`. |
+| `GOOGLE_CLIENT_ID` | optional | Turns on **Continue with Google**. |
+| `GOOGLE_CLIENT_SECRET` | with the id | Redirect URI: `<APP_URL>/api/auth/google/callback` |
+| `EKA_CLIENT_ID` | optional | Live Eka.care sync. Leave empty and the sample business stays Connected (demo). A new account shows Available, connect with credentials. |
+| `EKA_CLIENT_SECRET` | with the id | Server only. Never commit it. |
+| `CLINIC_CONNECTOR_WEBHOOK_SECRET` | optional | Opens the other-software webhook. Unset keeps that URL closed. |
+| `RAZORPAY_KEY_ID` | optional | Test Payment Links only. Must start with `rzp_test_`. A live key is ignored. |
+| `RAZORPAY_KEY_SECRET` | with the test id | Server only. Never commit it. |
+| `RAZORPAY_WEBHOOK_SECRET` | optional | Verifies `POST /api/clinic/payments/razorpay`. Unset keeps that URL closed. |
+| `CLINIC_WA_PROVIDER` | optional | `meta` or `gupshup`. Official WhatsApp for approved clinic drafts. Unset keeps `wa.me` and sends nothing. |
+| `CLINIC_WA_META_TOKEN` | with Meta | Cloud API token. Server only. |
+| `CLINIC_WA_META_PHONE_ID` | with Meta | Phone number id from the Meta app. |
+| `CLINIC_WA_META_APP_SECRET` | with Meta | Checks `X-Hub-Signature-256` on the webhook. Unset keeps it closed. |
+| `CLINIC_WA_META_VERIFY_TOKEN` | with Meta | Answers the webhook verify GET. |
+| `CLINIC_WA_GUPSHUP_API_KEY` | with Gupshup | Server only. |
+| `CLINIC_WA_GUPSHUP_SOURCE` | with Gupshup | The business WhatsApp number. |
+| `CLINIC_WA_GUPSHUP_APP_NAME` | with Gupshup | Gupshup app name (`src.name`). |
+| `CLINIC_WA_TEMPLATE` | optional | Template name. Default `aaas_note`. |
+| `CLINIC_WA_WEBHOOK_SECRET` | with Gupshup | Header `X-AaaS-Wa-Secret`. Unset keeps that webhook closed. |
+| `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
+
+The 15-minute setup and Book a setup call do not add a variable. `CLINIC_DEMO_PLATFORM_KEY` is the only new clinic flag: set it to `1` on staging so the sample business can run on the server key. Production and a client’s own server leave it unset. The customer’s AI key is stored encrypted on the account and is never written here.
+
+Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
+
 ## Features
 
 - **Agent workers** with their own knowledge base, memory, routines (scheduled work) and app screens; build new ones from a description or a pasted spec.

@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AaaS · Clinic team</title>
+<style>
+:root { --bg:#f4f6f8; --card:#fff; --ink:#1b2430; --muted:#5e6b7a; --line:#e4e8ee; --blue:#0b5fff; --blue-d:#0847c7; --soft:#e8f0ff; --green:#067647; --green-bg:#e7f6ee; --amber:#8a5a00; --amber-bg:#fff6e5; --red:#b42318; --red-bg:#fdecec; --shadow:0 1px 2px rgba(16,24,40,.05); }
+* { box-sizing:border-box; }
+html,body { margin:0; height:100%; }
+body { font:15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); background:var(--bg); }
+button,input,select,textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.app { display:flex; min-height:100vh; }
+.side { width:248px; flex:none; background:#fff; border-right:1px solid var(--line); display:flex; flex-direction:column; padding:18px 12px 14px; position:sticky; top:0; height:100vh; }
+.brand { display:flex; gap:10px; align-items:center; padding:0 8px 16px; }
+.mark { width:28px; height:28px; border-radius:8px; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; }
+.brand b { display:block; font-size:15px; }
+.brand span { display:block; color:var(--muted); font-size:12px; font-weight:400; }
+.nav { display:flex; flex-direction:column; gap:2px; }
+.nav button { text-align:left; background:transparent; border:0; border-radius:8px; padding:8px 10px; color:var(--ink); display:flex; justify-content:space-between; align-items:center; }
+.nav button[aria-current="page"] { background:var(--soft); color:var(--blue); font-weight:600; }
+.nav button:hover { background:#f6f8fb; }
+.badge { background:#eef2f6; color:var(--ink); border-radius:99px; font-size:12px; padding:0 7px; min-width:20px; text-align:center; }
+.nav button[aria-current="page"] .badge { background:#d7e4ff; color:var(--blue); }
+.side .grow { flex:1; }
+.side select { width:100%; margin-top:4px; border:1px solid var(--line); border-radius:8px; padding:8px; background:#fff; font-size:16px; }
+.role-switch { display:flex; gap:6px; padding:8px; }
+.role-switch button { flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 4px; font-size:12px; }
+.role-switch button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.out { margin:6px 8px 0; background:transparent; border:0; color:var(--muted); text-align:left; padding:6px; }
+.main { flex:1; min-width:0; padding:28px 32px 96px; overflow-x:auto; }
+.banner { background:var(--amber-bg); color:#6b4700; border:1px solid #f3e2c0; border-radius:10px; padding:10px 12px; margin-bottom:16px; font-size:13px; }
+h1 { font-size:26px; letter-spacing:-.03em; margin:0 0 4px; font-weight:650; }
+.sub { color:var(--muted); margin:0 0 18px; }
+.callout { background:#fff; border:1px solid var(--line); border-left:3px solid var(--blue); border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+.kpis, .team, .split, .days { display:grid; gap:12px; }
+.kpis { grid-template-columns:repeat(auto-fit, minmax(148px, 1fr)); margin-bottom:18px; }
+.team { grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); }
+.card, .tile { background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+.tile { padding:14px; }
+.tile .k { color:var(--muted); font-size:13px; }
+.tile .v { font-size:26px; font-weight:650; letter-spacing:-.03em; margin-top:4px; }
+.tile .hint { color:var(--muted); font-size:12px; margin-top:4px; }
+.team button.tile { width:100%; text-align:left; }
+.team button.tile:hover { border-color:#c9d7f5; }
+.muted { color:var(--muted); }
+.small { font-size:13px; color:var(--muted); }
+h2 { font-size:16px; margin:22px 0 8px; }
+table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; color:var(--muted); font-weight:600; background:#fafbfc; }
+tr:last-child td { border-bottom:0; }
+.scroll { max-height:440px; overflow:auto; border-radius:12px; }
+.pill { display:inline-block; border-radius:99px; padding:2px 8px; font-size:12px; background:#eef2f6; }
+.pill.new, .pill.pending, .pill.draft, .pill.queued { background:#fff6e5; color:var(--amber); }
+.pill.booked, .pill.scheduled, .pill.approved, .pill.completed { background:var(--green-bg); color:var(--green); }
+.pill.noshow, .pill.rejected, .pill.cancelled, .pill.closed, .pill.overdue { background:var(--red-bg); color:var(--red); }
+.pill.paid { background:var(--green-bg); color:var(--green); }
+.pill.unpaid { background:var(--amber-bg); color:var(--amber); }
+.btn, .btn-ghost, .btn-danger { border-radius:8px; padding:8px 12px; border:1px solid transparent; }
+.btn { background:var(--blue); color:#fff; }
+.btn:hover { background:var(--blue-d); }
+.btn-ghost { background:#fff; border-color:var(--line); }
+.btn-danger { background:#fff; border-color:#f0d0d0; color:var(--red); }
+.btn:disabled, .btn-ghost:disabled { opacity:.5; cursor:not-allowed; }
+.row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.form { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin:10px 0 16px; }
+.form label, .stack label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
+.form input, .form select, .form textarea, .stack input, .stack select, .stack textarea { border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; background:#fff; width:100%; }
+.form .wide { grid-column:span 2; }
+.form .full { grid-column:1 / -1; }
+.split { grid-template-columns:1fr 1fr; align-items:start; }
+.days { grid-template-columns:repeat(7, minmax(0,1fr)); }
+.day { background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px; min-height:140px; }
+.day b { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+.post { font-size:12px; background:#f6f8fb; border-radius:8px; padding:6px; margin-top:6px; }
+.draft { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+.draft p { margin:6px 0; white-space:pre-wrap; }
+.rules { margin-top:16px; }
+.auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
+.landing { min-height:100vh; display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding:32px 6vw; }
+.hero h1 { font-size:40px; letter-spacing:-.04em; line-height:1.1; }
+.plans { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:16px; }
+.banner.ended { background:#fde8e8; color:#8a1f1f; border-color:#f3c7c7; }
+.recovered { background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px 20px; margin:8px 0 16px; }
+.recovered .v { font-size:40px; font-weight:650; letter-spacing:-.03em; }
+.recovered ul { display:flex; flex-wrap:wrap; gap:8px 18px; margin:10px 0 0; padding:0; list-style:none; }
+.banner .btn { margin:8px 8px 0 0; }
+.panel { width:min(440px, 100%); background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
+.panel h1 { font-size:28px; }
+.stack { display:flex; flex-direction:column; gap:10px; }
+.tabs { display:flex; gap:6px; margin-bottom:12px; }
+.tabs button { flex:1; border:1px solid var(--line); background:#fff; border-radius:8px; padding:8px; }
+.tabs button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.err { color:var(--red); font-size:13px; min-height:1.2em; }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.roles button { text-align:left; padding:16px; }
+.roles ul { margin:8px 0 0; padding-left:18px; color:var(--muted); }
+.bot-sw { position:fixed; top:10px; right:12px; z-index:40; display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); box-shadow:var(--shadow); font-size:13px; font-weight:650; }
+.bot-sw i { width:18px; height:18px; border-radius:50%; background:#c5ced8; display:inline-block; }
+.bot-sw.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.bot-sw.on i { background:#fff; }
+.bot-on { min-height:100vh; }
+.bot-frame { position:fixed; inset:0; width:100%; height:100%; height:100dvh; border:0; background:#0a0a0a; z-index:8; }
+.chat-fab { position:fixed; right:20px; bottom:20px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:12px 16px; box-shadow:0 8px 24px rgba(16,24,40,.18); z-index:5; }
+.chat { position:fixed; right:20px; bottom:72px; width:min(360px, calc(100vw - 32px)); height:460px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px rgba(16,24,40,.16); display:flex; flex-direction:column; z-index:5; }
+.chat header { padding:12px 14px; border-bottom:1px solid var(--line); font-weight:650; }
+.chat .log { flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.bubble { border-radius:12px; padding:8px 10px; max-width:95%; white-space:pre-wrap; }
+.bubble.u { align-self:flex-end; background:var(--soft); }
+.bubble.a { align-self:flex-start; background:#f6f8fb; }
+.chat form { display:flex; gap:6px; padding:10px; border-top:1px solid var(--line); }
+.chat input { flex:1; min-width:0; border:1px solid #d5dbe3; border-radius:8px; padding:8px 10px; font-size:16px; }
+.chat form .btn { flex:none; }
+.toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#1b2430; color:#fff; padding:10px 14px; border-radius:10px; z-index:6; max-width:min(480px, calc(100vw - 24px)); }
+.link { color:var(--blue); }
+.placeholder { opacity:.85; }
+.conn { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+.conn .actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:none; }
+.src { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
+.src li { background:#f6f8fb; border-radius:999px; padding:4px 10px; font-size:13px; }
+.visit-q { margin:0 0 12px; }
+.terms { margin:8px 0 0; padding-left:18px; }
+.scroll { overflow:auto; -webkit-overflow-scrolling:touch; }
+table { min-width:520px; }
+@media (max-width:1100px) {
+  .days, .split, .form, .roles, .plans { grid-template-columns:1fr 1fr; }
+  .side { width:220px; }
+  .landing { grid-template-columns:1fr; padding:24px 16px 40px; }
+  .hero h1 { font-size:32px; }
+  .panel { width:min(560px, 100%); }
+}
+@media (max-width:800px) {
+  .app { flex-direction:column; }
+  .side { width:auto; height:auto; position:relative; border-right:0; border-bottom:1px solid var(--line); padding:12px 10px 8px; }
+  .nav { flex-direction:row; overflow:auto; gap:4px; padding-bottom:4px; }
+  .nav button { white-space:nowrap; flex:none; min-height:40px; }
+  .brand span { max-width:70vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .role-switch { flex-wrap:wrap; }
+  .days, .roles { grid-template-columns:1fr 1fr; }
+  .split, .form, .plans, .agent-kpis { grid-template-columns:1fr !important; }
+  .main { padding:16px 14px 108px; }
+  .side .grow { display:none; }
+  h1 { font-size:22px; }
+  .hero h1 { font-size:30px; }
+  .tile .v { font-size:22px; }
+  .form input, .form select, .form textarea, .stack input, .stack select, .stack textarea { font-size:16px; }
+  .conn { flex-direction:column; }
+  .conn .actions { align-items:flex-start; flex-direction:row; flex-wrap:wrap; }
+  .chat { left:8px; right:8px; width:auto; height:min(70vh, 520px); bottom:64px; }
+  .bot-sw { top:8px; right:8px; }
+  .chat-fab { right:12px; bottom:12px; min-height:44px; }
+  .auth { padding:12px; align-items:start; }
+  .landing { padding:16px 12px 32px; gap:16px; }
+}
+@media (max-width:480px) {
+  .days, .roles, .plans { grid-template-columns:1fr; }
+  .hero h1 { font-size:26px; }
+  .panel { padding:18px 14px; }
+  th, td { padding:8px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+function chatMd(raw) {
+  const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+  let s = escHtml(raw);
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  return s;
+}
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+const when = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Date(t).toLocaleString('en-IN', { timeZone:'Asia/Kolkata', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); };
+const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Kolkata', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date(t)); };
+const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
+const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup'];
+
+let token = sessionStorage.getItem('aaas_clinic_token') || '';
+let meta = { demoLogin:false };
+let state = null;
+let screen = 'login';
+let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizTone = '', wizDrafts = [];
+let mode = 'signin';
+let err = '';
+let toast = '';
+let botMode = false;
+let botReturn = 'dash';
+let chatOpen = false;
+let chatLog = [];
+let chatDraft = '';
+let chatBusy = false;
+let showAdd = '';
+let skipProfile = false;
+
+const root = document.getElementById('root');
+async function api(path, body) {
+  const r = await fetch(path, { method: body === undefined ? 'GET' : 'POST', headers: { 'content-type':'application/json', ...(token ? { authorization:'Bearer ' + token } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401) { token = ''; sessionStorage.removeItem('aaas_clinic_token'); screen = 'login'; throw new Error(d.message || 'Please sign in again.'); }
+  if (!r.ok) throw new Error(d.message || 'That did not work.');
+  return d;
+}
+function flash(m) { toast = m; setTimeout(() => { if (toast === m) { toast = ''; render(); } }, 3500); }
+function go(s) { screen = s; showAdd = ''; history.replaceState(null, '', '#' + s); render(); }
+function pname(id) { const p = (state.patients || []).find((x) => x.id === id); return p ? p.name : 'Unknown'; }
+function wanted() { const h = location.hash.replace('#',''); return SCREENS.includes(h) ? h : 'dash'; }
+
+function planCards() {
+  const plans = meta.plans || [];
+  const notes = meta.pricing || {};
+  return `<div class="plans">${plans.map((p) => `<div class="tile"><div class="k">${esc(p.name)}</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><div class="hint">${esc(p.blurb)}</div></div>`).join('')}</div>
+    <p class="small">${esc(notes.annualNote || '')}</p><p class="small">${esc(notes.byokNote || '')}</p>`;
+}
+function loginView() {
+  const hero = meta.hero || "A small team's work, without hiring one";
+  return `<div class="landing"><section class="hero">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>For the owner</span></div></div>
+    <h1>${esc(hero)}</h1>
+    <p class="sub">A personal AI team for a small business: daily sales, follow-up, marketing and billing. Not an enterprise suite. You approve anything that would leave the building.</p>
+    ${planCards()}
+    <p class="small">Nothing is charged on this page. WhatsApp is a link you open. No SMS.</p>
+  </section><form class="panel stack" data-act="auth">
+    <h1>${mode==='create'?'Create your account':'Sign in'}</h1>
+    <p class="sub">Email and password. Then your business, then an industry. The team is created for you.</p>
+    <div class="tabs"><button type="button" class="${mode==='signin'?'on':''}" data-act="mode" data-mode="signin">Sign in</button><button type="button" class="${mode==='create'?'on':''}" data-act="mode" data-mode="create">Create account</button></div>
+    ${mode==='create'?'<label>Your name<input name="name" autocomplete="name" required></label>':''}
+    <label>Email<input name="email" type="email" autocomplete="username" required></label>
+    <label>Password<input name="password" type="password" autocomplete="${mode==='create'?'new-password':'current-password'}" required minlength="8"></label>
+    <div class="err">${esc(err)}</div>
+    <button class="btn" type="submit">${mode==='create'?'Create account':'Sign in'}</button>
+    ${meta.google?'<a class="btn-ghost" href="/api/auth/google/start?next=clinic" style="text-align:center;text-decoration:none">Continue with Google</a>':''}
+    ${meta.demoLogin?'<button class="btn-ghost" type="button" data-act="demo">Explore the sample business</button><p class="small">Local or staging only. Opens a sample owner account. No password is shown.</p>':''}
+  </form></div>`;
+}
+function profileView() {
+  const p = (state && state.profile) || {};
+  return `<div class="auth"><form class="panel stack" data-act="profile" style="width:min(560px,100%)">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Your business</span></div></div>
+    <h1>Tell the team who you are</h1>
+    <p class="sub">This stays in your account. It is the context the drafts start from. You can change it later.</p>
+    <label>Business name<input name="biz" required value="${esc(state && state.biz || '')}"></label>
+    <label>City<input name="city" required value="${esc(state && state.city || '')}"></label>
+    <label>Services<input name="services" required value="${esc(p.services||'')}" placeholder="What you offer"></label>
+    <label>Prices<input name="prices" required value="${esc(p.prices||'')}" placeholder="What you charge"></label>
+    <label>Who you want to reach<input name="audience" required value="${esc(p.audience||'')}"></label>
+    <label>The offer<input name="offer" required value="${esc(p.offer||'')}"></label>
+    <div class="err">${esc(err)}</div>
+    <button class="btn" type="submit">Continue to industry</button>
+  </form>
+  <p class="small" style="text-align:center"><button class="btn-ghost" type="button" data-act="go" data-screen="setup">15-minute setup</button> <button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="call">Book a setup call</button></p></div>`;
+}
+function roleView() {
+  const packs = (state && state.packs) || meta.packs || [];
+  const card = (p) => `<button class="tile" type="button" data-act="pick" data-role="${esc(p.id)}"><b>${esc(p.title)}</b><div class="small" style="margin-top:6px">${esc(p.blurb)}</div><ul>${(p.agents||[]).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></button>`;
+  return `<div class="auth"><div class="panel" style="width:min(980px,100%)">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>Pick an industry</span></div></div>
+    <h1>Which business is this?</h1>
+    <p class="sub">One click creates the team. The screens stay the same. Labels, sample rows and prompts follow the industry.</p>
+    <div class="roles">${packs.map(card).join('')}</div>
+    <div class="err">${esc(err)}</div>
+  </div></div>`;
+}
+function setupView() {
+  const packs = (state && state.packs) || meta.packs || [];
+  const wa = (state && state.whatsapp) || {};
+  const booked = state && state.setupCall;
+  const call = `<form class="form" data-act="setup-call" style="margin-top:16px"><h2>Book a setup call</h2><p class="small">About 15 minutes with a person. This saves the request in your account. Nothing is emailed.</p>
+    ${booked ? `<p class="small" role="status">Saved for ${esc(booked.name)} · ${esc(booked.phone)} · ${esc(booked.when)}. Nothing was emailed.</p>` : ''}
+    <label>Name<input name="name" required value="${esc((booked && booked.name) || '')}"></label>
+    <label>Phone<input name="phone" required value="${esc((booked && booked.phone) || '')}" placeholder="9198…"></label>
+    <label>A time that suits you<input name="when" required value="${esc((booked && booked.when) || '')}" placeholder="Tuesday 11:00"></label>
+    <label class="wide">Note<input name="note" placeholder="What you want help with"></label>
+    <div><button class="btn" type="submit">Book a setup call</button></div></form>`;
+  if (wiz === 'call') return `<div class="auth"><div class="panel" style="width:min(640px,100%)"><h1>Book a setup call</h1>${call}<p><button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="1">Back to the 15-minute setup</button></p></div></div>`;
+  const steps = ['Industry', 'Business', 'Import', 'WhatsApp', 'Tone', 'AI key', 'Drafts'];
+  const head = `<p class="small">Step ${wiz} of 7 · about 15 minutes. Nothing is sent.</p><p class="small">${steps.map((s, i) => (i + 1 === Number(wiz) ? '<b>' + s + '</b>' : s)).join(' · ')}</p>`;
+  const provs = (state && state.aiKey && state.aiKey.providers) || [{ id: 'openrouter', name: 'OpenRouter' }, { id: 'openai', name: 'OpenAI' }, { id: 'xai', name: 'xAI Grok' }, { id: 'google', name: 'Google Gemini' }, { id: 'anthropic', name: 'Anthropic' }];
+  let body = '';
+  if (Number(wiz) === 1) body = `<h1>Which business is this?</h1>${head}<div class="roles">${packs.map((p) => `<button class="tile" type="button" data-act="setup-role" data-role="${esc(p.id)}"><b>${esc(p.title)}</b><div class="small">${esc(p.blurb)}</div></button>`).join('')}</div>`;
+  else if (Number(wiz) === 2) body = `<h1>Business details</h1>${head}<form class="stack" data-act="setup-details">
+    <label>Business name<input name="biz" required></label><label>City<input name="city" required></label>
+    <label>Services<input name="services" required></label><label>Prices<input name="prices" required></label>
+    <label>Who you want to reach<input name="audience" required></label><label>The offer<input name="offer" required></label>
+    <button class="btn" type="submit">Save and continue</button></form>`;
+  else if (Number(wiz) === 3) body = `<h1>Import customers</h1>${head}<p class="sub">CSV, a paste of name and phone, or Eka.care. You can skip this and add people later.</p>
+    <form class="stack" data-act="setup-import"><label>Paste one person per line<input name="paste" placeholder="Asha Rao, 919000000111"></label>
+    <label>CSV file<input name="file" type="file" accept=".csv,text/csv"></label>
+    <div><button class="btn" type="submit">Save import</button> <button class="btn-ghost" type="button" data-act="setup-skip">Skip</button> <button class="btn-ghost" type="button" data-act="sync-eka">Sync Eka.care</button></div></form>
+    <p class="small">Eka.care stays Available, connect with credentials, until the server has keys. The sample business shows Connected (demo). Sync does not email anyone.</p>`;
+  else if (Number(wiz) === 4) body = `<h1>Connect WhatsApp</h1>${head}<p class="sub">${wa.configured ? 'Official WhatsApp (' + esc(wa.provider) + ') is on. Approved drafts can send the template ' + esc(wa.template) + '. Opt-out is honoured.' : 'No provider key is set. Drafts keep a click-to-chat link. Nothing is sent.'}</p>
+    <form class="stack" data-act="setup-wa"><label>Business WhatsApp number<input name="phone" required placeholder="9198…"></label>
+    <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="ack" value="yes" style="width:auto" required> I understand nothing goes out until I approve it.</label>
+    <button class="btn" type="submit">Continue</button></form>`;
+  else if (Number(wiz) === 5) body = `<h1>A tone sample</h1>${head}<p class="sub">One message in your voice. Later drafts lean on it.</p>
+    <form class="stack" data-act="setup-tone"><label>How you write<textarea name="tone" rows="4" required placeholder="Hi, just checking in. Want me to hold Thursday?"></textarea></label>
+    <button class="btn" type="submit">Continue</button></form>`;
+  else if (Number(wiz) === 6) body = `<h1>Use your own AI key</h1>${head}
+    <p class="sub">Required. OpenRouter, OpenAI, xAI, Gemini or Anthropic. The key is checked once and stored encrypted. Only the last 4 characters are shown. Every agent call for this business uses that key only. You pay the provider directly.</p>
+    ${(state && state.aiKey && state.aiKey.source === 'own') ? `<p class="small" role="status">Saved ${esc(state.aiKey.name)} key ${esc(state.aiKey.hint)}. Model: ${esc(state.aiKey.model)}. ${esc(state.aiKey.label || '')}</p>` : `<p class="small">Paste a key to continue. Agent calls stay off until it is saved.</p>`}
+    <form class="stack" data-act="setup-key">
+      <label>Provider<select name="provider">${provs.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
+      <label>API key<input name="key" type="password" autocomplete="off" placeholder="Paste the whole key"></label>
+      <div><button class="btn" type="submit">Test & save</button></div>
+    </form>
+    ${(state && state.aiKey && state.aiKey.source === 'demo') ? '<p><button class="btn-ghost" type="button" data-act="setup-demo-key">Continue with demo key (demo only)</button></p>' : ''}
+    <p class="small">This step saves the key, then creates the first 3 drafts. Nothing is sent.</p>`;
+  else body = `<h1>The first 3 drafts are waiting</h1>${head}<p class="sub">They are in Approvals. Nothing has been sent.</p>
+    ${(wizDrafts || []).map((d) => `<article class="draft"><b>${esc(d.title)}</b><p>${esc(d.body)}</p></article>`).join('') || '<p class="small">Finish the earlier steps to queue them.</p>'}
+    <p><button class="btn" type="button" data-act="go" data-screen="approvals">Open Approvals</button></p>${call}`;
+  return `<div class="auth"><div class="panel" style="width:min(860px,100%)">${body}<div class="err">${esc(err)}</div></div></div>`;
+}
+function side() {
+  const pending = (state.pending || []).length;
+  const item = (id, label, extra) => `<button type="button" data-act="go" data-screen="${id}" ${screen===id?'aria-current="page"':''}>${esc(label)}${extra||''}</button>`;
+  return `<aside class="side">
+    <div class="brand"><div class="mark">A</div><div><b>AaaS</b><span>${esc(state.biz || '')}</span></div></div>
+    <nav class="nav">
+      ${item('dash','Dashboard')}
+      ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
+      ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
+      ${item('connections','Connections')}
+      ${item('visit','Clinic visit')}
+      ${item('pricing','Pricing')}
+      ${item('usage','Usage & cost')}
+      ${item('settings','Settings')}
+      ${item('privacy','Privacy')}
+    </nav>
+    <div class="grow"></div>
+    <label class="small" style="padding:8px">Industry
+      <select data-act="pick" aria-label="Industry">${((state.packs)||[]).map((p) => `<option value="${esc(p.id)}" ${state.role===p.id?'selected':''}>${esc(p.title)}</option>`).join('')}</select>
+    </label>
+    <button class="out" type="button" data-act="logout">Sign out</button>
+  </aside>`;
+}
+function kpis() {
+  const s = state.stats || {};
+  const L = state.labels || {};
+  const tiles = [
+    ['Enquiries this week', s.enquiriesWeek, s.enquiriesOpen + ' still open'],
+    [L.booking || 'Bookings this week', s.bookingsWeek, 'Booked or completed'],
+    ['Referral bookings', s.referralBookings, 'From a forwarded link'],
+    [L.noshow || 'No-shows', s.noshows, 'This week'],
+    [L.recall || 'Recalls due', s.recallsDue, 'No ' + (L.visit || 'visit') + ' in 6 months'],
+    ['Reviews requested', s.reviews, 'Drafts on file'],
+    ['Posts scheduled', s.posts, 'On the calendar, not published'],
+    [L.revenue || 'Paid this month', inr(s.revenue), 'Invoices marked paid'],
+    [(L.who || 'Patients') + ' last 2 months', s.patientsLast2Months, s.patientsTotal + ' on file'],
+  ];
+  return `<div class="kpis">${tiles.map(([k,v,h]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="hint">${esc(h)}</div></div>`).join('')}</div>`;
+}
+function banner() {
+  if (!state.demo && !state.sample) return '';
+  return `<div class="banner">Sample rows for ${esc(state.biz)}, ${esc(state.city)} are fake and marked DEMO. This screen is for the owner, not a login for ${esc((state.labels&&state.labels.who)||'customers')}. AaaS does not email, text, post, or collect a payment.</div>`;
+}
+function checklistCard() {
+  const steps = state.checklist || [];
+  if (!steps.length || steps.every((s) => s.done)) return '';
+  const go = { import: 'connections', form: 'connections', approve: 'approvals' };
+  return `<div class="callout"><b>First run</b><p class="small">Three steps, then the team is working from your records.</p><ol>${steps.map((s) => `<li>${s.done?'Done: ':''}<button type="button" class="btn-ghost" data-act="go" data-screen="${go[s.id]||'dash'}">${esc(s.title)}</button> <span class="small">${esc(s.detail)}</span></li>`).join('')}</ol></div>`;
+}
+function recoveredCard() {
+  const r = (state.stats && state.stats.recovered) || { total: 0, bookings: 0, reactivated: 0, referrals: 0, invoices: 0, method: '' };
+  return `<section class="recovered"><div class="k">₹ recovered this month</div><div class="v">${inr(r.total)}</div>
+    <ul><li>Bookings ${inr(r.bookings)}</li><li>Reactivated ${inr(r.reactivated)}</li><li>Referrals ${inr(r.referrals)}</li><li>Paid invoices ${inr(r.invoices)}</li></ul>
+    <p class="small">${esc(r.method || '')}</p>
+    <button class="btn" type="button" data-act="weekly">Draft weekly WhatsApp summary</button></section>`;
+}
+function dash() {
+  const L = state.labels || {};
+  return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
+    <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
+    ${recoveredCard()}
+    <p><button class="btn" type="button" data-act="go" data-screen="setup">15-minute setup</button> <button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="call">Book a setup call</button></p>
+    ${checklistCard()}
+    ${softwareCard()}
+    ${forecastCard()}
+    ${kpis()}
+    <h2>Your team</h2>
+    <div class="team">${(state.agents||[]).map((a) => `<button class="tile" type="button" data-act="go" data-screen="${a.key}"><b>${esc(a.name)}</b><div class="small">${a.paused?'Paused':'Active'} · ${a.waiting? a.waiting + ' waiting':'last action in the sample'}</div></button>`).join('')}</div>
+    <p class="small" style="margin-top:14px">${esc(L.who || 'Records')} in the last 2 months are counted from the database, not typed in by hand.</p>`;
+}
+function softwareCard() {
+  const s = state.stats || {};
+  const rows = s.fromSoftwareNames || [];
+  return `<section class="card" style="padding:14px;margin-bottom:16px"><h2 style="margin-top:0">From connected software</h2>
+    <p class="small">People whose row came from Eka.care or another system you connect. Brought-back rupees are paid invoices this month for those people, after AaaS marked the follow-up.</p>
+    <div class="kpis">
+      <div class="tile"><div class="k">From connected software</div><div class="v">${esc(s.fromSoftware || 0)}</div></div>
+      <div class="tile"><div class="k">Brought back by AaaS</div><div class="v">${inr(s.broughtBackInr || 0)}</div><div class="hint">${(s.broughtBackNames || []).join(', ') || 'No paid return yet'}</div></div>
+    </div>
+    ${rows.length ? `<ul class="src">${rows.map((p) => `<li><b>${esc(p.name)}</b> <span class="pill">${esc(p.source)}</span>${p.broughtBack ? ' <span class="pill paid">Brought back</span>' : ''}</li>`).join('')}</ul>` : '<p class="small">None yet. Connect Eka.care or import a CSV.</p>'}
+  </section>`;
+}
+function forecastCard() {
+  const f = state.forecast || {};
+  return `<section class="card" style="padding:14px;margin-bottom:16px"><h2 style="margin-top:0">Next month</h2>
+    <div class="kpis">
+      <div class="tile"><div class="k">${esc((state.labels&&state.labels.booking)||'Bookings')}</div><div class="v">${esc(f.bookings||0)}</div><div class="hint">${esc(f.bookingsBase||0)} in the last ${esc(f.days||28)} days</div></div>
+      <div class="tile"><div class="k">Revenue</div><div class="v">${inr(f.revenue||0)}</div><div class="hint">Invoices issued, scaled</div></div>
+      <div class="tile"><div class="k">Collections</div><div class="v">${inr(f.collections||0)}</div><div class="hint">Invoices marked paid, scaled</div></div>
+    </div>
+    <p class="small">${esc(f.method||'')}</p>
+  </section>`;
+}
+function rulesBox(agent) {
+  const r = state.rules || {};
+  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules</div>
+    <div style="margin:6px 0 8px">Send only between <input name="from" value="${esc(r.from)}" style="width:90px"> and <input name="to" value="${esc(r.to)}" style="width:90px"> · Ask before anything new · Tone: <input name="tone" value="${esc(r.tone)}" style="width:min(360px,100%)"></div>
+    <button class="btn-ghost" type="submit">Save rules</button>
+    <button class="btn-ghost" type="button" data-act="go" data-screen="settings">Reminder settings</button>
+    <button class="btn-ghost" type="button" data-act="pause" data-key="${esc(agent.key)}">${agent.paused?'Resume agent':'Pause agent'}</button>
+  </form>`;
+}
+function agentHead(agent) {
+  return `${banner()}<h1>${esc(agent.name)}</h1><p class="sub">${esc(agent.d)}</p>
+    <div class="kpis agent-kpis">
+      <div class="tile"><div class="k">Done this week</div><div class="v">${agent.done}</div></div>
+      <div class="tile"><div class="k">Waiting for approval</div><div class="v">${agent.waiting}</div></div>
+      <div class="tile"><div class="k">Scheduled</div><div class="v">${agent.scheduled}</div></div>
+    </div>`;
+}
+function draftCard(d) {
+  const link = String(d.waLink || '').startsWith('https://wa.me/') ? d.waLink : '';
+  return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)} ${d.demo?'<span class="pill">DEMO</span>':''}
+    <p>${esc(d.body)}</p>
+    ${d.waStatus?`<p class="small">WhatsApp ${esc(d.waStatus)}${d.waProvider?' · '+esc(d.waProvider):''}. Only an approved draft is handed to the provider.</p>`:''}
+    ${link?`<p><a class="link" href="${esc(link)}" target="_blank" rel="noopener">WhatsApp link</a> <span class="small">${(state.whatsapp&&state.whatsapp.configured)?'Click-to-chat stays available.':'Opens on your phone. AaaS does not send it.'}</span></p>`:''}
+    ${d.status==='pending'?`<form data-act="edit-draft"><input type="hidden" name="id" value="${d.id}"><textarea name="body" rows="3">${esc(d.body)}</textarea><div class="row-actions" style="margin-top:8px"><button class="btn-ghost" type="submit">Save edit</button><button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button><button class="btn-danger" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="reject">Reject</button></div></form>`:''}
+    ${d.result?`<p class="small">${esc(d.result)}</p>`:''}
+  </article>`;
+}
+function front() {
+  const a = state.agents.find((x) => x.key==='front');
+  const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  return `${agentHead(a)}
+    <div class="split">
+      <section><h2>Enquiries</h2>
+        <form class="form" data-act="add-enq" style="grid-template-columns:1fr 1fr">
+          <label>Name<input name="name" required></label>
+          <label>Phone<input name="phone" required></label>
+          <label>Channel<select name="channel"><option>Phone</option><option>Website</option><option>Instagram</option><option>Walk-in</option></select></label>
+          <label>Message<input name="message"></label>
+          <div><button class="btn" type="submit">Add enquiry</button></div>
+        </form>
+        <div class="scroll"><table><thead><tr><th>Who</th><th>Channel</th><th>Status</th><th></th></tr></thead><tbody>
+          ${(state.enquiries||[]).map((e) => `<tr><td>${esc(e.name)}${e.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(e.message||'')}</div></td><td>${esc(e.channel)}<div class="small">${esc(e.phone)}</div></td><td>${pill(e.status)}</td><td class="row-actions">
+            <button class="btn-ghost" type="button" data-act="enq-status" data-id="${e.id}" data-status="${e.status==='closed'?'new':'closed'}">${e.status==='closed'?'Reopen':'Close'}</button>
+            <button class="btn-danger" type="button" data-act="enq-del" data-id="${e.id}">Delete</button>
+          </td></tr>`).join('') || '<tr><td colspan="4">No enquiries yet.</td></tr>'}
+        </tbody></table></div>
+      </section>
+      <section><h2>Appointments</h2>
+        <form class="form" data-act="add-appt" style="grid-template-columns:1fr 1fr">
+          <label>Person<select name="patientId">${opts}</select></label>
+          <label>When<input name="at" type="datetime-local" required></label>
+          <label>Service<input name="service" value="${esc((state.labels&&state.labels.service)||'Visit')}"></label>
+          <label>Fee<input name="fee" type="number" min="0" value="1500"></label>
+          <div><button class="btn" type="submit">Add appointment</button></div>
+        </form>
+        <div class="scroll"><table><thead><tr><th>When</th><th>Who</th><th>Status</th><th></th></tr></thead><tbody>
+          ${(state.appointments||[]).map((ap) => `<tr><td>${esc(when(ap.at))}<div class="small">${esc(ap.service)} · ${inr(ap.fee)}</div></td><td>${esc(pname(ap.patientId))}${ap.demo?' <span class="pill">DEMO</span>':''}</td><td>${pill(ap.status)}${ap.reminder?`<div class="small">Reminder ${esc(ap.reminder.status)}</div>`:''}</td><td class="row-actions">
+            <button class="btn-ghost" type="button" data-act="appt-status" data-id="${ap.id}" data-status="noshow">Mark missed</button>
+            <button class="btn-ghost" type="button" data-act="remind" data-id="${ap.id}">Queue reminder</button>
+            <button class="btn-danger" type="button" data-act="appt-del" data-id="${ap.id}">Delete</button>
+          </td></tr>`).join('') || '<tr><td colspan="4">No appointments yet.</td></tr>'}
+        </tbody></table></div>
+      </section>
+    </div>${rulesBox(a)}`;
+}
+function peopleTable(list, act) {
+  if (!list.length) return '<p class="small">Nobody in this list.</p>';
+  const visit = (state.labels && state.labels.visit) || 'visit';
+  return `<div class="scroll"><table><thead><tr><th>Name</th><th>Last ${esc(visit)}</th><th>Value</th><th></th></tr></thead><tbody>${list.map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(p.phone)}</div></td><td>${esc(when(p.lastVisit))}</td><td>${inr(p.value)}</td><td><button class="btn" type="button" data-act="${act}" data-id="${p.id}">Draft follow-up</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+function recall() {
+  const a = state.agents.find((x) => x.key==='recall');
+  const now = Date.now(), day = 864e5;
+  const lapsed = (state.patients||[]).filter((p) => p.lastVisit && (now - Date.parse(p.lastVisit) > 180*day));
+  const bar = Number(state.labels && state.labels.highValue) || 20000;
+  const high = (state.patients||[]).filter((p) => Number(p.value) >= bar);
+  const drafts = (state.drafts||[]).filter((d) => d.agent==='recall');
+  return `${agentHead(a)}<div class="split"><section><h2>Lapsed</h2>${peopleTable(lapsed,'recall')}</section><section><h2>High value</h2>${peopleTable(high,'recall')}</section></div>
+    <h2>Follow-up drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No drafts yet.</p>'}${rulesBox(a)}`;
+}
+function reviews() {
+  const a = state.agents.find((x) => x.key==='reviews');
+  const drafts = (state.drafts||[]).filter((d) => d.kind==='review');
+  const visit = (state.labels && state.labels.visit) || 'visit';
+  const waOn = !!(state.whatsapp && state.whatsapp.configured);
+  return `${agentHead(a)}<h2>Ask after a ${esc(visit)}</h2><p class="sub">${waOn?'Approving a draft sends the WhatsApp template. Opt-out is honoured. Nothing goes out before you approve.':'The draft includes a WhatsApp click-to-chat link. Nothing is sent until a Meta or Gupshup key is set, and only after you approve.'}</p>
+    <div class="scroll"><table><thead><tr><th>Name</th><th>Phone</th><th>WhatsApp</th><th></th></tr></thead><tbody>
+      ${(state.patients||[]).slice(0,12).map((p) => `<tr><td>${esc(p.name)}${p.demo?' <span class="pill">DEMO</span>':''}</td><td>${esc(p.phone)}</td><td>${p.waOpt==='out'?'Opted out':p.waOpt==='in'?'Opted in':'No opt-in'}</td><td class="row-actions"><button class="btn" type="button" data-act="review" data-id="${p.id}">Draft review request</button><button class="btn-ghost" type="button" data-act="wa-opt" data-id="${p.id}" data-status="in">Opt in</button><button class="btn-ghost" type="button" data-act="wa-opt" data-id="${p.id}" data-status="out">Opt out</button></td></tr>`).join('')}
+    </tbody></table></div>
+    <h2>Drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No review drafts yet.</p>'}${rulesBox(a)}`;
+}
+function social() {
+  const a = state.agents.find((x) => x.key==='social');
+  const start = state.stats.weekStart;
+  const days = [...Array(7)].map((_, i) => { const [y,m,d] = start.split('-').map(Number); const dt = new Date(Date.UTC(y, m-1, d+i)); const key = dt.toISOString().slice(0,10); const label = dt.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }); return { key, label }; });
+  return `${agentHead(a)}<h2>This week</h2>
+    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
+    <h2>Draft a post</h2>
+    <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="${esc((state.labels&&state.labels.example)||'What to say this week')}"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
+    <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
+    <h2>Forwardable referral</h2>
+    <p class="sub">A short message this person can forward on WhatsApp, with their own booking link. It waits in Approvals. Nothing is sent.</p>
+    <form class="form" data-act="referral"><label>Person<select name="patientId">${(state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label><div style="align-self:end"><button class="btn" type="submit">Draft referral message</button></div></form>
+    ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
+}
+function insights() {
+  const a = state.agents.find((x) => x.key==='insights');
+  return `${agentHead(a)}${kpis()}<h2>Weekly summary</h2><article class="draft"><p>${esc((state.summary&&state.summary.text) || 'No summary yet.')}</p>
+    <button class="btn-ghost" type="button" data-act="refresh">Refresh summary</button></article>${rulesBox(a)}`;
+}
+function billing() {
+  const a = (state.agents||[]).find((x) => x.key==='billing');
+  const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const rows = (state.invoices||[]).map((inv) => `<tr><td>${esc(inv.number)}${inv.demo?' <span class="pill">DEMO</span>':''}<div class="small">${esc(pname(inv.patientId))}</div>${inv.payLink?`<div class="small"><a class="link" href="${esc(inv.payLink)}"${String(inv.payLink).startsWith('http')?' target="_blank" rel="noopener"':''}>${inv.payMode==='razorpay'?'Payment link':'UPI link'}</a></div>`:''}</td><td>${inr(inv.total)}</td><td>${pill(inv.state)}</td><td class="row-actions">
+    <button class="btn-ghost" type="button" data-act="paid" data-id="${inv.id}" data-status="${inv.state==='paid'?'unpaid':'paid'}">${inv.state==='paid'?'Mark unpaid':'Mark paid'}</button>
+    ${state.demo && inv.state!=='paid'?`<button class="btn-ghost" type="button" data-act="pay-sim" data-id="${inv.id}">Simulate payment</button>`:''}
+    <button class="btn-ghost" type="button" data-act="remind-inv" data-id="${inv.id}">Queue reminder</button>
+    <button class="btn-ghost" type="button" data-act="print" data-id="${inv.id}">Print</button>
+    <button class="btn-ghost" type="button" data-act="pdf" data-id="${inv.id}" data-number="${esc(inv.number)}">PDF</button>
+  </td></tr>`).join('');
+  return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. Each invoice and its reminder draft includes a payment link: a Razorpay test link when those keys are set, otherwise a UPI link. The sample business can simulate the paid webhook. Nothing is sent, and AaaS does not take the payment itself.</p>
+    <form class="form" data-act="add-inv">
+      <label>Person<select name="patientId">${opts}</select></label>
+      <label>Description<input name="desc" required placeholder="${esc((state.labels&&state.labels.service)||'What this invoice is for')}"></label>
+      <label>Qty<input name="qty" type="number" min="1" value="1"></label>
+      <label>Rate ₹<input name="rate" type="number" min="0" value="1500"></label>
+      <label>GST % (optional)<input name="gst" placeholder="Leave blank"></label>
+      <label>Due<input name="due" type="date"></label>
+      <label>UPI ID<input name="upi" value="${esc((state.profile&&state.profile.upi)||'')}" placeholder="name@upi"></label>
+      <label class="wide">Payment link text<input name="payLink" value="${esc((state.profile&&state.profile.payLink)||'')}" placeholder="upi://pay?pa=name@upi"></label>
+      <div><button class="btn" type="submit">Create invoice</button></div>
+    </form>
+    <div class="scroll"><table><thead><tr><th>Invoice</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="4">No invoices yet.</td></tr>'}</tbody></table></div>${rulesBox(a)}`;
+}
+function pricing() {
+  const plans = state.plans || meta.plans || [];
+  const notes = state.pricing || meta.pricing || {};
+  return `${banner()}<h1>Pricing</h1><p class="sub">${esc(notes.sameFeatures || 'Both plans include the same agents. You approve anything that would go out.')} This app does not take a card payment.</p>
+    <div class="plans">${plans.map((p) => `<article class="tile"><div class="k">${esc(p.name)}</div><div class="v">${inr(p.priceInr)}<span class="small"> / month</span></div><p>${esc(p.blurb)}</p><ul>${(p.includes||[]).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${p.setupInr ? `<p class="small">One-time setup and install ${inr(p.setupInr)}. Waived on an annual plan.</p>` : '<p class="small">No install.</p>'}</article>`).join('')}</div>
+    <p class="small">${esc(notes.annualNote || '')}</p>
+    <p class="small">${esc(notes.byokNote || '')}</p>`;
+}
+function usage() {
+  const u = state.usage || { tokens: 0, calls: 0, costUsd: 0, costInr: 0, inrPerUsd: 84, note: '', runs: [], byAgent: [] };
+  const rows = (u.runs || []).map((r) => `<tr><td>${esc(r.name)}<div class="small">${esc(when(r.at))}</div></td><td>${esc(r.tokensIn)}</td><td>${esc(r.tokensOut)}</td><td>${inr(r.costInr)}</td><td>${r.source==='sample'?'<span class="pill">Sample run</span>':'<span class="pill approved">Logged</span>'}</td></tr>`).join('');
+  const agents = (u.byAgent || []).map((r) => `<div class="tile"><div class="k">${esc(r.name)}</div><div class="v">${inr(r.costInr)}</div><div class="hint">${esc(r.tokensIn + r.tokensOut)} tokens · ${esc(r.calls)} runs</div></div>`).join('');
+  const line = (u.aiKey && u.aiKey.label) || u.billedTo || '';
+  return `${banner()}<h1>Usage and cost</h1><p class="sub">Token counts per agent run. Logged rows come from the model response. A sample business also shows recorded sample runs. This is not a bill from AaaS.</p>
+    ${line ? `<p class="banner" role="status">${esc(line)}</p>` : ''}
+    <div class="kpis">
+      <div class="tile"><div class="k">Logged model calls</div><div class="v">${esc(u.calls||0)}</div></div>
+      <div class="tile"><div class="k">Tokens in</div><div class="v">${esc(u.tokensIn||0)}</div></div>
+      <div class="tile"><div class="k">Tokens out</div><div class="v">${esc(u.tokensOut||0)}</div></div>
+      <div class="tile"><div class="k">Estimated cost</div><div class="v">${inr(u.costInr||0)}</div><div class="hint">$${Number(u.costUsd||0).toFixed(4)} · ₹${esc(u.inrPerUsd||84)} / USD estimate</div></div>
+    </div>
+    <h2>By agent</h2><div class="kpis">${agents || '<p class="small">No runs yet.</p>'}</div>
+    <h2>Runs</h2><div class="scroll"><table><thead><tr><th>Agent</th><th>In</th><th>Out</th><th>Rupees</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="5">No runs yet.</td></tr>'}</tbody></table></div>
+    <p class="small">${esc(u.note||'')}</p>`;
+}
+function privacy() {
+  return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records of ${esc((state.labels&&state.labels.who)||'people')} stay on this account. Another customer cannot read them.</p>
+    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Neither one sends an email, a text, or a post.</p></article>
+    <article class="draft"><b>Export</b><p>Download the records in this account as JSON. The public form token is left out.</p><button class="btn" type="button" data-act="export">Download my data</button></article>
+    <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes this team’s ${esc((state.labels&&state.labels.who)||'people')}, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
+    <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample business password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
+}
+function settings() {
+  const r = state.rules || { from: '09:00', to: '20:00', everyDays: 7, cap: 2, tone: '' };
+  const who = (state.labels && state.labels.whoSingular) || 'person';
+  const examples = state.toneExamples || [];
+  const k = state.aiKey || { source: 'platform', providers: [], model: '', name: '', hint: '' };
+  if (!k.providers || !k.providers.length) k.providers = [{ id: 'openrouter', name: 'OpenRouter' }, { id: 'openai', name: 'OpenAI' }, { id: 'xai', name: 'xAI Grok' }, { id: 'google', name: 'Google Gemini' }, { id: 'anthropic', name: 'Anthropic' }];
+  const using = k.source === 'own'
+    ? `Your own ${k.name} key (${k.hint}). Model: ${k.model}. ${k.label || ''}`
+    : `${k.label || 'Save your AI key in Settings. Agent calls stay off until then.'}${k.model && k.source === 'demo' ? ' Model: ' + k.model + '.' : ''}`;
+  const opts = (k.providers || []).map((p) => `<option value="${esc(p.id)}" ${k.provider===p.id?'selected':''}>${esc(p.name)}</option>`).join('');
+  return `${banner()}<h1>Settings</h1><p class="sub">Reminder rhythm for this business, the wording you taught the drafts, and the AI key those drafts use.</p>
+    <form class="card stack" data-act="ai-key" style="padding:14px">
+      <b>AI key</b>
+      <p class="small" role="status">${esc(using)}</p>
+      <label>Provider<select name="provider">${opts}</select></label>
+      <label>API key<input name="key" type="password" autocomplete="off" placeholder="Paste the whole key"></label>
+      <p class="small">Test & save checks the key once. It is stored encrypted. Only the last 4 characters are shown again.</p>
+      <div><button class="btn" type="submit">Test & save</button>${k.source==='own'?' <button class="btn-danger" type="button" data-act="ai-key-del">Remove</button>':''}</div>
+    </form>
+    <form class="card stack" data-act="rules" style="padding:14px">
+      <b>Reminders</b>
+      <p class="small">How often a person can be reminded, the cap in any 7 days, and the send window. Quiet hours are everything outside that window. Drafts still wait for approval. Nothing is sent.</p>
+      <label>How often (days)<input name="everyDays" type="number" min="1" max="30" value="${esc(r.everyDays||7)}"></label>
+      <label>Cap per ${esc(who)} in 7 days<input name="cap" type="number" min="1" max="10" value="${esc(r.cap||2)}"></label>
+      <label>Send window starts<input name="from" value="${esc(r.from||'09:00')}" placeholder="09:00"></label>
+      <label>Send window ends<input name="to" value="${esc(r.to||'20:00')}" placeholder="20:00"></label>
+      <label>Tone<input name="tone" value="${esc(r.tone||'')}"></label>
+      <button class="btn" type="submit">Save reminder settings</button>
+    </form>
+    <article class="draft"><b>Learned tone</b>
+      <p class="small">When you edit a draft in Approvals, the before and after are kept here and used as the wording for the next draft of that agent.</p>
+      ${examples.length ? examples.map((e) => `<p><span class="pill">${esc(e.agent)}</span> <span class="small">${esc(when(e.at))}</span><br><span class="small">Before:</span> ${esc(e.before)}<br><span class="small">After:</span> ${esc(e.after)}</p>`).join('') : '<p class="small">No edits yet. Change a draft in Approvals and it will show up here.</p>'}
+      ${examples.length ? '<button class="btn-danger" type="button" data-act="tone-reset">Reset learned tone</button>' : ''}
+    </article>`;
+}
+function visit() {
+  const kit = state.visit || { questions: [], terms: [], saved: null };
+  const saved = kit.saved && kit.saved.answers ? kit.saved.answers : {};
+  return `${banner()}<h1>Clinic visit kit</h1><p class="sub">Ten questions for the owner, the free-pilot terms, and a place to write what they said. Saving stays in this account. Nothing is emailed.</p>
+    <article class="draft"><b>Free pilot</b><ul class="terms">${(kit.terms||[]).map((t) => `<li>${esc(t)}</li>`).join('')}</ul></article>
+    <form class="draft stack" data-act="visit">
+      <label>Who did you speak with?<input name="who" value="${esc((kit.saved&&kit.saved.who)||'')}" maxlength="80"></label>
+      ${(kit.questions||[]).map((q) => `<label class="visit-q">${esc(q.n)}. ${esc(q.text)}<textarea name="${esc(q.id)}" rows="3" maxlength="2000">${esc(saved[q.id]||'')}</textarea></label>`).join('')}
+      <label>Notes<input name="notes" value="${esc((kit.saved&&kit.saved.notes)||'')}" maxlength="2000"></label>
+      <label style="flex-direction:row;align-items:center;gap:8px;color:inherit"><input type="checkbox" name="accept" value="yes" style="width:auto" ${kit.saved?'checked':''}> The owner heard the free-pilot terms.</label>
+      <button class="btn" type="submit">Save visit notes</button>
+      ${kit.saved?'<p class="small">Last saved '+esc(when(kit.saved.at))+'.</p>':''}
+    </form>`;
+}
+function approvals() {
+  const items = state.pending || [];
+  return `${banner()}<h1>Approvals inbox</h1><p class="sub">Every outbound draft waits here. Approve records your OK. Reject skips it. Nothing is emailed, texted, or posted.</p>
+    ${items.map((d) => draftCard(d)).join('') || '<p class="small">Nothing is waiting.</p>'}`;
+}
+function connState(c) {
+  if (c.status === 'demo') return '<span class="pill booked">Connected (demo)</span>';
+  if (c.status === 'ready') return '<span class="pill approved">' + esc(c.label || 'Ready') + '</span>';
+  if (c.status === 'placeholder') return '<button class="btn-ghost placeholder" type="button" disabled>Coming soon</button>';
+  return '<span class="pill pending">' + esc(c.label || 'Available, connect with credentials') + '</span>';
+}
+function connections() {
+  const place = (state.labels && state.labels.place) || 'business';
+  return `${banner()}<h1>Connections</h1><p class="sub">Eka.care reads from their API when the server has credentials. A sample ${esc(place)} stays on sample rows and shows Connected (demo). Other software can use CSV or a webhook. Nothing is sent back out.</p>
+    ${(state.connections||[]).map((c) => `<div class="draft conn"><div><b>${esc(c.name)}</b><div class="small">${esc(c.detail)}</div>${c.url?`<div class="small"><a class="link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)}</a></div>`:''}${c.docs?`<div class="small"><a class="link" href="${esc(c.docs)}" target="_blank" rel="noopener">API docs</a></div>`:''}</div><div class="actions">${connState(c)}${c.id==='eka' && (c.status==='demo' || c.status==='ready')?'<button class="btn" type="button" data-act="sync-eka">Sync</button>':''}</div></div>`).join('')}
+    <p><button class="btn" type="button" data-act="form-done">I have put the booking form on my site</button></p>
+    <h2>Import a CSV</h2>
+    <p class="small">Columns: type, name, phone, email, last_visit, value, when, service, status, fee. The file uses type patient for a person and appointment for a ${esc((state.labels&&state.labels.visit)||'visit')}. Up to 2000 rows. Nothing is sent.</p>
+    <form class="form" data-act="csv"><label class="full">CSV file<input name="file" type="file" accept=".csv,text/csv"></label><div><button class="btn" type="submit">Import</button></div></form>
+    <pre class="small" style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto">type,name,phone,email,last_visit,value,when,service,status,fee
+patient,Demo Import,919000000099,import@example.com,2026-10-01,1800,,,,
+appointment,Demo Import,919000000099,,,,2026-10-28T05:30:00.000Z,${esc((state.labels&&state.labels.service)||'Visit')},booked,900</pre>`;
+}
+function chat() {
+  if (!state || !state.role) return '';
+  const who = (state.labels && state.labels.who) || 'patients';
+  return `<button class="chat-fab" type="button" data-act="chat-toggle">${chatOpen?'Close chat':'Chat'}</button>
+    ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r==='a'?chatMd(m.t):esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
+      <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="How many ${esc(who)} in the last 2 months?" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`:''}`;
+}
+function botStoreKey() { return 'aaas_bot_mode:' + ((state && state.account) || ''); }
+function readBot() { try { return localStorage.getItem(botStoreKey()) === '1'; } catch (e) { return false; } }
+function writeBot(on) { try { localStorage.setItem(botStoreKey(), on ? '1' : '0'); } catch (e) {} }
+function applyBot() {
+  const h = location.hash.replace('#', '');
+  if (h === 'bot') botMode = true;
+  else if (SCREENS.includes(h)) botMode = false;
+  else botMode = readBot();
+  if (botMode && state && state.role) history.replaceState(null, '', '/clinic#bot');
+}
+function botSrc() {
+  const email = (state && state.account) || '';
+  return '/?bot=1#as_auth=' + encodeURIComponent(token) + '&em=' + encodeURIComponent(email) + '&bot=1';
+}
+function botSwitch() {
+  if (!state || !state.role) return '';
+  return `<button class="bot-sw${botMode ? ' on' : ''}" type="button" data-act="bot-mode" aria-pressed="${botMode ? 'true' : 'false'}"><i></i>Bot Mode</button>`;
+}
+function render() {
+  let body = '';
+  if (!token) body = loginView();
+  else if (!state) body = roleView();
+  else if (state.role && botMode) body = `<div class="bot-on">${botSwitch()}<iframe class="bot-frame" title="Bot Mode" src="${botSrc()}"></iframe></div>`;
+  else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
+  else {
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView }[screen] || dash;
+    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${chat()}`;
+  }
+  if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
+  root.innerHTML = body;
+  const input = document.getElementById('chatIn');
+  if (input && chatOpen) input.focus();
+}
+async function reload() {
+  state = await api('/api/clinic');
+  if (!state.role) screen = skipProfile ? 'role' : ((state.profile && state.profile.services) ? 'role' : 'profile');
+  render();
+}
+async function act(name, el) {
+  try {
+    if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
+    if (name === 'bot-mode') {
+      if (botMode) { botMode = false; writeBot(false); screen = SCREENS.includes(botReturn) ? botReturn : 'dash'; history.replaceState(null, '', '/clinic#' + screen); }
+      else { botReturn = SCREENS.includes(screen) ? screen : 'dash'; botMode = true; writeBot(true); history.replaceState(null, '', '/clinic#bot'); }
+      render(); return;
+    }
+    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; botMode = false; go(el.dataset.screen); return; }
+    if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
+    if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
+    if (name === 'auth') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const path = mode === 'create' ? '/api/auth/signup' : '/api/auth/login';
+      const d = await api(path, { email:f.email, password:f.password, name:f.name || 'Clinic owner' });
+      token = d.token; sessionStorage.setItem('aaas_clinic_token', token); err = ''; skipProfile = false;
+      await reload(); return;
+    }
+    if (name === 'demo') {
+      const d = await api('/api/clinic/demo', {});
+      token = d.token; sessionStorage.setItem('aaas_clinic_token', token);
+      skipProfile = true; await reload(); return;
+    }
+    if (name === 'setup-role') {
+      state = await api('/api/clinic/role', { role: el.dataset.role });
+      wiz = 2; screen = 'setup'; flash((state.roleTitle || 'Team') + ' is ready.'); render(); return;
+    }
+    if (name === 'setup-details') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      state = await api('/api/clinic/profile', f);
+      wiz = 3; screen = 'setup'; flash('Business details saved.'); render(); return;
+    }
+    if (name === 'setup-skip') { wiz = 4; screen = 'setup'; render(); return; }
+    if (name === 'setup-import') {
+      const file = el.querySelector('input[type=file]').files[0];
+      wizPaste = new FormData(el).get('paste') || '';
+      wizCsv = file ? await file.text() : '';
+      wiz = 4; screen = 'setup'; flash(wizPaste || wizCsv ? 'Import saved for the last step.' : 'No rows yet. You can add them later.'); render(); return;
+    }
+    if (name === 'setup-wa') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      if (f.ack !== 'yes') throw new Error('Tick the box. Nothing goes out until you approve it.');
+      wizPhone = f.phone || '';
+      wiz = 5; screen = 'setup'; render(); return;
+    }
+    if (name === 'setup-tone') {
+      wizTone = new FormData(el).get('tone') || '';
+      wiz = 6; screen = 'setup'; render(); return;
+    }
+    if (name === 'setup-key') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const key = String(f.key || '').trim();
+      if (!key && !(state && state.aiKey && state.aiKey.source === 'own')) throw new Error('Paste your AI key. This step is required.');
+      if (key) await api('/api/ai/key', { provider: f.provider || 'openrouter', key });
+      const r = await api('/api/clinic/setup/finish', { tone: wizTone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true });
+      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 7; screen = 'setup';
+      flash('Three drafts are waiting in Approvals. Nothing was sent.'); render(); return;
+    }
+    if (name === 'setup-demo-key') {
+      if (!(state && state.aiKey && state.aiKey.source === 'demo')) throw new Error('The demo key is not available on this server.');
+      const r = await api('/api/clinic/setup/finish', { tone: wizTone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true, demoKey: true });
+      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 7; screen = 'setup';
+      flash('Three drafts are waiting in Approvals. Nothing was sent. Demo key, demo only.'); render(); return;
+    }
+    if (name === 'ai-key') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      await api('/api/ai/key', { provider: f.provider || 'openrouter', key: f.key });
+      flash('Key checked and saved. Only the last 4 characters are shown. Agent calls use this key only.');
+      await reload(); screen = 'settings'; render(); return;
+    }
+    if (name === 'ai-key-del') {
+      await api('/api/ai/key/delete', {});
+      flash('Key removed.');
+      await reload(); screen = 'settings'; render(); return;
+    }
+    if (name === 'setup-call') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const r = await api('/api/clinic/setup/call', f);
+      if (state) state.setupCall = r.setupCall; else state = { setupCall: r.setupCall };
+      flash('Setup call saved. Nothing was emailed.'); render(); return;
+    }
+    if (name === 'profile') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      state = { ...(state||{}), ...(await api('/api/clinic/profile', f)), packs: (state&&state.packs)||meta.packs, plans: (state&&state.plans)||meta.plans };
+      if (!state.packs) state.packs = meta.packs;
+      screen = 'role'; render(); return;
+    }
+    if (name === 'plan') { await api('/api/clinic/plan', { plan: el.dataset.plan }); flash('Plan saved. No card was charged.'); await reload(); return; }
+    if (name === 'pick') {
+      const role = el.dataset.role || el.value;
+      if (!role || role === (state && state.role)) return;
+      state = await api('/api/clinic/role', { role });
+      if (screen === 'role' || screen === 'login' || screen === 'profile') screen = wanted();
+      flash((state.roleTitle || 'Team') + ' is ready.');
+      render(); return;
+    }
+    if (name === 'add-enq') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/enquiries', f); flash('Enquiry added.'); }
+    else if (name === 'enq-status') await api('/api/clinic/enquiries/update', { id:Number(el.dataset.id), status:el.dataset.status });
+    else if (name === 'enq-del') { if (!confirm('Delete this enquiry?')) return; await api('/api/clinic/enquiries/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'add-appt') { const f = Object.fromEntries(new FormData(el).entries()); if (f.at) f.at = new Date(f.at).toISOString(); f.patientId = Number(f.patientId); f.fee = Number(f.fee||0); await api('/api/clinic/appointments', f); flash('Appointment added.'); }
+    else if (name === 'appt-status') await api('/api/clinic/appointments/update', { id:Number(el.dataset.id), status:el.dataset.status });
+    else if (name === 'appt-del') { if (!confirm('Delete this appointment?')) return; await api('/api/clinic/appointments/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'remind') { await api('/api/clinic/reminders', { appointmentId:Number(el.dataset.id) }); flash('Reminder queued for approval. Nothing was sent.'); }
+    else if (name === 'recall') { await api('/api/clinic/recall/draft', { patientId:Number(el.dataset.id) }); flash('Follow-up drafted. It is waiting in Approvals.'); }
+    else if (name === 'review') { await api('/api/clinic/reviews/draft', { patientId:Number(el.dataset.id) }); flash('Review request drafted with a WhatsApp link.'); }
+    else if (name === 'wa-opt') { await api('/api/clinic/whatsapp/opt', { patientId:Number(el.dataset.id), status:el.dataset.status }); flash(el.dataset.status==='out'?'Opt-out recorded. WhatsApp will not be sent.':'Opt-in recorded. Nothing was sent.'); }
+    else if (name === 'social') { const f = Object.fromEntries(new FormData(el).entries()); if (f.when) f.when = new Date(f.when + 'T09:00:00+05:30').toISOString(); await api('/api/clinic/social/draft', f); flash('Post drafted. It waits for approval.'); }
+    else if (name === 'referral') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/referrals/draft', { patientId: Number(f.patientId) }); flash('Referral message drafted. It waits in Approvals. Nothing was sent.'); }
+    else if (name === 'refresh') { await api('/api/clinic/insights/refresh', {}); flash('Summary refreshed from the records.'); }
+    else if (name === 'weekly') { await api('/api/clinic/summary/weekly', {}); flash('Weekly summary drafted. It is waiting in Approvals. Nothing was sent.'); }
+    else if (name === 'rules') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      if (f.everyDays) f.everyDays = Number(f.everyDays);
+      if (f.cap) f.cap = Number(f.cap);
+      await api('/api/clinic/rules', f); flash('Reminder settings saved. Nothing is sent.');
+    }
+    else if (name === 'tone-reset') { await api('/api/clinic/tone/reset', {}); flash('Learned tone cleared. Later drafts use the standard wording.'); }
+    else if (name === 'pause') { const a = state.agents.find((x) => x.key===el.dataset.key); await api('/api/clinic/agent', { key:el.dataset.key, paused:!a.paused }); }
+    else if (name === 'edit-draft') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/drafts/edit', { id:Number(f.id), body:f.body }); flash('Draft updated.'); }
+    else if (name === 'decide') {
+      const r = await api('/api/clinic/decide', { id:el.dataset.id, decision:el.dataset.decision });
+      const result = (r.approval && r.approval.result) || '';
+      flash(el.dataset.decision==='reject' ? 'Rejected. Nothing was sent.' : (/Sent on WhatsApp/.test(result) ? result : 'Approved. Nothing was sent.'));
+    }
+    else if (name === 'form-done') { await api('/api/clinic/checklist', { id: 'form' }); flash('Booking form marked as connected.'); }
+    else if (name === 'sync-eka') {
+      const r = await api('/api/clinic/connectors/sync', { provider: 'eka' });
+      flash(r.mode === 'demo' ? 'Connected (demo). Sample rows only. Eka.care was not called.' : 'Synced from Eka.care. Nothing was sent back.');
+    }
+    else if (name === 'visit') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const answers = {};
+      for (const q of ((state.visit && state.visit.questions) || [])) answers[q.id] = f[q.id] || '';
+      await api('/api/clinic/visit', { who: f.who || '', notes: f.notes || '', accept: f.accept === 'yes', answers });
+      flash('Visit notes saved in this account.');
+    }
+    else if (name === 'add-inv') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      await api('/api/clinic/invoices', { patientId: Number(f.patientId), items: [{ desc: f.desc, qty: Number(f.qty||1), rate: Number(f.rate||0) }], gst: f.gst, due: f.due ? new Date(f.due + 'T18:00:00+05:30').toISOString() : '', upi: f.upi, payLink: f.payLink });
+      flash('Invoice saved. Nothing was collected.');
+    }
+    else if (name === 'paid') { await api('/api/clinic/invoices/update', { id: Number(el.dataset.id), status: el.dataset.status }); flash(el.dataset.status==='paid' ? 'Marked paid. The dashboard uses paid invoices.' : 'Marked unpaid.'); }
+    else if (name === 'remind-inv') { await api('/api/clinic/invoices/remind', { id: Number(el.dataset.id) }); flash('Payment reminder queued. Nothing was sent.'); }
+    else if (name === 'pay-sim') { await api('/api/clinic/payments/simulate', { id: Number(el.dataset.id) }); flash('Simulated the paid webhook. The invoice is marked paid. Razorpay was not called.'); }
+    else if (name === 'print' || name === 'pdf') {
+      const r = await fetch('/api/clinic/invoices/' + el.dataset.id + (name==='pdf'?'/pdf':'/print'), { headers: { authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('That invoice did not open.');
+      const blob = await r.blob(); const url = URL.createObjectURL(blob);
+      if (name === 'print') window.open(url, '_blank', 'noopener');
+      else { const a = document.createElement('a'); a.href = url; a.download = (el.dataset.number || 'invoice') + '.pdf'; a.click(); }
+      return;
+    }
+    else if (name === 'export') {
+      const r = await fetch('/api/clinic/export', { headers: { authorization: 'Bearer ' + token } });
+      if (!r.ok) throw new Error('Export did not download.');
+      const blob = await r.blob(); const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'aaas-clinic-export.json'; a.click();
+      return;
+    }
+    else if (name === 'wipe') {
+      const confirm = new FormData(el).get('confirm');
+      await api('/api/clinic/data/delete', { confirm });
+      flash('Records deleted. Your sign-in is still here.');
+      skipProfile = false; await reload(); return;
+    }
+    else if (name === 'wipe-account') {
+      const password = new FormData(el).get('password');
+      await api('/api/auth/delete', { password });
+      token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login';
+      flash('Account deleted.'); render(); return;
+    }
+    else if (name === 'csv') {
+      const file = el.querySelector('input[type=file]').files[0]; if (!file) throw new Error('Choose a CSV file.');
+      const csv = await file.text(); const r = await api('/api/clinic/import', { csv });
+      const who = (state.labels && state.labels.who) || 'people';
+      const visitWord = (state.labels && state.labels.visit) || 'visit';
+      const visits = /class$/.test(visitWord) ? visitWord + 'es' : visitWord + 's';
+      flash(`Imported ${r.patients} ${who} and ${r.appointments} ${visits}.` + (r.errors.length?` ${r.errors.length} rows skipped.` : ''));
+    }
+    else if (name === 'chat') {
+      const message = (new FormData(el).get('message') || '').trim();
+      if (!message) return;
+      chatDraft = ''; chatLog.push({ r:'u', t:message }); chatBusy = true; render();
+      const hist = chatLog.slice(0, -1).slice(-6);
+      const d = await api('/api/clinic/chat', { message, history: hist });
+      chatLog.push({ r:'a', t:d.answer }); chatBusy = false; await reload(); return;
+    }
+    if (token) await reload();
+  } catch (e) { err = e.message; toast = e.message; chatBusy = false; render(); }
+}
+root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out')) { e.preventDefault(); act(b.dataset.act, b); } });
+root.addEventListener('change', (e) => { if (e.target && e.target.dataset && e.target.dataset.act === 'pick') act('pick', e.target); });
+root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
+root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
+(async () => {
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+  if (hash.get('as_auth')) { token = hash.get('as_auth'); sessionStorage.setItem('aaas_clinic_token', token); history.replaceState(null, '', '/clinic'); }
+  try { meta = await (await fetch('/api/clinic/meta')).json(); } catch { /* offline */ }
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'aaas-bot' || e.data.on !== false) return;
+    botMode = false; writeBot(false); screen = 'dash'; history.replaceState(null, '', '/clinic#dash'); render();
+  });
+  if (token) { try { await reload(); if (state && state.role) { applyBot(); if (!botMode) screen = wanted(); render(); } } catch { token = ''; screen = 'login'; render(); } }
+  else render();
+})();
+</script>
+</body>
+</html>

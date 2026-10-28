@@ -3,6 +3,7 @@
 import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
 import { obsScope, obs, obsDone } from './lib/obs.js';
 import { mockOn } from './lib/llm.js';
+import { applyPriceTokens } from './lib/pricing.js';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -47,7 +48,9 @@ async function serve(req, res) {
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       const home = process.env.AIDENTIFY_SITE === 'landing' ? 'landing-v2.html' : 'index.html';
-      return send(res, 200, await fs.readFile(path.join(dir, home)), 'text/html; charset=utf-8');
+      let html = await fs.readFile(path.join(dir, home), 'utf8');
+      if (home === 'landing-v2.html') html = applyPriceTokens(html);
+      return send(res, 200, html, 'text/html; charset=utf-8');
     }
     { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
       if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
@@ -61,7 +64,7 @@ async function serve(req, res) {
       return send(res, 200, await fs.readFile(path.join(dir, 'waitlist.html')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && (url.pathname === '/v2' || url.pathname === '/landing-v2.html')) {
-      return send(res, 200, await fs.readFile(path.join(dir, 'landing-v2.html')), 'text/html; charset=utf-8');
+      return send(res, 200, applyPriceTokens(await fs.readFile(path.join(dir, 'landing-v2.html'), 'utf8')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && (url.pathname === '/white-label' || url.pathname === '/white-label.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'white-label.html')), 'text/html; charset=utf-8');
@@ -74,16 +77,19 @@ async function serve(req, res) {
     if (req.method === 'GET' && url.pathname === '/board.html') { // groups + task boards (shown inside the Groups tab)
       return send(res, 200, await fs.readFile(path.join(dir, 'board.html')), 'text/html; charset=utf-8');
     }
+    if (req.method === 'GET' && (url.pathname === '/clinic' || url.pathname === '/clinic.html')) {
+      return send(res, 200, await fs.readFile(path.join(dir, 'clinic.html')), 'text/html; charset=utf-8');
+    }
     if (req.method === 'GET' && /^\/zips\/[a-z-]+\.zip\.txt$/.test(url.pathname)) {
       return send(res, 200, await fs.readFile(path.join(dir, url.pathname)), 'text/plain; charset=utf-8');
     }
-    if (url.pathname.startsWith('/c/')) {
+    if (url.pathname.startsWith('/c/') || url.pathname.startsWith('/book/') || url.pathname.startsWith('/api/clinic/form/')) {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Headers', 'content-type');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     }
-    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/c/') || url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/p/') || url.pathname.startsWith('/t/') || url.pathname.startsWith('/c/') || url.pathname.startsWith('/book/') || url.pathname.startsWith('/api/')) {
       const body = req.method === 'GET' || req.method === 'HEAD' ? '' : await readBody(req, url.pathname === '/api/ai' ? 65536 : 4 * 1024 * 1024);
       if (url.pathname === '/api/health') {
         const out = await handle({ method: 'GET', pathname: '/api/health', headers: req.headers, ip });

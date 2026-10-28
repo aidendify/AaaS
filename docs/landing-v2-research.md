@@ -83,7 +83,7 @@ These are facts about the current product (v2.4), or they are labelled as target
 - Boards: groups such as Orchestrator, Desk and Factory show the work.
 - Bring-your-own key: OpenRouter, OpenAI, Google Gemini, Anthropic, xAI. Stored with AES-256-GCM. Last four characters shown.
 - Hosted, or self-hosted on the customer’s own server.
-- Early-access prices the owner asked to publish: Starter ₹2,999 / month, Growth ₹5,999 / month, Agency ₹14,999 / month. The app does not take a card payment. Billing and Razorpay are not in this build. The usage summary is for an invoice the agency raises. It is not a tax invoice.
+- Prices the owner asked to publish on 28 Oct 2026 are in `lib/pricing.js`: Self-hosted and Hosted. The app does not take a card payment. AI usage is paid by the client to their provider. Billing and Razorpay checkout are not in this build. The usage summary is for an invoice the agency raises. It is not a tax invoice.
 - Target, not a measured customer average: a first reply drafted in under 60 seconds. With the default setting the visitor does not see it until someone approves it.
 - Waitlist validation (`lib/waitlist.js`): name, email, WhatsApp, city, consent, and a business type. The canonical list has **14** values, not 15: Agency, Clinic / healthcare, Coaching / education, Consulting, E-commerce / D2C, Home services, Manufacturing, Real estate, Restaurant / food, Retail shop, Salon / wellness, Software / IT, Travel, Other. Nothing is preselected. The field is required. The server accepts the string; it does not silently default it. v1’s page still ships a shorter hard-coded list; v2 uses the canonical 14.
 

@@ -24,7 +24,7 @@ The roadmap in section 5 comes from the GoHighLevel comparison report (`ghl-vs-a
 - **Ideal customers:** agencies and digital / email-marketing business owners only (as of Oct 7, 2026).
 - **Market:** India first: INR pricing, manual invoices for early customers (Razorpay shelved until there is a GSTIN), WhatsApp-first channels, DPDP Act consent.
 - **Where we beat GHL:** depth of AI agents (multi-agent Chief of Staff), any AI provider with bring-your-own-key and cost caps, approval-first safety. **Where GHL beats us:** the platform underneath (relational CRM, tenancy, tracking, event workflows, channels, snapshots, rebilling). The roadmap closes that gap.
-- **Pricing idea (to validate, + 18% GST):** Solo ₹1,999–2,999/mo, Growth ₹5,999/mo, Agency Starter ₹9,999/mo (5 clients), Agency Pro ₹19,999/mo + ₹999/extra client. AI and messages always metered, never "unlimited".
+- **Pricing:** the live prices are in `lib/pricing.js` (Self-hosted and Hosted). AI usage is paid by the client to their provider. Agency resale prices stay on the white-label page.
 
 ---
 

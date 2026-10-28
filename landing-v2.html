@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>AaaS — Hire an AI team. You keep the last word.</title>
-<meta name="description" content="AaaS is Agents as a Service for small businesses. A Chief of Staff plans the work and hands it to a front desk, follow-up and quote agents on WhatsApp, SMS, email, Google Calendar and website chat. Approvals come first. Early access in rupees.">
+<meta name="description" content="AaaS is Agents as a Service for small businesses. A Chief of Staff plans the work and hands it to a front desk, follow-up and quote agents on WhatsApp, email, Google Calendar and website chat. Approvals come first. Early access in rupees.">
 <meta name="theme-color" content="#f3efe6">
 <link rel="canonical" href="https://aidentify.vercel.app/">
 <meta property="og:title" content="AaaS — Hire an AI team. You keep the last word.">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,600&family=Geist:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/landing-v2.css">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AaaS","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":[{"@type":"Offer","price":"2999","priceCurrency":"INR","description":"Starter, early access, invoiced"},{"@type":"Offer","price":"5999","priceCurrency":"INR","description":"Growth, early access, invoiced"}],"description":"Agents as a Service for small businesses. Approvals first."}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AaaS","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":[{"@type":"Offer","price":"{{SELF_AMOUNT}}","priceCurrency":"INR","description":"Self-hosted, monthly, invoiced"},{"@type":"Offer","price":"{{HOSTED_AMOUNT}}","priceCurrency":"INR","description":"Hosted, monthly, invoiced"}],"description":"Agents as a Service for small businesses. Approvals first. Bring your own AI key."}</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -56,7 +56,7 @@
       <div>
         <p class="eyebrow">Agents as a Service · early access</p>
         <h1>Hire an AI team. You keep the last word.</h1>
-        <p class="lead">For clinics, coaches, brokers, studios and home businesses. Tell a Chief of Staff the goal in plain words. It plans the work and hands it to a front desk, a follow-up agent and a quote tracker — on WhatsApp, SMS, email, Google Calendar and your website chat.</p>
+        <p class="lead">For clinics, coaches, brokers, studios and home businesses. Tell a Chief of Staff the goal in plain words. It plans the work and hands it to a front desk, a follow-up agent and a quote tracker — on WhatsApp, email, Google Calendar and your website chat.</p>
         <div class="heroacts">
           <a class="btn solid" href="#join" data-join>Join the waitlist</a>
           <a class="btn line" href="#team">Meet the team</a>
@@ -127,7 +127,7 @@
         <article class="card"><h3>Front desk</h3><p>Timings, fees and “which slot?” on WhatsApp and on the site. A person steps in the moment the desk is unsure.</p></article>
         <article class="card"><h3>Marketing</h3><p>Draft the email, tag someone who opens or clicks, and run an A/B on the words. Posts stay drafts in this version.</p></article>
         <article class="card"><h3>Operations</h3><p>A sentence for “when the stage changes, remind me”. Boards show the queue. Change slips wait for approval.</p></article>
-        <article class="card"><h3>Customer care</h3><p>One inbox for WhatsApp, SMS and email, matched to the contact. STOP and the usual opt-out words end the sends.</p></article>
+        <article class="card"><h3>Customer care</h3><p>One inbox for WhatsApp and email, matched to the contact. STOP and the usual opt-out words end the sends.</p></article>
         <article class="card"><h3>Admin and reporting</h3><p>Weekly suggestions in plain sentences. Your own AI key if you prefer. Hosted, or on a server you control.</p></article>
       </div>
 
@@ -231,14 +231,13 @@
       <div class="sec-head">
         <p class="eyebrow">Integrations</p>
         <h2>Channels, with the limits written down.</h2>
-        <p>Telegram and Slack have no per-message fee. WhatsApp QR is a beta for the owner only. Early access includes a person to set the Meta and SMS channels up with you.</p>
+        <p>Telegram and Slack have no per-message fee. WhatsApp QR is a beta for the owner only. Early access includes a person to set the Meta channel up with you.</p>
       </div>
       <div class="chips" aria-label="Channels">
         <span class="chip">Telegram</span>
         <span class="chip">Slack</span>
         <span class="chip">WhatsApp QR · beta</span>
         <span class="chip">WhatsApp</span>
-        <span class="chip">SMS</span>
         <span class="chip">Gmail</span>
         <span class="chip">Google Calendar</span>
         <span class="chip">Website chat</span>
@@ -248,11 +247,10 @@
         <article class="card"><h3>Slack</h3><p>A Slack app with a bot token and a signing secret. DMs and mentions from you go to the Chief. Customer messages reach the front desk only if you turn that on, and those replies wait for approval.</p></article>
         <article class="card"><h3>WhatsApp QR · beta</h3><p>Unofficial, and off unless you turn it on. Only the linked owner’s own number can talk to the Chief. It never messages customers and it never broadcasts. WhatsApp can restrict the number. It needs a server that stays running. It does not run on Vercel.</p></article>
         <article class="card"><h3>WhatsApp</h3><p>Your own Meta Cloud API phone number id, token and app secret. Not Embedded Signup. Free-form replies only inside 24 hours of their last inbound message stored here. Outside that, name a template you already approved in Meta.</p></article>
-        <article class="card"><h3>SMS</h3><p>Twilio or MSG91. You bring the sender id and, for MSG91, a DLT template id you already have. We do not register DLT for you. Inbound is checked with your secret.</p></article>
         <article class="card"><h3>Gmail and Calendar</h3><p>Mail to your contacts sends only from the mailbox that account connected. Calendar is optional. A booking is saved when the confirmation is sent, and written to Google Calendar when it is connected.</p></article>
         <article class="card"><h3>Website chat</h3><p>A snippet for your site. Drafts are hidden from the visitor. If a draft is waiting, the widget says the team will reply shortly.</p></article>
-        <article class="card"><h3>One inbox</h3><p>WhatsApp, SMS and email sit on one Inbox page, matched to the CRM contact and written on the timeline. Credentials are stored encrypted. The page shows a hint, not the secret.</p></article>
-        <article class="card"><h3>Your AI key</h3><p>OpenRouter, OpenAI, Google Gemini, Anthropic or xAI. Or the hosted allowance, when that account has one. The key never falls back to ours in silence.</p></article>
+        <article class="card"><h3>One inbox</h3><p>WhatsApp and email sit on one Inbox page, matched to the CRM contact and written on the timeline. Credentials are stored encrypted. The page shows a hint, not the secret.</p></article>
+        <article class="card"><h3>Your AI key</h3><p>OpenRouter, OpenAI, Google Gemini, Anthropic or xAI. Both plans use your key. AI usage is paid by you directly to that provider. The key never falls back to ours in silence.</p></article>
       </div>
     </div>
   </section>
@@ -267,7 +265,7 @@
       <div class="compare">
         <article class="card"><h3>Hiring a front-desk person</h3><ul><li>Covers one shift, then leave and training.</li><li>A salary every month, plus your time to manage.</li><li>Judgement you still want on complaints and clinical questions.</li><li>Does not also keep the timeline, the quote opens and the weekly suggestions.</li></ul></article>
         <article class="card"><h3>A single-purpose WhatsApp tool</h3><ul><li>Strong at campaigns, templates and a shared chat inbox.</li><li>AI is often a separate add-on on top of the platform fee and Meta’s message charges.</li><li>You draw the flows. There is no Chief of Staff taking a goal in plain words.</li><li>Email, quote tracking and a learning weekly review are usually another product.</li></ul></article>
-        <article class="card us"><h3>AaaS</h3><ul><li>Front desk, follow-up, quotes, timeline, workflows and a Chief of Staff on one account.</li><li>Telegram and Slack are included, with no per-message fee. Meta and SMS fees are still yours. WhatsApp QR is a beta for the owner only.</li><li>Ask, within limits, or auto — and auto starts off. The front desk cannot be set to full auto.</li><li>Starter ₹2,999 or Growth ₹5,999 a month, invoiced. We set it up with you.</li></ul></article>
+        <article class="card us"><h3>AaaS</h3><ul><li>Front desk, follow-up, quotes, timeline, workflows and a Chief of Staff on one account.</li><li>Telegram and Slack are included, with no per-message fee. Meta fees are still yours. WhatsApp QR is a beta for the owner only.</li><li>Ask, within limits, or auto — and auto starts off. The front desk cannot be set to full auto.</li><li>Self-hosted {{SELF_INR}} a month, or Hosted {{HOSTED_INR}} a month. Same agents. Your AI key.</li></ul></article>
       </div>
     </div>
   </section>
@@ -275,15 +273,15 @@
   <section class="blk" id="pricing" style="padding-top:0">
     <div class="wrap">
       <div class="sec-head">
-        <p class="eyebrow">Early access</p>
-        <h2>Simple rupee prices. We invoice you.</h2>
-        <p>Both plans are the same product. We confirm your monthly allowance with you before you start, because the app does not run a card checkout or a self-serve upgrade. WhatsApp and SMS provider charges are billed by Meta, Twilio or MSG91, not by AaaS.</p>
+        <p class="eyebrow">Pricing</p>
+        <h2>Two plans. Same agents. Your AI key.</h2>
+        <p>Self-hosted or hosted with us. Both include the same agents. You approve anything that would go out. AI usage is paid by you directly to your provider. The app does not take a card payment.</p>
       </div>
       <div class="prices">
-        <article class="card price"><p class="kicker">Starter</p><b>₹2,999 <small>/ month</small></b><ul><li>The AI team, Telegram, Slack, the other channels, workflows and approvals</li><li>Personal setup during early access</li><li>Hosted, or a conversation about self-hosting</li></ul><a class="btn solid" href="#join" data-join>Request Starter</a></article>
-        <article class="card price"><p class="kicker">Growth</p><b>₹5,999 <small>/ month</small></b><ul><li>The same product, for a busier month</li><li>Allowance confirmed when we onboard you</li><li>Bring your own AI key on either plan</li></ul><a class="btn solid" href="#join" data-join>Request Growth</a></article>
+        <article class="card price"><p class="kicker">Self-hosted</p><b>{{SELF_INR}} <small>/ month</small></b><ul><li>Updates and support</li><li>Runs on your own server</li><li>One-time setup and install {{SETUP_INR}}, waived on an annual plan</li><li>Your AI key (OpenRouter, OpenAI, xAI, Gemini or Anthropic)</li></ul><a class="btn solid" href="#join" data-join>Request Self-hosted</a></article>
+        <article class="card price"><p class="kicker">Hosted</p><b>{{HOSTED_INR}} <small>/ month</small></b><ul><li>We run it: backups, uptime and updates</li><li>No install</li><li>The same agents as Self-hosted</li><li>Your AI key (OpenRouter, OpenAI, xAI, Gemini or Anthropic)</li></ul><a class="btn solid" href="#join" data-join>Request Hosted</a></article>
       </div>
-      <p class="note" style="margin-top:14px">Prices are early-access figures in INR. They are not a tax invoice, and submitting the form does not start a plan.</p>
+      <p class="note" style="margin-top:14px">The one-time setup and install fee is {{SETUP_INR}} on Self-hosted. It is waived on an annual plan. Both plans use your own AI key. AI usage is paid by you directly to your provider. Prices are in INR. They are not a tax invoice, and submitting the form does not start a plan.</p>
     </div>
   </section>
 
@@ -294,11 +292,11 @@
         <details><summary>What does Agents as a Service mean?</summary><p>You describe the work in plain words and a ready-made team does the prep: answering, following up, drafting a quote, keeping the timeline. You are not assembling a blank agent builder. You still approve anything that sends, posts or pays.</p></details>
         <details><summary>Will it message customers without asking me?</summary><p>Not on the default. Front-desk replies, workflow sends and messages you type all wait in Approvals until you approve them. You can later set a step to auto within limits or auto. The front desk cannot be set to full auto. Automatic sends keep a daily cap, and only that contact’s own address or number. A payment step never charges anyone.</p></details>
         <details><summary>Is the first reply really under 60 seconds?</summary><p>Under 60 seconds is a target for preparing the first draft, including outside office hours, when a WhatsApp or website-chat message arrives. With the default setting the visitor does not see that draft until you approve it. It is not a measured average from customers, and it is not a promise that a scheduled follow-up fires in the same minute. On the hosted app, scheduled workflows are picked up on a routine tick that is often once a day.</p></details>
-        <details><summary>Does it work in WhatsApp, and who sets that up?</summary><p>Yes, through the WhatsApp Cloud API, with credentials you paste. We do that with you in early access. It is not Meta Embedded Signup. You also need your own templates for messages outside the 24-hour window. SMS is Twilio or MSG91, and DLT registration is yours. WhatsApp QR is a separate beta: unofficial, owner-only, off by default, and it needs a server that stays running. It does not message customers.</p></details>
+        <details><summary>Does it work in WhatsApp, and who sets that up?</summary><p>Yes, through the WhatsApp Cloud API, with credentials you paste. We do that with you in early access. It is not Meta Embedded Signup. You also need your own templates for messages outside the 24-hour window. WhatsApp QR is a separate beta: unofficial, owner-only, off by default, and it needs a server that stays running. It does not message customers.</p></details>
         <details><summary>Can I talk to the Chief on Telegram or Slack?</summary><p>Yes. Paste a Telegram bot token from BotFather, or a Slack bot token and signing secret, on the Inbox page. Your own messages go to the Chief of Staff. You can optionally let customers reach the front desk. Those replies wait for approval, and the front desk cannot be set to full auto. There is no per-message fee from AaaS.</p></details>
         <details><summary>I run a clinic. What will it say to patients?</summary><p>Enquiries and appointments: timings, fees, location, and a choice of slots from the hours you set. It will not give medical advice. Symptoms, reports, prescriptions and complaints are handed to your staff and are not answered by the desk. This page is not legal advice about the DPDP Act.</p></details>
-        <details><summary>Hosted or on my own server?</summary><p>Most businesses start hosted. If you need the data on your own machine, AaaS can be self-hosted. Either way, customer email sends from the Gmail that account connected.</p></details>
-        <details><summary>How do I pay?</summary><p>Starter is ₹2,999 a month. Growth is ₹5,999 a month. We invoice you. The product does not take a card payment. Joining the waitlist does not start a subscription.</p></details>
+        <details><summary>Hosted or on my own server?</summary><p>Hosted is {{HOSTED_INR}} a month. We run it, including backups, uptime and updates, and there is no install. Self-hosted is {{SELF_INR}} a month for updates and support, and it runs on your server. The one-time setup and install is {{SETUP_INR}}, waived on an annual plan. Either way, customer email sends from the Gmail that account connected.</p></details>
+        <details><summary>How do I pay?</summary><p>Self-hosted is {{SELF_INR}} a month. Hosted is {{HOSTED_INR}} a month. We invoice you. The product does not take a card payment. AI usage is paid by you directly to your provider. Joining the waitlist does not start a subscription.</p></details>
         <details><summary>I already joined. Can I change my details?</summary><p>Yes. Submit the form again with the same email or the same WhatsApp number and we update your row instead of adding another.</p></details>
       </div>
     </div>

@@ -36,5 +36,6 @@ jobs:
           for i in $(seq 1 30); do curl -fs http://127.0.0.1:3100/api/health && break; sleep 1; done
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/)" = 200
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/setup)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3100/clinic)" = 200
           kill %1 || true
           grep -v 'setup code' server.log || true

@@ -3,6 +3,29 @@
 All notable changes to AaaS are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+
+## [2.6.0] - 2026-10-28
+
+### Added
+- **Clinic workspace at `/clinic`.** An owner signs up, adds the business, and picks an industry. Seven packs share the same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real estate, Salon/Gym/Studio, Interior/Home services, and Coaching institute. Each pack has its own names, sample rows and prompts. The six agents are Front Desk, Follow-up, Reviews & Referrals, Social Media, Owner Insights, and Billing & Invoicing.
+- **Dashboard.** The hero is rupees recovered this month, counted once from bookings, reactivated customers, referrals and paid invoices. A weekly WhatsApp summary is drafted into Approvals. Next month is a forecast from the last 28 days. Sample rows are marked DEMO.
+- **Approvals first.** Enquiries, reminders, review requests, posts, referrals and payment reminders stay drafts until the owner approves them. Approving records the OK. With no WhatsApp provider key, nothing is sent and the link stays a click-to-chat `wa.me` link.
+- **Billing for the owner’s customers.** Manual invoices, optional GST left blank when there is no GSTIN, print and PDF, paid or unpaid. A Razorpay test key adds a payment link; otherwise the invoice uses a UPI link. A signed webhook marks the invoice paid. The sample business can simulate that. AaaS does not take the payment.
+- **WhatsApp.** Meta Cloud API and Gupshup can send one approved template when those env keys are set and the person has opted in. Opt-out blocks a later send. Without those keys, drafts stay click-to-chat.
+- **Connections.** CSV import, the public booking form, and Eka.care when server credentials are set. The sample business shows Connected (demo) and does not call Eka. Other software can POST a webhook when `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set.
+- **15-minute setup.** Industry, business details, import (CSV, paste or Eka), WhatsApp number, a tone sample, and an AI key. It ends with the first three drafts in Approvals. Book a setup call saves the request and does not email anyone.
+- **Your own AI key, required.** Settings and the setup wizard save an OpenRouter, OpenAI, xAI, Gemini or Anthropic key. It is checked once, stored encrypted, and only the last 4 characters are shown. Clinic agent calls use that key only. Without a saved key they are refused. `CLINIC_DEMO_PLATFORM_KEY=1` (staging sample only) allows the server key, labelled “Demo key, demo only”, and the setup step shows “Continue with demo key (demo only)”. That button is absent when the flag is unset.
+- **Two plans, both bring-your-own-key.** Prices live in `lib/pricing.js`. Self-hosted is ₹2,999 a month for updates and support, plus a one-time setup and install of ₹9,999, waived on an annual plan. Hosted is ₹4,999 a month: we run it, with backups, uptime and updates, and no install. Both plans include the same agents. AI usage is paid by the client to their provider. The app does not charge a card.
+- **Bot Mode.** A switch at the top right of every clinic screen. On (`/clinic#bot`) opens the existing workplace chat for this account’s agents, and conversations continue there. Off returns to the dashboards. The choice is remembered per account. Drafts still need approval.
+- **Landing v2.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1`. `/white-label` is the agency page.
+
+### Changed
+- The cost meter is informational: “Usage on your <provider> key, paid to your provider”.
+- An old expiry stamp does not lock the clinic workspace.
+- The product name is AaaS (Agents as a Service) on titles, the app, emails, public pages and docs. Vercel projects, domains, env vars, the npm package name and database names are unchanged.
+
 ## [2.5.0] - 2026-10-20
 
 ### Added
@@ -15,14 +38,6 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - A Chief reply in the owner’s own Telegram, Slack or WhatsApp QR chat is delivered, because that is the conversation. A message to a customer still waits in Approvals.
 - A Telegram or Slack token that starts with `mock_` is rejected unless `CHANNELS_MOCK=on`. With that switch and `AI_MOCK`, tests run without Telegram, Slack or WhatsApp. The signature check still runs.
 - This build does not deploy the change. Setup steps are in `docs/CHANNELS.md`.
-
-## [Unreleased]
-
-### Changed
-- **The product name is AaaS** (Agents as a Service). Titles, the app, emails, public pages, landing pages, docs and the licence line now say AaaS. Vercel projects, domains, env vars, the npm package name, database names, the browser lock file and the playbook format id are unchanged.
-
-### Added
-- **Landing v2 is the marketing home.** When `AIDENTIFY_SITE=landing`, `/` serves the small-business page. `/v2` still serves it. v1 stays at `/v1` (`waitlist.html`). `/white-label` is the agency page. Research notes are in `docs/landing-v2-research.md`.
 
 ## [2.4.1] - 2026-10-20
 
