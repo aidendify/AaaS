@@ -8,7 +8,7 @@ import { razorpaySignature } from '../lib/billing.js';
 import { paymentEnv, upiDeepLink, createRazorpayLink, paymentLinkId } from '../lib/clinic-payments.js';
 
 const PW = 'Clinic-pass-123!';
-const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO_PLATFORM_KEY: '1' };
 const KEY = 'rzp_test_unitkey';
 const SECRET = 'unit_secret_value';
 const WHSEC = 'whsec_unit_value';

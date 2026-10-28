@@ -7,7 +7,8 @@ import { startServer } from './helpers.mjs';
 import { parsePaste } from '../lib/clinic.js';
 
 const PW = 'Clinic-pass-123!';
-const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO_PLATFORM_KEY: '1' };
+const KEY = 'sk-mock-setup-' + 'k'.repeat(24) + 'wxyz';
 const html = () => fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'clinic.html'), 'utf8');
 
 test('a paste of name and phone becomes customer rows', () => {
@@ -23,9 +24,10 @@ test('the setup screen is a wizard plus a call request and an optional AI key', 
   const src = html();
   assert.match(src, /15-minute setup/);
   assert.match(src, /Book a setup call/);
-  assert.match(src, /Use your own AI key \(optional\)/);
+  assert.match(src, /Use your own AI key/);
   assert.match(src, /data-act="setup-key"/);
-  assert.match(src, /data-act="setup-key-skip"/);
+  assert.doesNotMatch(src, /data-act="setup-key-skip"/);
+  assert.doesNotMatch(src, /Choose this plan/);
   assert.match(src, /data-act="setup-tone"/);
   assert.match(src, /data-act="setup-call"/);
   assert.match(src, /Nothing was emailed/);
@@ -53,6 +55,12 @@ test('finishing setup queues three approval drafts and does not send them', asyn
     const tone = 'Hi, just checking in. Want me to hold Thursday?';
     const paste = 'Asha Rao, 919000000111, asha@example.com';
     const csv = 'type,name,phone\npatient,Meera Iyer,919000000222\n';
+    const blocked = await s.api('/api/clinic/setup/finish', { tone, phone: '919812340099', paste, csv, ack: true }, token);
+    assert.equal(blocked.status, 400, JSON.stringify(blocked.d));
+    assert.equal(blocked.d.error, 'needs_ai_key');
+    const saved = await s.api('/api/ai/key', { provider: 'openrouter', key: KEY }, token);
+    assert.equal(saved.status, 200, JSON.stringify(saved.d));
+    assert.equal(saved.d.byok.hint, '…wxyz');
     const done = await s.api('/api/clinic/setup/finish', { tone, phone: '919812340099', paste, csv, ack: true }, token);
     assert.equal(done.status, 200, JSON.stringify(done.d));
     const drafts = done.d.drafts;
@@ -125,18 +133,18 @@ test('booking a setup call stores the request and does not email it', async () =
   } finally { await s.stop(); }
 });
 
-test('an ended trial can still book a setup call and cannot finish new drafts', async () => {
-  const s = await startServer({ ...MOCK, CLINIC_TRIAL_DAYS: '0' });
+test('setup finish needs a saved AI key, and a setup call still stores without sending', async () => {
+  const s = await startServer(MOCK);
   try {
-    const signed = await s.api('/api/auth/signup', { email: 'trial-setup@example.com', name: 'Trial Setup', password: PW });
+    const signed = await s.api('/api/auth/signup', { email: 'setup-key@example.com', name: 'Key Setup', password: PW });
     const token = signed.d.token;
-    await s.api('/api/clinic/profile', { biz: 'Trial Desk', city: 'Pune', services: 'Sessions', prices: '₹1000', audience: 'Owners', offer: 'This week' }, token);
+    await s.api('/api/clinic/profile', { biz: 'Key Desk', city: 'Pune', services: 'Sessions', prices: '₹1000', audience: 'Owners', offer: 'This week' }, token);
     const role = await s.api('/api/clinic/role', { role: 'coach' }, token);
-    assert.equal(role.d.trial.expired, true);
-    assert.equal(role.d.biz, 'Trial Desk');
+    assert.equal(role.d.biz, 'Key Desk');
     const finish = await s.api('/api/clinic/setup/finish', { tone: 'Short and warm', phone: '919812340099', ack: true }, token);
-    assert.equal(finish.status, 403, JSON.stringify(finish.d));
-    const call = await s.api('/api/clinic/setup/call', { name: 'Trial Setup', phone: '919800002222', when: 'Friday 16:00' }, token);
+    assert.equal(finish.status, 400, JSON.stringify(finish.d));
+    assert.equal(finish.d.error, 'needs_ai_key');
+    const call = await s.api('/api/clinic/setup/call', { name: 'Key Setup', phone: '919800002222', when: 'Friday 16:00' }, token);
     assert.equal(call.status, 200, JSON.stringify(call.d));
     assert.equal(call.d.sent, false);
     assert.equal(call.d.setupCall.when, 'Friday 16:00');

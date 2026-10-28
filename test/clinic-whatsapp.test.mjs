@@ -7,7 +7,7 @@ import { startServer } from './helpers.mjs';
 import { sendTemplate, sendDecision, parseWaWebhook, nextWaStatus, metaSignature, waPublic } from '../lib/clinic-whatsapp.js';
 
 const PW = 'Clinic-pass-123!';
-const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO_PLATFORM_KEY: '1' };
 const TOKEN = 'meta_token_unit_value';
 const SECRET = 'meta_app_secret_unit';
 const VERIFY = 'verify_token_unit';

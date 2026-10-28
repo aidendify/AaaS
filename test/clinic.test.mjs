@@ -7,25 +7,13 @@ import { startServer } from './helpers.mjs';
 import { waMe, parseCsv, buildSeed, forecastOf, trialOf, assertWritable, recoveredOf, weeklySummaryText } from '../lib/clinic.js';
 
 const PW = 'Clinic-pass-123!';
-const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO_PLATFORM_KEY: '1' };
 
-test('a free trial lasts 14 days and then the workspace is read-only', () => {
-  const start = Date.parse('2026-10-01T00:00:00.000Z');
-  const day = 864e5;
-  const fresh = trialOf({ trialStarted: start, plan: '' }, start + 1000, 14);
-  assert.equal(fresh.days, 14);
-  assert.equal(fresh.daysLeft, 14);
-  assert.equal(fresh.expired, false);
-  assert.equal(fresh.noCard, true);
-  const last = trialOf({ trialStarted: start }, start + 14 * day - 1, 14);
-  assert.equal(last.expired, false);
-  assert.equal(last.daysLeft, 1);
-  const done = trialOf({ trialStarted: start }, start + 14 * day, 14);
-  assert.equal(done.expired, true);
-  assert.equal(done.daysLeft, 0);
+test('an old expiry stamp does not lock the workspace', () => {
+  const start = Date.parse('2020-01-01T00:00:00.000Z');
   class HttpError extends Error { constructor(status, code, message) { super(message); this.status = status; this.code = code; } }
-  assert.throws(() => assertWritable({ trialStarted: start, demo: false }, HttpError, start + 14 * day), (e) => e.code === 'trial_ended' && e.status === 403);
-  assert.doesNotThrow(() => assertWritable({ trialStarted: start, demo: true }, HttpError, start + 20 * day));
+  assert.doesNotThrow(() => assertWritable({ trialStarted: start, demo: false }, HttpError, Date.now()));
+  assert.equal(trialOf({ trialStarted: start }, Date.now(), 14).expired, true);
 });
 
 test('forecast includes sample invoices even before 11:00 India time', () => {
@@ -96,11 +84,12 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.equal(d.biz, 'Smile Dental (sample)');
     assert.deepEqual(d.agents.map((a) => a.name), ['Front Desk', 'Patient Recall', 'Reviews & Referrals', 'Social Media', 'Owner Insights', 'Billing & Invoicing']);
     assert.equal(d.hero, "A small team's work, without hiring one");
-    assert.equal(d.plans.find((p) => p.id === 'one').priceInr, 2999);
-    assert.equal(d.plans.find((p) => p.id === 'social').priceInr, 8000);
-    assert.equal(d.plans.find((p) => p.id === 'team').priceInr, 15000);
-    assert.equal(d.trial.sample, true);
-    assert.equal(d.trial.expired, false);
+    assert.deepEqual(d.plans.map((p) => p.id), ['self', 'hosted']);
+    assert.deepEqual(d.plans.map((p) => p.priceInr), [2999, 4999]);
+    assert.equal(d.plans.find((p) => p.id === 'self').setupInr, 9999);
+    assert.match(d.pricing.byokNote, /paid by you directly/);
+    assert.match(d.pricing.annualNote, /waived on an annual plan/);
+    assert.equal(d.demo, true);
     assert.equal(d.invoices.filter((i) => i.state === 'paid').length, 3);
     assert.equal(d.invoices.filter((i) => i.state === 'overdue').length, 1);
     assert.equal(d.invoices.every((i) => i.gst == null), true);
@@ -317,8 +306,8 @@ test('dental team: seeded numbers, CRUD, approvals, import, form, and chat', asy
     assert.ok(usage.d.usage.byAgent.some((a) => a.agent === 'social'));
     assert.ok(usage.d.usage.runs.some((r) => r.source === 'model' && r.tokensIn > 0));
     assert.equal(usage.d.usage.inrPerUsd, 84);
-    assert.equal(usage.d.plans.find((p) => p.id === 'one').priceInr, 2999);
-    assert.equal(usage.d.plans.find((p) => p.id === 'social').priceInr, 8000);
+    assert.deepEqual(usage.d.plans.map((p) => p.priceInr), [2999, 4999]);
+    assert.match(usage.d.usage.billedTo, /Demo key, demo only/);
   } finally { await s.stop(); }
 });
 
@@ -328,8 +317,9 @@ test('every industry pack creates the same six screens with its own labels', asy
     const meta = await fetch(s.base + '/api/clinic/meta').then((r) => r.json());
     assert.equal(meta.hero, "A small team's work, without hiring one");
     assert.equal(typeof meta.google, 'boolean');
-    assert.equal(meta.plans.length, 3);
-    assert.deepEqual(meta.plans.map((p) => p.priceInr), [2999, 8000, 15000]);
+    assert.equal(meta.plans.length, 2);
+    assert.deepEqual(meta.plans.map((p) => p.priceInr), [2999, 4999]);
+    assert.match(meta.pricing.annualNote, /9,999/);
     const ids = meta.packs.map((p) => p.id);
     assert.deepEqual(ids, ['dental', 'aesthetic', 'coach', 'realestate', 'studio', 'home', 'institute']);
     for (const pack of meta.packs) {
@@ -404,27 +394,23 @@ test('every industry pack creates the same six screens with its own labels', asy
   } finally { await s.stop(); }
 });
 
-test('an ended trial is read-only, still shows plans, and does not take a card', async () => {
-  const s = await startServer({ ...MOCK, CLINIC_TRIAL_DAYS: '0' });
+test('an old expiry stamp still allows writes, and the two plans do not take a card', async () => {
+  const s = await startServer(MOCK);
   try {
-    const signed = await s.api('/api/auth/signup', { email: 'trial-ended@example.com', name: 'Trial Owner', password: PW });
+    const signed = await s.api('/api/auth/signup', { email: 'still-open@example.com', name: 'Open Owner', password: PW });
     assert.equal(signed.status, 200, JSON.stringify(signed.d));
     const clinic = await s.api('/api/clinic/role', { role: 'coach' }, signed.d.token);
     assert.equal(clinic.status, 200, JSON.stringify(clinic.d));
-    assert.equal(clinic.d.trial.expired, true);
-    assert.equal(clinic.d.trial.daysLeft, 0);
-    assert.equal(clinic.d.trial.noCard, true);
-    assert.equal(clinic.d.plans.find((p) => p.id === 'one').priceInr, 2999);
+    assert.equal(clinic.d.trial, undefined);
+    assert.deepEqual(clinic.d.plans.map((p) => p.id), ['self', 'hosted']);
     const write = await s.api('/api/clinic/enquiries', { name: 'Asha Rao', phone: '919000000111', message: 'Hello' }, signed.d.token);
-    assert.equal(write.status, 403, JSON.stringify(write.d));
-    assert.match(write.d.message, /read-only/);
+    assert.equal(write.status, 200, JSON.stringify(write.d));
     const seen = await s.api('/api/clinic', undefined, signed.d.token);
     assert.equal(seen.status, 200);
     assert.ok(seen.d.patients.length > 0);
-    const plan = await s.api('/api/clinic/plan', { plan: 'one' }, signed.d.token);
+    const plan = await s.api('/api/clinic/plan', { plan: 'hosted' }, signed.d.token);
     assert.equal(plan.status, 200, JSON.stringify(plan.d));
-    assert.equal(plan.d.trial.plan, 'one');
-    assert.equal(plan.d.trial.expired, true);
+    assert.equal(plan.d.plan, 'hosted');
   } finally { await s.stop(); }
 });
 

@@ -6,7 +6,7 @@ import { ekaConnection, pullEka, ekaAppointmentStatus, rowsFromWebhook } from '.
 import { normalizeVisit, VISIT_QUESTIONS } from '../lib/clinic-visit.js';
 
 const PW = 'Clinic-pass-123!';
-const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on' };
+const MOCK = { RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MOCK: 'on', CLINIC_DEMO_PLATFORM_KEY: '1' };
 
 test('Eka.care adapter follows the public login, directory and appointment calls', async () => {
   const calls = [];

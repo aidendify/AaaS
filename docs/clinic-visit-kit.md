@@ -21,11 +21,11 @@ Use this on a visit to a clinic owner. The same script, terms and form are in th
 7. Who handles your social media, and what does it cost?
 8. How do you know at month-end whether the clinic made a profit?
 9. What takes most of your receptionist’s time that isn’t patient care?
-10. Would you pay ₹8,000 a month for social media only, or ₹15,000 for the full team? What would make it a yes?
+10. The two plans are Self-hosted at ₹2,999 a month, plus a one-time setup and install of ₹9,999 waived on an annual plan, or Hosted at ₹4,999 a month. Both use your own AI key. You pay the provider directly. What would make it a yes?
 
 ## Free-pilot terms to say out loud
 
-- The pilot is free. After it, the prices we quote are ₹8,000 a month for social media only, or ₹15,000 a month for the full team. This app does not take a card payment.
+- Self-hosted is ₹2,999 a month plus a one-time setup and install of ₹9,999, waived on an annual plan. Hosted is ₹4,999 a month, with backups, uptime and updates, and no install. Both plans include the same agents. AI usage is paid by you directly to your provider. This app does not take a card payment.
 - Reminders, review requests, posts and payment notes stay as drafts until the owner approves them. Approving records the OK and still does not email, text, post, or collect money.
 - WhatsApp is a link the owner opens on their own phone. There is no SMS and no paid WhatsApp API.
 - Records stay in this owner account. Another customer cannot read them. Sample rows stay marked demo.

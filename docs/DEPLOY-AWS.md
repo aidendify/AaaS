@@ -1,6 +1,18 @@
 # Deploying on AWS (plan only, nothing created, no AWS spend)
 
-When to use this: an agency or enterprise customer needs data in India, a private network, or their own AWS account, or we outgrow Vercel and Neon. The app already runs as a plain Node server (`npm start`, `Dockerfile`), so no code changes are needed.
+When to use this: the Self-hosted plan (₹2,999/month for updates and support, from `lib/pricing.js`) runs on the client’s own server. The one-time setup and install fee is ₹9,999 and is waived on an annual plan. Hosted (₹4,999/month) is the same agents, run by us, with backups, uptime and updates, and no install. Both plans use the client’s own AI key. Leave `CLINIC_DEMO_PLATFORM_KEY` unset here.
+
+## Self-hosted install
+1. A machine with Node 22, git, and Postgres. The cheaper single box is in `deploy/aws/README.md` (nginx, TLS, Docker). The shape below is the higher-availability layout.
+2. Clone the repo and `npm install`. Copy `.env.example` to `.env` on the server, mode `600`. Do not commit it.
+3. Set `SESSION_SECRET` (`openssl rand -hex 32`), `DATABASE_URL`, `APP_URL`, and `CRON_SECRET`.
+4. Leave `CLINIC_DEMO_PLATFORM_KEY` unset. Leave `ALLOW_FILE_STORE` unset. Do not put the client’s AI key in this file. They paste it in Settings after sign-up. It is checked once, stored encrypted, and only the last 4 characters are shown.
+5. Start with `npm start`, or the `Dockerfile`. Put nginx and TLS in front. `GET /api/health` should return `"ok": true`.
+6. The owner opens `/clinic`, creates the account, and saves an OpenRouter, OpenAI, xAI, Gemini or Anthropic key before the agents run. Agent calls use that key only. AI usage is paid to that provider.
+7. Updates are a pull and a restart. Backups are `scripts/db-backup.mjs` plus the database snapshots below.
+8. Hosted with us uses the same image. We keep backups, uptime and updates. There is no install fee on that plan.
+
+The app already runs as a plain Node server (`npm start`, `Dockerfile`).
 
 ## Shape (region ap-south-1, Mumbai)
 ```

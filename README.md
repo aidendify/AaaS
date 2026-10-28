@@ -97,8 +97,8 @@ Industries, same screens: Dental, Skin/Hair/Aesthetic, Coach/Consultant, Real es
 What you can click through. Sample rows are marked DEMO.
 
 - A first-run checklist: import a CSV, connect the booking form, approve the first drafts.
-- **15-minute setup** (profile screen and dashboard) walks through industry, business details, import (CSV, paste, or Eka.care), the WhatsApp number, a tone sample, and an optional AI key, then leaves the first three drafts in Approvals. **Book a setup call** saves a time on the account and does not email anyone. No extra env vars. The original profile-then-industry path stays.
-- **AI key.** Settings → AI key saves your own OpenRouter, OpenAI, xAI, Gemini or Anthropic key. It is checked once, stored encrypted, and only the last 4 characters are shown. Agent calls for this business then use that key only. The cost meter says billed to your own key. Own-key plans do not include token costs. The same key is the account key from the main app.
+- **15-minute setup** (profile screen and dashboard) walks through industry, business details, import (CSV, paste, or Eka.care), the WhatsApp number, a tone sample, and a required AI key, then leaves the first three drafts in Approvals. **Book a setup call** saves a time on the account and does not email anyone. The original profile-then-industry path stays.
+- **AI key.** Settings → AI key saves your own OpenRouter, OpenAI, xAI, Gemini or Anthropic key. It is checked once, stored encrypted, and only the last 4 characters are shown. Agent calls for this business use that key only. You pay that provider directly. Without a saved key, those calls are refused. `CLINIC_DEMO_PLATFORM_KEY=1` allows the server key for the sample business and the screen says Demo key, demo only. Leave that flag unset on a client server.
 - The owner dashboard leads with **₹ recovered this month**: bookings, reactivated customers, referrals and paid invoices the agents brought in. Each rupee is in one part. A button drafts the weekly WhatsApp summary into Approvals. Nothing is sent. The same screen counts enquiries, bookings, referral bookings, no-shows, recalls, review requests, scheduled posts, and **paid invoices** this month.
 - **Front Desk** adds, edits, and deletes enquiries and appointments, and queues a reminder. The reminder waits in **Approvals**. Nothing is texted. It sits beside reception. It does not replace the receptionist.
 - **Recall** lists lapsed and high-value people and drafts a follow-up.
@@ -110,8 +110,8 @@ What you can click through. Sample rows are marked DEMO.
 - **Connections** imports a CSV and hosts `/book/<token>` (also `POST /api/clinic/form/<token>`). **Eka.care** syncs from their public API when `EKA_CLIENT_ID` and `EKA_CLIENT_SECRET` are set on the server. The sample business shows **Connected (demo)** and does not call Eka.care. A new account shows **Available, connect with credentials** until those env vars are set. Other clinic software can use the same CSV or `POST /api/clinic/connectors/webhook/<form token>` once `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. Google Calendar is still coming soon.
 - The dashboard lists which people came from the connected software and the paid amount AaaS brought back from them this month.
 - **Clinic visit** (`/clinic#visit`, and `docs/clinic-visit-kit.md`) is the 10-question interview, the free-pilot terms, and a form that saves the answers in the account.
-- **Pricing** shows launch prices: ₹2,999/month for one agent, ₹8,000/month Social starter, and ₹15,000/month for the full team. A new account has a 14-day free trial and no card. When the trial ends the workspace is read-only and Pricing stays open. The app does not charge a card.
-- **Usage & cost** shows token counts per agent run, logged from the model response, and the rupee estimate at ₹84 per US dollar. The sample clinic also shows recorded sample runs.
+- **Pricing** shows two plans from `lib/pricing.js`. Self-hosted is ₹2,999/month for updates and support, plus a one-time setup and install of ₹9,999 that is waived on an annual plan. Hosted is ₹4,999/month: we run it, with backups, uptime and updates, and no install. Both plans include the same agents. AI usage is paid by the client to their provider. The app does not charge a card.
+- **Usage & cost** shows token counts per agent run, logged from the model response, and a rupee estimate at ₹84 per US dollar. The line reads “Usage on your &lt;provider&gt; key, paid to your provider”. The sample clinic also shows recorded sample runs. It is not a bill from AaaS.
 - **Next month** on the dashboard scales the last 28 days of bookings, invoices issued, and invoices marked paid up to 30 days. The card states that method. It is not a promise.
 - **Settings** holds the reminder rhythm: how often, a cap per person in 7 days, and the send window. Quiet hours are outside that window. Editing a draft stores the before and after, and the next draft of that agent uses it. Reset clears the learned tone.
 - **Privacy** exports this account’s records and can delete them. Deleting the account still needs the password.
@@ -124,7 +124,7 @@ Check it with `npm run test:clinic`.
 
 #### Vercel staging
 
-Use a **new** Vercel project. Do not link or deploy `aidentify` or `aidentify-demo`. `vercel.json` already serves `/clinic` and routes `/api` and `/book` to the serverless function. Data on Vercel needs Postgres. Without an AI key the screens, drafts and sample clinic still run; the cost meter stays at zero until a model is called.
+Use a **new** Vercel project. Do not link or deploy `aidentify` or `aidentify-demo`. `vercel.json` already serves `/clinic` and routes `/api` and `/book` to the serverless function. Data on Vercel needs Postgres. Set `CLINIC_DEMO=1` and `CLINIC_DEMO_PLATFORM_KEY=1` so the sample business runs without asking for a key. A real account still has to save its own key before agent calls run.
 
 Set these on that project (values stay in Vercel, not in git):
 
@@ -135,7 +135,7 @@ Set these on that project (values stay in Vercel, not in git):
 | `APP_URL` | yes | `https://<this-staging-host>` so Google’s redirect matches. |
 | `CRON_SECRET` | yes if cron is on | Vercel calls `/api/cron/tick` with it. |
 | `CLINIC_DEMO` | for the sample button | `1` shows **Explore the sample business**. `0` hides it. |
-| `CLINIC_TRIAL_DAYS` | optional | Free trial length. Default 14. No card. `0` makes a new account read-only immediately. |
+| `CLINIC_DEMO_PLATFORM_KEY` | staging sample only | `1` lets clinic agent calls use the server key and labels it Demo key, demo only. Leave unset in production and on a client’s own server. |
 | `OPENROUTER_API_KEY` | optional | Real drafts and chat. Empty: local draft text, records answers still work. |
 | `OPENROUTER_MODEL` | with the key | A tool-calling model, for example `anthropic/claude-sonnet-4.5`. |
 | `GOOGLE_CLIENT_ID` | optional | Turns on **Continue with Google**. |
@@ -158,7 +158,7 @@ Set these on that project (values stay in Vercel, not in git):
 | `CLINIC_WA_WEBHOOK_SECRET` | with Gupshup | Header `X-AaaS-Wa-Secret`. Unset keeps that webhook closed. |
 | `ALLOW_FILE_STORE` | no | Leave unset. `1` only for a single-server test; a serverless file store does not keep data. |
 
-The 15-minute setup, Book a setup call, and the clinic AI key do not add a variable to this list. The AI key is the customer’s own key, stored encrypted on the account.
+The 15-minute setup and Book a setup call do not add a variable. `CLINIC_DEMO_PLATFORM_KEY` is the only new clinic flag: set it to `1` on staging so the sample business can run on the server key. Production and a client’s own server leave it unset. The customer’s AI key is stored encrypted on the account and is never written here.
 
 Do not set `AI_PROVIDER=mock` on a staging project people will review, unless you want the mock draft text. Do not promote the deployment to production.
 

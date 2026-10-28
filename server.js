@@ -3,6 +3,7 @@
 import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
 import { obsScope, obs, obsDone } from './lib/obs.js';
 import { mockOn } from './lib/llm.js';
+import { applyPriceTokens } from './lib/pricing.js';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -47,7 +48,9 @@ async function serve(req, res) {
   try {
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       const home = process.env.AIDENTIFY_SITE === 'landing' ? 'landing-v2.html' : 'index.html';
-      return send(res, 200, await fs.readFile(path.join(dir, home)), 'text/html; charset=utf-8');
+      let html = await fs.readFile(path.join(dir, home), 'utf8');
+      if (home === 'landing-v2.html') html = applyPriceTokens(html);
+      return send(res, 200, html, 'text/html; charset=utf-8');
     }
     { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
       if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
@@ -61,7 +64,7 @@ async function serve(req, res) {
       return send(res, 200, await fs.readFile(path.join(dir, 'waitlist.html')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && (url.pathname === '/v2' || url.pathname === '/landing-v2.html')) {
-      return send(res, 200, await fs.readFile(path.join(dir, 'landing-v2.html')), 'text/html; charset=utf-8');
+      return send(res, 200, applyPriceTokens(await fs.readFile(path.join(dir, 'landing-v2.html'), 'utf8')), 'text/html; charset=utf-8');
     }
     if (req.method === 'GET' && (url.pathname === '/white-label' || url.pathname === '/white-label.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'white-label.html')), 'text/html; charset=utf-8');

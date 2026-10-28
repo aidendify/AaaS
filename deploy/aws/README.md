@@ -40,7 +40,8 @@ Optional, still only in `/etc/aaas.env`:
 | Variable | Why |
 | --- | --- |
 | `CLINIC_DEMO` | `1` shows **Explore the sample clinic**. Leave unset or `0` on a clinic’s own server. |
-| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Real drafts. Empty: screens and sample data still work. |
+| `CLINIC_DEMO_PLATFORM_KEY` | Leave unset on a client’s server. `1` is only for a staging sample, labelled Demo key, demo only. |
+| `OPENROUTER_API_KEY` / `OPENROUTER_MODEL` | Server key for that demo flag. A client’s agent calls use the key they save in Settings. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google sign-in. Redirect is `/clinic`. |
 | `EKA_CLIENT_ID` / `EKA_CLIENT_SECRET` | Live Eka.care sync. See developer.eka.care. Never commit these. |
 | `EKA_BASE_URL` | Default `https://api.eka.care`. |

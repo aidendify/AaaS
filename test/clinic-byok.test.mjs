@@ -16,9 +16,12 @@ test('clinic settings, the wizard and pricing mention the owner key', () => {
   assert.match(src, /data-act="ai-key"/);
   assert.match(src, /Test & save/);
   assert.match(src, /data-act="ai-key-del"/);
-  assert.match(src, /Use your own AI key \(optional\)/);
-  assert.match(src, /billed to your own key/);
-  assert.match(src, /Own-key plans do not include token costs/);
+  assert.match(src, /Use your own AI key/);
+  assert.match(src, /This step is required|Required\./);
+  assert.match(src, /You pay the provider directly/);
+  assert.doesNotMatch(src, /data-act="setup-key-skip"/);
+  assert.doesNotMatch(src, /Choose this plan/);
+  assert.doesNotMatch(src, /₹8,000|₹15,000|14-day|free trial|all-in/i);
   assert.match(src, /OpenRouter, OpenAI, xAI, Gemini or Anthropic/);
 });
 
@@ -33,16 +36,16 @@ test('a clinic agent call uses that business key only', async () => {
     const token = signed.d.token;
     const role = await s.api('/api/clinic/role', { role: 'coach' }, token);
     assert.equal(role.status, 200, JSON.stringify(role.d));
-    assert.equal(role.d.aiKey.source, 'platform');
+    assert.equal(role.d.aiKey.source, 'none');
     assert.equal(role.d.aiKey.model, 'mock/clinic-model');
-    assert.equal(role.d.usage.billedTo, 'platform key');
+    assert.match(role.d.usage.billedTo, /Save your AI key/);
     assert.deepEqual(role.d.aiKey.providers.map((p) => p.name), ['OpenRouter', 'OpenAI', 'xAI Grok', 'Google Gemini', 'Anthropic']);
 
     const before = llm.calls.length;
     const first = await s.api('/api/clinic/social/draft', { topic: 'Thursday session' }, token);
-    assert.equal(first.status, 200, JSON.stringify(first.d));
-    const platformCall = llm.calls.slice(before).find((c) => String(c.path).endsWith('/chat/completions'));
-    assert.equal(platformCall.auth, 'Bearer ' + PLATFORM);
+    assert.equal(first.status, 403, JSON.stringify(first.d));
+    assert.equal(first.d.error, 'needs_ai_key');
+    assert.equal(llm.calls.slice(before).some((c) => String(c.path).endsWith('/chat/completions')), false);
 
     const rejected = await s.api('/api/ai/key', { provider: 'openrouter', key: 'sk-or-v1-rejected-' + 'r'.repeat(30) }, token);
     assert.equal(rejected.status, 400);
@@ -58,11 +61,11 @@ test('a clinic agent call uses that business key only', async () => {
     assert.equal(clinic.d.aiKey.name, 'OpenRouter');
     assert.equal(clinic.d.aiKey.hint, '…wxyz');
     assert.equal(clinic.d.aiKey.model, 'mock/clinic-model');
-    assert.equal(clinic.d.aiKey.billedTo, 'billed to your own key');
-    assert.equal(clinic.d.usage.billedTo, 'billed to your own key');
-    assert.match(clinic.d.usage.note, /billed to your own key/);
+    assert.equal(clinic.d.aiKey.billedTo, 'Usage on your OpenRouter key, paid to your provider');
+    assert.equal(clinic.d.usage.billedTo, 'Usage on your OpenRouter key, paid to your provider');
+    assert.match(clinic.d.usage.note, /Usage on your OpenRouter key, paid to your provider/);
     assert.equal(JSON.stringify(clinic.d).includes(MINE), false);
-    assert.ok(clinic.d.plans.every((p) => (p.includes || []).includes('Own-key plans do not include token costs')));
+    assert.deepEqual(clinic.d.plans.map((p) => p.id), ['self', 'hosted']);
 
     const mark = llm.calls.length;
     const second = await s.api('/api/clinic/social/draft', { topic: 'Own key session' }, token);
@@ -76,9 +79,9 @@ test('a clinic agent call uses that business key only', async () => {
     await s.api('/api/clinic/role', { role: 'coach' }, other.d.token);
     const otherMark = llm.calls.length;
     const otherPost = await s.api('/api/clinic/social/draft', { topic: 'Other business' }, other.d.token);
-    assert.equal(otherPost.status, 200, JSON.stringify(otherPost.d));
-    const otherCalls = llm.calls.slice(otherMark).filter((c) => String(c.path).endsWith('/chat/completions'));
-    assert.ok(otherCalls.every((c) => c.auth === 'Bearer ' + PLATFORM));
+    const otherPostCalls = llm.calls.slice(otherMark).filter((c) => String(c.path).endsWith('/chat/completions'));
+    assert.equal(otherPost.status, 403);
+    assert.equal(otherPostCalls.length, 0);
 
     const raw = fs.readFileSync(path.join(s.dir, 'data', 'kv.json'), 'utf8');
     assert.equal(raw.includes(MINE), false);
@@ -87,8 +90,36 @@ test('a clinic agent call uses that business key only', async () => {
     const removed = await s.api('/api/ai/key/delete', {}, token);
     assert.equal(removed.status, 200);
     const usage = await s.api('/api/clinic/usage', undefined, token);
-    assert.equal(usage.d.usage.billedTo, 'platform key');
-    assert.equal(usage.d.aiKey.source, 'platform');
+    assert.match(usage.d.usage.billedTo, /Save your AI key/);
+    assert.equal(usage.d.aiKey.source, 'none');
+  } finally {
+    await s.stop();
+    await llm.close();
+  }
+});
+
+test('the demo flag lets the sample use the server key and labels it', async () => {
+  const llm = await mockLLM(() => ({ text: 'DRAFT from the demo key.' }));
+  const s = await startServer({
+    AI_PROVIDER: 'openrouter', OPENROUTER_API_KEY: PLATFORM, OPENROUTER_BASE_URL: llm.url, OPENROUTER_MODEL: 'mock/clinic-model',
+    RATE_LIMIT: 'off', CLINIC_DEMO_PLATFORM_KEY: '1', CLINIC_DEMO: '1',
+  });
+  try {
+    const demo = await s.api('/api/clinic/demo', {});
+    assert.equal(demo.status, 200, JSON.stringify(demo.d));
+    const role = await s.api('/api/clinic/role', { role: 'coach' }, demo.d.token);
+    assert.equal(role.status, 200, JSON.stringify(role.d));
+    const home = await s.api('/api/clinic', undefined, demo.d.token);
+    assert.equal(home.d.demo, true);
+    assert.equal(home.d.aiKey.source, 'demo');
+    assert.equal(home.d.aiKey.label, 'Demo key, demo only');
+    assert.equal(home.d.usage.billedTo, 'Demo key, demo only');
+    const mark = llm.calls.length;
+    const post = await s.api('/api/clinic/social/draft', { topic: 'Sample class' }, demo.d.token);
+    assert.equal(post.status, 200, JSON.stringify(post.d));
+    const calls = llm.calls.slice(mark).filter((c) => String(c.path).endsWith('/chat/completions'));
+    assert.ok(calls.length >= 1);
+    assert.ok(calls.every((c) => c.auth === 'Bearer ' + PLATFORM));
   } finally {
     await s.stop();
     await llm.close();

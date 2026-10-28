@@ -4,14 +4,14 @@
 
 `/clinic` is already in `vercel.json` (static page, `/api` and `/book` rewrite to `api/index.js`). Create a **new** Vercel project for a CEO review. Do not link, deploy, or promote `aidentify` or `aidentify-demo`. The existing `aidentify-staging` project is a separate app; leave it alone unless someone asks to update that one.
 
-Minimum env for the new project: `SESSION_SECRET`, `DATABASE_URL`, `APP_URL`, `CRON_SECRET`. Add `CLINIC_DEMO=1` so **Explore the sample clinic** is visible. `OPENROUTER_API_KEY` is optional: without it, invoices, CSV, the form and record answers still work, and the token meter stays at zero. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` turn on **Continue with Google**. The full table is in the README under “Small-business team”. No secrets belong in git.
+Minimum env for the new project: `SESSION_SECRET`, `DATABASE_URL`, `APP_URL`, `CRON_SECRET`. Add `CLINIC_DEMO=1` so **Explore the sample clinic** is visible, and `CLINIC_DEMO_PLATFORM_KEY=1` so that sample can run agent calls without asking for a key. The screen says Demo key, demo only. Leave `CLINIC_DEMO_PLATFORM_KEY` unset on a client’s own server. A real account still saves its own OpenRouter, OpenAI, xAI, Gemini or Anthropic key before agent calls run. `OPENROUTER_API_KEY` is the server key behind that demo flag. `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` turn on **Continue with Google**. The full table is in the README under “Small-business team”. No secrets belong in git.
 
 ## Staging copy
 
 ## Staging copy
 - URL: https://aidentify-staging.vercel.app (Vercel project `aidentify-staging`, team `aidentify`). Deploys are CLI-only, from a separate folder linked to that project, so a deploy can never land on `aidentify-demo` or `aidentify`.
 - Database: the same Neon database as the demo, but its own schema `staging`. The app creates the schema and tables on first start (`DATABASE_SCHEMA=staging`).
-- AI: `PLATFORM_AI_BUDGET_USD=2` with a $2 daily pool, plus its own `SESSION_SECRET`, `CRON_SECRET` and admin password. The values live only in Vercel and in a chmod 600 file on the box, never in git.
+- AI: the sample business uses `CLINIC_DEMO_PLATFORM_KEY=1` with the server key. `PLATFORM_AI_BUDGET_USD` is an internal cap on that demo key, not a product allowance. The project also has its own `SESSION_SECRET`, `CRON_SECRET` and admin password. The values live only in Vercel and in a chmod 600 file on the box, never in git.
 - Normally it runs on the **mock AI** (`AI_PROVIDER=mock` + `AI_MOCK=on`), so tests cost nothing. To run on real AI, remove those two variables and redeploy. When you're done, put them back.
 
 ## Mock AI (`lib/llm.js`)
