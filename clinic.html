@@ -98,6 +98,12 @@ tr:last-child td { border-bottom:0; }
 .roles { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .roles button { text-align:left; padding:16px; }
 .roles ul { margin:8px 0 0; padding-left:18px; color:var(--muted); }
+.bot-sw { position:fixed; top:10px; right:12px; z-index:40; display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:6px 12px; border:1px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); box-shadow:var(--shadow); font-size:13px; font-weight:650; }
+.bot-sw i { width:18px; height:18px; border-radius:50%; background:#c5ced8; display:inline-block; }
+.bot-sw.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+.bot-sw.on i { background:#fff; }
+.bot-on { min-height:100vh; }
+.bot-frame { position:fixed; inset:0; width:100%; height:100%; height:100dvh; border:0; background:#0a0a0a; z-index:8; }
 .chat-fab { position:fixed; right:20px; bottom:20px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:12px 16px; box-shadow:0 8px 24px rgba(16,24,40,.18); z-index:5; }
 .chat { position:fixed; right:20px; bottom:72px; width:min(360px, calc(100vw - 32px)); height:460px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px rgba(16,24,40,.16); display:flex; flex-direction:column; z-index:5; }
 .chat header { padding:12px 14px; border-bottom:1px solid var(--line); font-weight:650; }
@@ -144,6 +150,7 @@ table { min-width:520px; }
   .conn { flex-direction:column; }
   .conn .actions { align-items:flex-start; flex-direction:row; flex-wrap:wrap; }
   .chat { left:8px; right:8px; width:auto; height:min(70vh, 520px); bottom:64px; }
+  .bot-sw { top:8px; right:8px; }
   .chat-fab { right:12px; bottom:12px; min-height:44px; }
   .auth { padding:12px; align-items:start; }
   .landing { padding:16px 12px 32px; gap:16px; }
@@ -183,6 +190,8 @@ let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizTone = '', wizDrafts 
 let mode = 'signin';
 let err = '';
 let toast = '';
+let botMode = false;
+let botReturn = 'dash';
 let chatOpen = false;
 let chatLog = [];
 let chatDraft = '';
@@ -300,6 +309,7 @@ function setupView() {
       <label>API key<input name="key" type="password" autocomplete="off" placeholder="Paste the whole key"></label>
       <div><button class="btn" type="submit">Test & save</button></div>
     </form>
+    ${(state && state.aiKey && state.aiKey.source === 'demo') ? '<p><button class="btn-ghost" type="button" data-act="setup-demo-key">Continue with demo key (demo only)</button></p>' : ''}
     <p class="small">This step saves the key, then creates the first 3 drafts. Nothing is sent.</p>`;
   else body = `<h1>The first 3 drafts are waiting</h1>${head}<p class="sub">They are in Approvals. Nothing has been sent.</p>
     ${(wizDrafts || []).map((d) => `<article class="draft"><b>${esc(d.title)}</b><p>${esc(d.body)}</p></article>`).join('') || '<p class="small">Finish the earlier steps to queue them.</p>'}
@@ -644,14 +654,33 @@ function chat() {
     ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r==='a'?chatMd(m.t):esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
       <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="How many ${esc(who)} in the last 2 months?" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`:''}`;
 }
+function botStoreKey() { return 'aaas_bot_mode:' + ((state && state.account) || ''); }
+function readBot() { try { return localStorage.getItem(botStoreKey()) === '1'; } catch (e) { return false; } }
+function writeBot(on) { try { localStorage.setItem(botStoreKey(), on ? '1' : '0'); } catch (e) {} }
+function applyBot() {
+  const h = location.hash.replace('#', '');
+  if (h === 'bot') botMode = true;
+  else if (SCREENS.includes(h)) botMode = false;
+  else botMode = readBot();
+  if (botMode && state && state.role) history.replaceState(null, '', '/clinic#bot');
+}
+function botSrc() {
+  const email = (state && state.account) || '';
+  return '/?bot=1#as_auth=' + encodeURIComponent(token) + '&em=' + encodeURIComponent(email) + '&bot=1';
+}
+function botSwitch() {
+  if (!state || !state.role) return '';
+  return `<button class="bot-sw${botMode ? ' on' : ''}" type="button" data-act="bot-mode" aria-pressed="${botMode ? 'true' : 'false'}"><i></i>Bot Mode</button>`;
+}
 function render() {
   let body = '';
   if (!token) body = loginView();
   else if (!state) body = roleView();
+  else if (state.role && botMode) body = `<div class="bot-on">${botSwitch()}<iframe class="bot-frame" title="Bot Mode" src="${botSrc()}"></iframe></div>`;
   else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
   else {
     const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView }[screen] || dash;
-    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${chat()}`;
+    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${chat()}`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
   root.innerHTML = body;
@@ -666,7 +695,12 @@ async function reload() {
 async function act(name, el) {
   try {
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
-    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; go(el.dataset.screen); return; }
+    if (name === 'bot-mode') {
+      if (botMode) { botMode = false; writeBot(false); screen = SCREENS.includes(botReturn) ? botReturn : 'dash'; history.replaceState(null, '', '/clinic#' + screen); }
+      else { botReturn = SCREENS.includes(screen) ? screen : 'dash'; botMode = true; writeBot(true); history.replaceState(null, '', '/clinic#bot'); }
+      render(); return;
+    }
+    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; botMode = false; go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
     if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
     if (name === 'auth') {
@@ -715,6 +749,12 @@ async function act(name, el) {
       const r = await api('/api/clinic/setup/finish', { tone: wizTone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true });
       state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 7; screen = 'setup';
       flash('Three drafts are waiting in Approvals. Nothing was sent.'); render(); return;
+    }
+    if (name === 'setup-demo-key') {
+      if (!(state && state.aiKey && state.aiKey.source === 'demo')) throw new Error('The demo key is not available on this server.');
+      const r = await api('/api/clinic/setup/finish', { tone: wizTone, phone: wizPhone, paste: wizPaste, csv: wizCsv, ack: true, demoKey: true });
+      state = r.clinic || state; wizDrafts = r.drafts || []; wiz = 7; screen = 'setup';
+      flash('Three drafts are waiting in Approvals. Nothing was sent. Demo key, demo only.'); render(); return;
     }
     if (name === 'ai-key') {
       const f = Object.fromEntries(new FormData(el).entries());
@@ -850,7 +890,11 @@ root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft 
   const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
   if (hash.get('as_auth')) { token = hash.get('as_auth'); sessionStorage.setItem('aaas_clinic_token', token); history.replaceState(null, '', '/clinic'); }
   try { meta = await (await fetch('/api/clinic/meta')).json(); } catch { /* offline */ }
-  if (token) { try { await reload(); if (state && state.role) { screen = wanted(); render(); } } catch { token = ''; screen = 'login'; render(); } }
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'aaas-bot' || e.data.on !== false) return;
+    botMode = false; writeBot(false); screen = 'dash'; history.replaceState(null, '', '/clinic#dash'); render();
+  });
+  if (token) { try { await reload(); if (state && state.role) { applyBot(); if (!botMode) screen = wanted(); render(); } } catch { token = ''; screen = 'login'; render(); } }
   else render();
 })();
 </script>

@@ -546,6 +546,7 @@ details{margin:8px 0;font-size:13px}details summary{cursor:pointer;color:var(--a
 body.wp-full .topbar,body.wp-full .botbar,body.wp-full #nn,body.wp-full .bggrid{display:none!important}
 body.wp-full .shell{display:block;min-height:0;padding:0}body.wp-full .main{padding:0}body.wp-full #otherView{max-width:none}
 body.wp-full .wp{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;min-height:0;border:0;border-radius:0;z-index:5;animation:none;transform:none}
+body.bot-mode .wp-hd{padding-right:140px}
 body.no-side .shell{grid-template-columns:1fr!important}body.no-side .side,body.no-side #burger{display:none!important}
 .nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:4px 0 6px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .nav-grid button{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 9px!important;border:0;border-radius:9px;background:none;color:var(--ink);font-size:13px!important;text-align:left;cursor:pointer}
@@ -815,6 +816,7 @@ const TABS=[['Dashboard','grid'],['My Workplace','layers'],['Agents','bot'],['Gr
 const $=s=>document.querySelector(s);
 const now=Date.now(),min=m=>now-m*60000;
 let nid=4,tab='Dashboard',menu=null,q='',runningId=null;
+const botMode=/(?:[?&])bot=1(?:&|$)/.test(location.search)||/(?:^|#|&)bot=1(?:&|$)/.test(location.hash);
 let agents=[
  {id:1,name:'Research Agent',kind:'research',status:'active',d:'Finds and summarizes information from the web and trusted sources.',n:0,r:null},
  {id:2,name:'Finance Agent',kind:'finance',status:'active',d:'Analyzes financial data, builds reports and tracks spending.',n:0,r:null},
@@ -1246,9 +1248,10 @@ function applyBrand(b){
 fetch('/api/branding').then(r=>r.ok?r.json():null).then(b=>{if(b&&b.name)applyBrand(b)}).catch(()=>{});
 function sessionUser(u){return {email:u.email,name:u.name,role:u.role||'customer',kind:u.kind||'',agencyRole:u.agencyRole||'',agency:u.agency||'',brand:u.brand||null,imp:!!u.imp}}
 function enter(u,welcome){
-  user=u;if(u&&u.brand)applyBrand(u.brand);loadData();$('#vaVoice').checked=prefOf('voice')!==false;if(!tabsFor().some(x=>x[0]===tab))tab=tabsFor()[0][0];document.body.classList.remove('locked');$('#auth').classList.add('hide');
+  user=u;if(botMode){tab='My Workplace';welcome=false;}document.body.classList.toggle('bot-mode',!!botMode);if(u&&u.brand)applyBrand(u.brand);loadData();$('#vaVoice').checked=prefOf('voice')!==false;if(!tabsFor().some(x=>x[0]===tab))tab=tabsFor()[0][0];if(botMode)tab='My Workplace';document.body.classList.remove('locked');$('#auth').classList.add('hide');
   playIn();renderUser();renderStatic();refresh();window.scrollTo(0,0);
-  if(needsOnboard())showOnboard();
+  if(botMode){/* clinic Bot Mode: the workplace chat, not the product tour */}
+  else if(needsOnboard())showOnboard();
   else if(welcome)showIntro(u.name);
   setTimeout(wpInboxStart,1500);setTimeout(ffStart,2000);
 }
@@ -1399,7 +1402,7 @@ $('#authForm').onsubmit=async e=>{
   await 0;
   if(await SYNC.mode()==='broken'){showAuth();$('#aBtn').disabled=true;err('The server isn’t set up yet: '+SYNC_ERR);return}
   if(await SYNC.mode()==='server'){
-    try{const su=await fetch('/api/setup').then(r=>r.json());if(su&&su.needed){location.href='/setup';return}}catch(x){}
+    if(!botMode){try{const su=await fetch('/api/setup').then(r=>r.json());if(su&&su.needed){location.href='/setup';return}}catch(x){}}
     const hp=new URLSearchParams(location.hash.slice(1));
     if(/^#(signup|forgot)$/.test(location.hash)&&!LS.get('as_tok')){const m=location.hash==='#signup'?'up':'fp';history.replaceState(null,'',location.pathname+location.search);showAuth();setMode(m);return}
     if(hp.get('as_reset')){resetTok=hp.get('as_reset');history.replaceState(null,'',location.pathname+location.search);LS.del('as_tok');showAuth();setStep(5);return}
