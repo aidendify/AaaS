@@ -1,6 +1,6 @@
 {
   "name": "aidentify",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "private": true,
   "description": "AaaS: open-source Agents as a Service platform. Create AI agent workers, connect tools and build connectors.",
   "type": "module",
