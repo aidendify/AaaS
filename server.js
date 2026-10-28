@@ -69,6 +69,9 @@ async function serve(req, res) {
     if (req.method === 'GET' && (url.pathname === '/white-label' || url.pathname === '/white-label.html')) {
       return send(res, 200, await fs.readFile(path.join(dir, 'white-label.html')), 'text/html; charset=utf-8');
     }
+    if (req.method === 'GET' && url.pathname === '/clinic-theme.css') {
+      return send(res, 200, await fs.readFile(path.join(dir, 'clinic-theme.css')), 'text/css; charset=utf-8');
+    }
     if (req.method === 'GET' && (url.pathname === '/landing-v2.css' || url.pathname === '/landing-v2.js')) {
       const file = url.pathname.slice(1);
       const type = file.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8';

@@ -1,0 +1,44 @@
+/* Shared clinic theme. One set of tokens for chat, Home, sign-up, the wizard, pricing and settings. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font: Inter, "Segoe UI", system-ui, sans-serif;
+  --bg: #f5f6fb;
+  --card: #ffffff;
+  --ink: #17182b;
+  --muted: #5e6478;
+  --line: #e4e7f2;
+  --primary: #2f2a86;
+  --primary-d: #241f6b;
+  --accent: #0e8f62;
+  --soft: #eef0fb;
+  --green: #0e8f62;
+  --green-bg: #e7f6ef;
+  --amber: #8a5a00;
+  --amber-bg: #fff6e5;
+  --red: #b42318;
+  --red-bg: #fdecec;
+  --shadow: 0 10px 28px rgba(23, 24, 43, .06);
+  --radius: 14px;
+  --space: 20px;
+  --blue: var(--primary);
+  --blue-d: var(--primary-d);
+}
+
+html, body { font-family: var(--font); }
+body { background: var(--bg); color: var(--ink); }
+h1, h2, h3, b, button, input, select, textarea { font-family: var(--font); }
+.card, .tile, .draft, .panel, .chief, .drawer {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.btn { background: var(--primary); border-radius: 12px; }
+.btn:hover { background: var(--primary-d); }
+.btn-ghost, .btn-danger { border-radius: 12px; }
+.tile .v, .chief header b { letter-spacing: -.03em; }
+.chart { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.chart div { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.chart i { display: block; height: 8px; border-radius: 99px; background: var(--primary); opacity: .85; }
+.chart i.g { background: var(--accent); }

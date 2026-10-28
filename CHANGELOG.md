@@ -5,6 +5,16 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-10-28
+
+### Added
+- **Chat first.** After sign-in, and for the sample business, the owner lands in a chat with Chief. Chief opens with today’s open enquiries, drafts waiting for approval, unpaid invoices and visits booked today. Questions are answered from that account’s records. A Chief button on every Advanced screen opens the same chat.
+- **Advanced.** The top-right switch (the old Bot Mode control, flipped) opens the full dashboards, approvals, agents and the rest of the clinic. Chat stays the default. The choice is remembered per account.
+- **Home.** One page with the recovered figure, open enquiries, the approval inbox, payments due, today’s visits and revenue. Approve and Edit sit on the cards. Details open in a side drawer.
+- **One theme.** `clinic-theme.css` holds the colours, Inter, radius and shadow used by chat, Home, sign-up, the wizard, pricing and settings.
+
+### Changed
+- Drafts still need approval in chat and in Advanced.
 
 ## [2.6.0] - 2026-10-28
 

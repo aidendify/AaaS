@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AaaS · Clinic team</title>
+<link rel="stylesheet" href="/clinic-theme.css">
 <style>
-:root { --bg:#f4f6f8; --card:#fff; --ink:#1b2430; --muted:#5e6b7a; --line:#e4e8ee; --blue:#0b5fff; --blue-d:#0847c7; --soft:#e8f0ff; --green:#067647; --green-bg:#e7f6ee; --amber:#8a5a00; --amber-bg:#fff6e5; --red:#b42318; --red-bg:#fdecec; --shadow:0 1px 2px rgba(16,24,40,.05); }
 * { box-sizing:border-box; }
 html,body { margin:0; height:100%; }
 body { font:15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); background:var(--bg); }
@@ -103,7 +103,18 @@ tr:last-child td { border-bottom:0; }
 .bot-sw.on { background:var(--ink); color:#fff; border-color:var(--ink); }
 .bot-sw.on i { background:#fff; }
 .bot-on { min-height:100vh; }
-.bot-frame { position:fixed; inset:0; width:100%; height:100%; height:100dvh; border:0; background:#0a0a0a; z-index:8; }
+.bot-frame { position:fixed; inset:0; width:100%; height:100%; height:100dvh; border:0; background:var(--bg); z-index:8; }
+.chief { display:flex; flex-direction:column; height:calc(100vh - 28px); height:calc(100dvh - 28px); background:#fff; overflow:hidden; }
+.chief header { padding:18px 22px; border-bottom:1px solid var(--line); }
+.chief header b { display:block; font-size:20px; }
+.chief header span { color:var(--muted); font-size:13px; }
+.chief .log { flex:1; overflow:auto; padding:22px; display:flex; flex-direction:column; gap:12px; }
+.chief form { display:flex; gap:8px; padding:14px; border-top:1px solid var(--line); }
+.chief input { flex:1; border:1px solid var(--line); border-radius:12px; padding:12px 14px; font-size:16px; }
+.home-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; align-items:start; }
+.drawer-back { position:fixed; inset:0; background:rgba(23,24,43,.28); z-index:30; }
+.drawer { position:fixed; top:0; right:0; height:100%; width:min(420px, 100%); z-index:31; padding:20px; overflow:auto; border-radius:0; }
+@media (max-width:800px) { .home-grid { grid-template-columns:1fr; } .chief { height:calc(100dvh - 12px); } }
 .chat-fab { position:fixed; right:20px; bottom:20px; background:var(--ink); color:#fff; border:0; border-radius:999px; padding:12px 16px; box-shadow:0 8px 24px rgba(16,24,40,.18); z-index:5; }
 .chat { position:fixed; right:20px; bottom:72px; width:min(360px, calc(100vw - 32px)); height:460px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px rgba(16,24,40,.16); display:flex; flex-direction:column; z-index:5; }
 .chat header { padding:12px 14px; border-bottom:1px solid var(--line); font-weight:650; }
@@ -190,8 +201,9 @@ let wiz = 1, wizPaste = '', wizCsv = '', wizPhone = '', wizTone = '', wizDrafts 
 let mode = 'signin';
 let err = '';
 let toast = '';
-let botMode = false;
+let advanced = false;
 let botReturn = 'dash';
+let drawer = null;
 let chatOpen = false;
 let chatLog = [];
 let chatDraft = '';
@@ -372,19 +384,76 @@ function recoveredCard() {
     <p class="small">${esc(r.method || '')}</p>
     <button class="btn" type="button" data-act="weekly">Draft weekly WhatsApp summary</button></section>`;
 }
+function todayAppts() {
+  const key = dayKey(new Date().toISOString());
+  return (state.appointments || []).filter((a) => a.status === 'booked' && dayKey(a.at) === key);
+}
+function homeDraft(d) {
+  return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)}
+    <p>${esc(String(d.body || '').slice(0, 180))}</p>
+    <div class="row-actions">
+      <button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button>
+      <button class="btn-ghost" type="button" data-act="drawer" data-kind="draft" data-id="${esc(d.id)}">Edit</button>
+    </div>
+  </article>`;
+}
 function dash() {
-  const L = state.labels || {};
-  return `${banner()}<h1>${hello()}. Here is your week.</h1><p class="sub">${esc(state.biz)} · ${esc(state.city)}</p>
-    <div class="callout"><b>${esc(state.hero || '')}</b><div>${esc(state.pitch || '')}</div></div>
-    ${recoveredCard()}
-    <p><button class="btn" type="button" data-act="go" data-screen="setup">15-minute setup</button> <button class="btn-ghost" type="button" data-act="go" data-screen="setup" data-wiz="call">Book a setup call</button></p>
-    ${checklistCard()}
-    ${softwareCard()}
-    ${forecastCard()}
-    ${kpis()}
-    <h2>Your team</h2>
-    <div class="team">${(state.agents||[]).map((a) => `<button class="tile" type="button" data-act="go" data-screen="${a.key}"><b>${esc(a.name)}</b><div class="small">${a.paused?'Paused':'Active'} · ${a.waiting? a.waiting + ' waiting':'last action in the sample'}</div></button>`).join('')}</div>
-    <p class="small" style="margin-top:14px">${esc(L.who || 'Records')} in the last 2 months are counted from the database, not typed in by hand.</p>`;
+  const s = state.stats || {};
+  const chief = state.chief || {};
+  const pending = state.pending || [];
+  const today = todayAppts();
+  const unpaid = (state.invoices || []).filter((i) => i.state !== 'paid');
+  const rec = s.recovered || { total: 0, bookings: 0, reactivated: 0, referrals: 0, invoices: 0 };
+  const max = Math.max(rec.bookings || 0, rec.reactivated || 0, rec.referrals || 0, rec.invoices || 0, 1);
+  const bar = (label, n, cls) => `<div><span>${esc(label)}</span><i class="${cls || ''}" style="width:${Math.round((n / max) * 100)}%"></i><b>${inr(n)}</b></div>`;
+  return `${banner()}<h1>Home</h1><p class="sub">${hello()}. ${esc(state.biz)} · ${esc(state.city)}. Key figures are on this page.</p>
+    <div class="kpis">
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="recovered"><div class="k">₹ recovered</div><div class="v">${inr(rec.total)}</div></button>
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="leads"><div class="k">Open enquiries</div><div class="v">${esc(s.enquiriesOpen || 0)}</div></button>
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="approvals"><div class="k">Needs approval</div><div class="v">${esc(pending.length)}</div></button>
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="due"><div class="k">Payments due</div><div class="v">${inr(chief.paymentsDueInr || 0)}</div><div class="hint">${esc(chief.paymentsDue || unpaid.length)} invoices</div></button>
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="today"><div class="k">Today</div><div class="v">${esc(today.length)}</div><div class="hint">Booked visits</div></button>
+      <button class="tile" type="button" data-act="drawer" data-kind="kpi" data-id="revenue"><div class="k">Revenue</div><div class="v">${inr(s.revenue || 0)}</div><div class="hint">Paid this month</div></button>
+    </div>
+    <div class="home-grid">
+      <section>
+        <h2>Needs approval</h2>
+        ${pending.slice(0, 6).map(homeDraft).join('') || '<p class="small">Nothing is waiting. Approving a draft is the only way it can go out.</p>'}
+        <h2>Today’s appointments</h2>
+        ${today.map((a) => `<button class="draft" type="button" data-act="drawer" data-kind="appt" data-id="${esc(a.id)}" style="width:100%;text-align:left"><b>${esc(when(a.at))}</b><p>${esc(pname(a.patientId))} · ${esc(a.service)} · ${inr(a.fee)}</p></button>`).join('') || '<p class="small">No booked visits today.</p>'}
+      </section>
+      <section class="card" style="padding:16px">
+        <h2 style="margin-top:0">Revenue</h2>
+        <div class="v" style="font-size:28px;font-weight:650">${inr(s.revenue || 0)}</div>
+        <p class="small">Paid invoices this month. Unpaid is ${inr(chief.paymentsDueInr || 0)}.</p>
+        <div class="chart">${bar('Bookings', rec.bookings)}${bar('Reactivated', rec.reactivated, 'g')}${bar('Referrals', rec.referrals)}${bar('Invoices', rec.invoices, 'g')}</div>
+        <p style="margin-top:14px"><button class="btn" type="button" data-act="go" data-screen="setup">15-minute setup</button></p>
+      </section>
+    </div>
+    ${checklistCard()}`;
+}
+function drawerHtml() {
+  if (!drawer) return '';
+  let inner = '';
+  if (drawer.kind === 'draft') {
+    const d = (state.drafts || []).find((x) => String(x.id) === String(drawer.id));
+    if (!d) inner = '<p>That draft is gone.</p>';
+    else inner = `<h2>${esc(d.title)}</h2><form data-act="edit-draft"><input type="hidden" name="id" value="${esc(d.id)}"><textarea name="body" rows="8">${esc(d.body)}</textarea><div class="row-actions" style="margin-top:8px"><button class="btn" type="submit">Save edit</button><button class="btn-ghost" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button></div></form><p class="small">Saving or approving stays in this account. Nothing is sent until you approve.</p>`;
+  } else if (drawer.kind === 'appt') {
+    const a = (state.appointments || []).find((x) => String(x.id) === String(drawer.id));
+    inner = a ? `<h2>${esc(a.service)}</h2><p>${esc(pname(a.patientId))}</p><p>${esc(when(a.at))} · ${inr(a.fee)}</p><p>${pill(a.status)}</p>` : '<p>That visit is not on file.</p>';
+  } else if (drawer.kind === 'kpi') {
+    const titles = { recovered: 'Recovered this month', leads: 'Open enquiries', approvals: 'Needs approval', due: 'Payments due', today: 'Today', revenue: 'Revenue' };
+    inner = `<h2>${esc(titles[drawer.id] || 'Detail')}</h2>${drawer.id === 'approvals' ? (state.pending || []).map(homeDraft).join('') || '<p class="small">Nothing is waiting.</p>' : drawer.id === 'today' ? todayAppts().map((a) => `<p><b>${esc(when(a.at))}</b> ${esc(pname(a.patientId))} · ${esc(a.service)}</p>`).join('') || '<p class="small">No booked visits today.</p>' : drawer.id === 'leads' ? (state.enquiries || []).filter((e) => e.status === 'new').map((e) => `<p><b>${esc(e.name)}</b> ${esc(e.message || '')}</p>`).join('') || '<p class="small">No open enquiries.</p>' : `<p class="small">${esc((state.stats && state.stats.recovered && state.stats.recovered.method) || 'Counted from this account.')}</p>`}`;
+  }
+  return `<div class="drawer-back" data-act="drawer-close"></div><aside class="drawer" role="dialog" aria-label="Detail"><button class="btn-ghost" type="button" data-act="drawer-close">Close</button>${inner}</aside>`;
+}
+function chiefPage() {
+  const opener = (state.chief && state.chief.opener) || 'I’m Chief. Ask me about this business. Nothing is sent until you approve a draft.';
+  if (!chatLog.length) chatLog = [{ r: 'a', t: opener }];
+  return `<section class="chief" aria-label="Chief"><header><b>Chief</b><span>${esc(state.biz || '')}. Answers come from this account’s records. Drafts still need approval.</span></header>
+    <div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r === 'a' ? chatMd(m.t) : esc(m.t)}</div>`).join('')}${chatBusy ? '<div class="small">Checking the records…</div>' : ''}</div>
+    <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="Ask about leads, approvals or payments" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`;
 }
 function softwareCard() {
   const s = state.stats || {};
@@ -654,33 +723,39 @@ function chat() {
     ${chatOpen?`<section class="chat" aria-label="Ask your team"><header>Ask your team</header><div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r==='a'?chatMd(m.t):esc(m.t)}</div>`).join('') || `<div class="small">Try “How many ${esc(who)} in the last 2 months?”</div>`}${chatBusy?'<div class="small">Checking the records…</div>':''}</div>
       <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="How many ${esc(who)} in the last 2 months?" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`:''}`;
 }
-function botStoreKey() { return 'aaas_bot_mode:' + ((state && state.account) || ''); }
-function readBot() { try { return localStorage.getItem(botStoreKey()) === '1'; } catch (e) { return false; } }
-function writeBot(on) { try { localStorage.setItem(botStoreKey(), on ? '1' : '0'); } catch (e) {} }
+function botStoreKey() { return 'aaas_advanced:' + ((state && state.account) || ''); }
+function readAdvanced() {
+  try {
+    const now = localStorage.getItem(botStoreKey());
+    if (now === '1' || now === '0') return now === '1';
+    const old = localStorage.getItem('aaas_bot_mode:' + ((state && state.account) || ''));
+    if (old === '0') return true;
+    return false;
+  } catch (e) { return false; }
+}
+function writeAdvanced(on) { try { localStorage.setItem(botStoreKey(), on ? '1' : '0'); } catch (e) {} }
 function applyBot() {
   const h = location.hash.replace('#', '');
-  if (h === 'bot') botMode = true;
-  else if (SCREENS.includes(h)) botMode = false;
-  else botMode = readBot();
-  if (botMode && state && state.role) history.replaceState(null, '', '/clinic#bot');
-}
-function botSrc() {
-  const email = (state && state.account) || '';
-  return '/?bot=1#as_auth=' + encodeURIComponent(token) + '&em=' + encodeURIComponent(email) + '&bot=1';
+  if (h === 'chat' || h === 'bot') advanced = false;
+  else if (h === 'advanced') { advanced = true; screen = 'dash'; }
+  else if (SCREENS.includes(h)) { advanced = true; screen = h; }
+  else advanced = readAdvanced();
+  if (state && state.role && !advanced) { screen = 'chat'; history.replaceState(null, '', '/clinic#chat'); }
+  else if (state && state.role && advanced && (h === 'advanced' || h === '')) history.replaceState(null, '', '/clinic#advanced');
 }
 function botSwitch() {
   if (!state || !state.role) return '';
-  return `<button class="bot-sw${botMode ? ' on' : ''}" type="button" data-act="bot-mode" aria-pressed="${botMode ? 'true' : 'false'}"><i></i>Bot Mode</button>`;
+  return `<button class="bot-sw${advanced ? ' on' : ''}" type="button" data-act="advanced" data-act-alias="bot-mode" aria-pressed="${advanced ? 'true' : 'false'}"><i></i>Advanced</button>`;
 }
 function render() {
   let body = '';
   if (!token) body = loginView();
   else if (!state) body = roleView();
-  else if (state.role && botMode) body = `<div class="bot-on">${botSwitch()}<iframe class="bot-frame" title="Bot Mode" src="${botSrc()}"></iframe></div>`;
+  else if (state.role && !advanced) body = `<div class="bot-on">${botSwitch()}${chiefPage()}</div>`;
   else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView }[screen] || dash;
-    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${chat()}`;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView, chat: chiefPage }[screen] || dash;
+    body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${drawerHtml()}<button class="chat-fab" type="button" data-act="open-chief">Chief</button>`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
   root.innerHTML = body;
@@ -695,12 +770,17 @@ async function reload() {
 async function act(name, el) {
   try {
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
-    if (name === 'bot-mode') {
-      if (botMode) { botMode = false; writeBot(false); screen = SCREENS.includes(botReturn) ? botReturn : 'dash'; history.replaceState(null, '', '/clinic#' + screen); }
-      else { botReturn = SCREENS.includes(screen) ? screen : 'dash'; botMode = true; writeBot(true); history.replaceState(null, '', '/clinic#bot'); }
+    if (name === 'advanced' || name === 'bot-mode') {
+      advanced = !advanced;
+      writeAdvanced(advanced);
+      if (advanced) { screen = SCREENS.includes(botReturn) ? botReturn : 'dash'; history.replaceState(null, '', '/clinic#advanced'); }
+      else { botReturn = SCREENS.includes(screen) ? screen : 'dash'; screen = 'chat'; history.replaceState(null, '', '/clinic#chat'); }
       render(); return;
     }
-    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; botMode = false; go(el.dataset.screen); return; }
+    if (name === 'open-chief') { screen = 'chat'; advanced = false; writeAdvanced(false); history.replaceState(null, '', '/clinic#chat'); render(); return; }
+    if (name === 'drawer') { drawer = { kind: el.dataset.kind, id: el.dataset.id }; render(); return; }
+    if (name === 'drawer-close') { drawer = null; render(); return; }
+    if (name === 'go') { if (el.dataset.screen === 'setup') wiz = el.dataset.wiz || 1; advanced = true; go(el.dataset.screen); return; }
     if (name === 'chat-toggle') { chatOpen = !chatOpen; render(); return; }
     if (name === 'logout') { token = ''; sessionStorage.removeItem('aaas_clinic_token'); state = null; screen = 'login'; skipProfile = false; render(); return; }
     if (name === 'auth') {
@@ -882,7 +962,7 @@ async function act(name, el) {
     if (token) await reload();
   } catch (e) { err = e.message; toast = e.message; chatBusy = false; render(); }
 }
-root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out')) { e.preventDefault(); act(b.dataset.act, b); } });
+root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out') || b.classList.contains('drawer-back')) { e.preventDefault(); act(b.dataset.act, b); } });
 root.addEventListener('change', (e) => { if (e.target && e.target.dataset && e.target.dataset.act === 'pick') act('pick', e.target); });
 root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
 root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
@@ -892,9 +972,9 @@ root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft 
   try { meta = await (await fetch('/api/clinic/meta')).json(); } catch { /* offline */ }
   window.addEventListener('message', (e) => {
     if (e.origin !== location.origin || !e.data || e.data.type !== 'aaas-bot' || e.data.on !== false) return;
-    botMode = false; writeBot(false); screen = 'dash'; history.replaceState(null, '', '/clinic#dash'); render();
+    advanced = true; writeAdvanced(true); screen = 'dash'; history.replaceState(null, '', '/clinic#advanced'); render();
   });
-  if (token) { try { await reload(); if (state && state.role) { applyBot(); if (!botMode) screen = wanted(); render(); } } catch { token = ''; screen = 'login'; render(); } }
+  if (token) { try { await reload(); if (state && state.role) { applyBot(); render(); } } catch { token = ''; screen = 'login'; render(); } }
   else render();
 })();
 </script>
