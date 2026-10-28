@@ -4,27 +4,39 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { startServer } from './helpers.mjs';
+import { buildSeed, chiefBrief } from '../lib/clinic.js';
 
 const PW = 'Clinic-pass-123!';
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), '..');
 const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
 
-test('Bot Mode reuses the workplace chat and remembers the choice', () => {
+test('chat is the default and Advanced opens the dashboards', () => {
   const clinic = read('clinic.html');
-  const app = read('index.html');
-  assert.match(clinic, /Bot Mode/);
+  assert.match(clinic, />Advanced</);
+  assert.match(clinic, /aaas_advanced:/);
   assert.match(clinic, /aaas_bot_mode:/);
-  assert.match(clinic, /\/clinic#bot/);
-  assert.match(clinic, /\/\?bot=1#as_auth=/);
-  assert.match(clinic, /title="Bot Mode"/);
-  assert.match(clinic, /data-act="bot-mode"/);
-  assert.match(clinic, /aria-pressed/);
-  assert.match(app, /const botMode=/);
-  assert.match(app, /if\(!botMode\)\{try\{const su=await fetch\('\/api\/setup'\)/);
-  assert.match(app, /tab='My Workplace'/);
-  assert.match(app, /class="wp-side"/);
-  assert.match(app, /data-ap="approve"/);
-  assert.doesNotMatch(clinic, /bot=1#as_auth=.*skipApproval/);
+  assert.match(clinic, /\/clinic#chat/);
+  assert.match(clinic, /\/clinic#advanced/);
+  assert.match(clinic, /data-act="advanced"/);
+  assert.match(clinic, /data-act="open-chief"/);
+  assert.match(clinic, /aria-label="Chief"/);
+  assert.match(clinic, /data-act="decide"/);
+  assert.match(clinic, /href="\/clinic-theme.css"/);
+  assert.match(read('clinic-theme.css'), /--primary:/);
+  assert.match(read('clinic-theme.css'), /Inter/);
+  assert.match(clinic, /Nothing is sent until you approve/);
+});
+
+test('the Chief opener uses today’s leads, approvals and payments', () => {
+  const now = Date.parse('2026-10-28T06:30:00.000Z');
+  const brief = chiefBrief(buildSeed('dental', now), now);
+  assert.equal(brief.name, 'Chief');
+  assert.match(brief.opener, /open enquiries/);
+  assert.match(brief.opener, /waiting for approval/);
+  assert.match(brief.opener, /unpaid/);
+  assert.match(brief.opener, /booked today/);
+  assert.match(brief.opener, /Nothing is sent until you approve/);
+  assert.ok(brief.pending > 0);
 });
 
 test('the demo-key continue is rendered only for a demo platform key', () => {
