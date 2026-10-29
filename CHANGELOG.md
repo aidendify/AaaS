@@ -5,6 +5,11 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Clinic staff logins (P1-3): the owner invites staff by email (`POST /api/clinic/team/invite`, roles `admin`/`member` from the agency role names), staff accept with their own login (`/api/clinic/team/accept`), owner lists/removes (`/api/clinic/team`, `/team/remove`). Members can work drafts and approve/reject but get 403 on plan, profile, industry, rules, setup, connectors, invoices, payments, export, data delete, usage and team admin. Admins can do settings but not plan, payments, data delete or team admin.
+- No email is sent yet: invite returns a one-time, 7-day, email-bound link (`sent: false`); only the token hash is stored.
+- `as_cteam:` / `as_cmember:` are server-only (no raw KV forging) and cleaned on account delete.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
