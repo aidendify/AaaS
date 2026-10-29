@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Local/dev system email (`MAIL_DEV`).** Sign-in codes and password-reset mail can go to `log`, `file` (`MAIL_DEV_FILE`, default `.mail-dev/outbox.jsonl`) or an `ethereal` test inbox. Nothing is delivered and nothing is spent. Ignored on Vercel. Gmail app password (`GMAIL_USER` + `GMAIL_APP_PASSWORD`) is still the real-delivery path. This is not production SES.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added

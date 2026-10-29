@@ -32,3 +32,4 @@ public/
 .vercel
 .env*
 backups/
+.mail-dev/
