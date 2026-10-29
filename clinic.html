@@ -77,6 +77,9 @@ tr:last-child td { border-bottom:0; }
 .day b { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
 .post { font-size:12px; background:#f6f8fb; border-radius:8px; padding:6px; margin-top:6px; }
 .draft { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+.origin { display:inline-block; font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; vertical-align:middle; }
+.origin.ai { background:#eef0ff; color:#3a3fb5; }
+.origin.rule { background:#eef3ee; color:#2f6b3a; }
 .draft p { margin:6px 0; white-space:pre-wrap; }
 .rules { margin-top:16px; }
 .auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
@@ -389,7 +392,7 @@ function todayAppts() {
   return (state.appointments || []).filter((a) => a.status === 'booked' && dayKey(a.at) === key);
 }
 function homeDraft(d) {
-  return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)}
+  return `<article class="draft"><b>${esc(d.title)}</b> ${originTag(d)} ${pill(d.status)}
     <p>${esc(String(d.body || '').slice(0, 180))}</p>
     <div class="row-actions">
       <button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button>
@@ -451,8 +454,8 @@ function drawerHtml() {
 function chiefPage() {
   const opener = (state.chief && state.chief.opener) || 'I’m Chief. Ask me about this business. Nothing is sent until you approve a draft.';
   if (!chatLog.length) chatLog = [{ r: 'a', t: opener }];
-  return `<section class="chief" aria-label="Chief"><header><b>Chief</b><span>${esc(state.biz || '')}. Answers come from this account’s records. Drafts still need approval.</span></header>
-    <div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r === 'a' ? chatMd(m.t) : esc(m.t)}</div>`).join('')}${chatBusy ? '<div class="small">Checking the records…</div>' : ''}</div>
+  return `<section class="chief" aria-label="Chief"><header><b>Chief</b> <span class="origin ai" title="Chief is the AI surface">AI wrote this</span><span>${esc(state.biz || '')}. Answers come from this account’s records. Drafts still need approval.</span></header>
+    <div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r === 'a' ? '<span class="origin ai">AI wrote this</span> ' + chatMd(m.t) : esc(m.t)}</div>`).join('')}${chatBusy ? '<div class="small">Checking the records…</div>' : ''}</div>
     <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="Ask about leads, approvals or payments" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`;
 }
 function softwareCard() {
@@ -480,7 +483,7 @@ function forecastCard() {
 }
 function rulesBox(agent) {
   const r = state.rules || {};
-  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules</div>
+  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules <span class="origin rule">Scheduled rule</span> · these run on a timer from your templates, not AI</div>
     <div style="margin:6px 0 8px">Send only between <input name="from" value="${esc(r.from)}" style="width:90px"> and <input name="to" value="${esc(r.to)}" style="width:90px"> · Ask before anything new · Tone: <input name="tone" value="${esc(r.tone)}" style="width:min(360px,100%)"></div>
     <button class="btn-ghost" type="submit">Save rules</button>
     <button class="btn-ghost" type="button" data-act="go" data-screen="settings">Reminder settings</button>
@@ -494,6 +497,10 @@ function agentHead(agent) {
       <div class="tile"><div class="k">Waiting for approval</div><div class="v">${agent.waiting}</div></div>
       <div class="tile"><div class="k">Scheduled</div><div class="v">${agent.scheduled}</div></div>
     </div>`;
+}
+// P1-2: every item says who made it. Drafts come from scheduled rules + saved templates unless flagged ai.
+function originTag(d) {
+  return d && d.ai ? '<span class="origin ai" title="Written by the AI model">AI wrote this</span>' : '<span class="origin rule" title="Made by a scheduled rule from a saved template. No AI.">Scheduled rule</span>';
 }
 function draftCard(d) {
   const link = String(d.waLink || '').startsWith('https://wa.me/') ? d.waLink : '';

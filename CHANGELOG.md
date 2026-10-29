@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Clinic UI separates AI from automation (PDF P1-2): Chief chat and its answers carry an "AI wrote this" tag; follow-up/reminder drafts and the Rules box carry a "Scheduled rule" tag (drafts flagged `ai` show "AI wrote this"). Test: `test/ai-vs-automation-labels.test.mjs`.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
