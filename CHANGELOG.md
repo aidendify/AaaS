@@ -9,6 +9,7 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `lib/chief-inbound.js`: owner-only inbound router for Chief (WhatsApp QR, Telegram, Slack, webchat). Answers from the account's own records; "send X: text" only queues an approval. Tests in `test/chief-inbound.test.mjs`.
 - `docs/MULTI-CHANNEL-CHIEF-SPIKE.md` spike plan.
 - `test/v270-telegram-gate.test.mjs`: Telegram webhook secret gate (missing, wrong, other tenant's secret, unknown hook) and proof that customer replies stay pending approvals.
+- WhatsApp QR: "Unofficial · Beta" label and a required ban-risk checkbox; `POST /api/channels/whatsapp-qr/start` now needs `ack_ban_risk: true` (400 `ack_required` otherwise).
 
 ## [2.7.0] - 2026-10-28
 

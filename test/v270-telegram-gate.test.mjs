@@ -40,3 +40,13 @@ test('telegram webhook secret: missing, wrong, cross-tenant and unknown hook are
     assert.equal(((await req(s, 'GET', '/api/agents/approvals?status=pending', undefined, B)).d.items || []).some((x) => x.kind === 'telegram'), false);
   } finally { await s.stop(); }
 });
+
+test('WhatsApp QR start needs an explicit ban-risk acknowledgement; UI shows Unofficial · Beta', { timeout: 60000 }, async () => {
+  const fs = await import('node:fs');
+  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /Unofficial · Beta/);
+  assert.match(html, /id="inbQrAck"/);
+  assert.match(html, /ack_ban_risk:true/);
+  const src = fs.readFileSync(new URL('../lib/freech.js', import.meta.url), 'utf8');
+  assert.match(src, /ack_ban_risk !== true\) bad\(400, 'ack_required'/);
+});
