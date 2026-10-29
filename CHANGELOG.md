@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **Default demo pack.** The industry picker and the fallback copy now lead with *Salon, gym or studio*, then *Real estate*. Dental and all other packs stay available. No new stats were added.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added

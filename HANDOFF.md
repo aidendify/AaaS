@@ -1,5 +1,8 @@
 # AaaS handoff
 
+## Default demo pack (30 Oct 2026, IST) — branch `parallel/demo-pack-default`
+- `DEFAULT_PACK = 'studio'` in `lib/clinic-packs.js`; `PACK_IDS` order is studio, realestate, then the rest. `copyFor` in `lib/clinic.js` falls back to it instead of dental. Mobile screenshot script seeds studio. Test: `test/demo-pack-default.test.mjs`.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
