@@ -1,5 +1,9 @@
 # AaaS handoff
 
+## AI vs automation labels — branch `parallel/ai-vs-automation-labels`
+
+`originTag(d)` in clinic.html labels every draft: `d.ai` truthy → "AI wrote this", else "Scheduled rule" (template + timer). Chief is the only AI surface and is tagged. No backend change; set `ai: true` on drafts if the model ever writes one.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
