@@ -599,6 +599,10 @@ function billing() {
     <button class="btn-ghost" type="button" data-act="pdf" data-id="${inv.id}" data-number="${esc(inv.number)}">PDF</button>
   </td></tr>`).join('');
   return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. Each invoice and its reminder draft includes a payment link: a Razorpay test link when those keys are set, otherwise a UPI link. The sample business can simulate the paid webhook. Nothing is sent, and AaaS does not take the payment itself.</p>
+    <h2>Record walk-in payment</h2>
+    <form class="form" data-act="walkin"><label>Person<select name="patientId">${opts}</select></label><label>Amount ₹<input name="amount" type="number" min="1" step="0.01" required value="1500"></label><label>For<input name="desc" placeholder="Walk-in payment"></label>
+      <div style="align-self:end" class="row-actions"><button class="btn" type="submit" name="method" value="cash">Cash</button><button class="btn" type="submit" name="method" value="upi">UPI</button><button class="btn" type="submit" name="method" value="card">Card</button></div></form>
+    <p class="small">One tap records money already taken at the desk as a paid invoice. It counts in ₹ recovered. Nothing is charged.</p>
     <form class="form" data-act="add-inv">
       <label>Person<select name="patientId">${opts}</select></label>
       <label>Description<input name="desc" required placeholder="${esc((state.labels&&state.labels.service)||'What this invoice is for')}"></label>
@@ -908,6 +912,12 @@ async function act(name, el) {
       await api('/api/clinic/visit', { who: f.who || '', notes: f.notes || '', accept: f.accept === 'yes', answers });
       flash('Visit notes saved in this account.');
     }
+    else if (name === 'walkin') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const via = el.dataset.via || 'cash';
+      const r = await api('/api/clinic/payments/walkin', { patientId: Number(f.patientId), amount: Number(f.amount), desc: f.desc, method: via });
+      flash('Recorded ' + inr(r.invoice.total) + ' by ' + via.toUpperCase() + ' as paid. ₹ recovered this month: ' + inr(r.recovered.total) + '.');
+    }
     else if (name === 'add-inv') {
       const f = Object.fromEntries(new FormData(el).entries());
       await api('/api/clinic/invoices', { patientId: Number(f.patientId), items: [{ desc: f.desc, qty: Number(f.qty||1), rate: Number(f.rate||0) }], gst: f.gst, due: f.due ? new Date(f.due + 'T18:00:00+05:30').toISOString() : '', upi: f.upi, payLink: f.payLink });
@@ -964,7 +974,7 @@ async function act(name, el) {
 }
 root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out') || b.classList.contains('drawer-back')) { e.preventDefault(); act(b.dataset.act, b); } });
 root.addEventListener('change', (e) => { if (e.target && e.target.dataset && e.target.dataset.act === 'pick') act('pick', e.target); });
-root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
+root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); f.dataset.via = (e.submitter && e.submitter.value) || ''; act(f.dataset.act, f); });
 root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
 (async () => {
   const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
