@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Slack adapter coverage: `test/slack-adapter.test.mjs` proves owner DM → Chief, customer DM → approval draft only, send only after approve, and two-tenant isolation (hooks, secrets, approvals). Uses the existing `lib/freech.js` adapter; no runtime change.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
