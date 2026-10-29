@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Monthly calendar.** A Calendar screen in the clinic shows a month grid with visit and scheduled-post counts per day. Tap a day to see its items and add a visit or draft a post for that day, using the existing appointment and social draft APIs. Post drafts still wait for approval.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added

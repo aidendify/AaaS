@@ -300,3 +300,8 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 - **Storage.** The box's own live server still runs on `data/kv.json` on purpose. The migration tool was tried on a copy of real data against a local Postgres, not against Neon. Rate limits are still kept per server instance.
 - **Tests.** The browser "pay" check is tested as a rule (which clicks wait for approval); approving a browser step is not tested because it would start a real browser. The Chief of Staff test covers handing work to an agent; turning a goal into board tasks is done by the group lead, and that is tested too.
 - **Automatic checks.** They use the account's GitHub Actions minutes now that the repo is private, so they run once per change, and only for code.
+
+## Monthly calendar (parallel/monthly-calendar)
+- `clinic.html`: `calendar()` screen (nav item Calendar), month grid from `state.appointments` (non-cancelled) and `state.posts`, keyed by `dayKey` (Asia/Kolkata). Day detail reuses `add-appt` and `social` form handlers.
+- Test: `test/monthly-calendar.test.mjs` (source strings).
+- Gaps: post drafts appear on the grid only after approval (when they enter `state.posts`); no drag/reschedule; no browser e2e.

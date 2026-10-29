@@ -132,6 +132,11 @@ tr:last-child td { border-bottom:0; }
 .conn .actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:none; }
 .src { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
 .src li { background:#f6f8fb; border-radius:999px; padding:4px 10px; font-size:13px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin:8px 0 16px; }
+.cal-cell { min-height:64px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:4px; text-align:left; display:flex; flex-direction:column; font:inherit; cursor:pointer; }
+.cal-empty { border:0; background:none; cursor:default; }
+.cal-today { border-color:#2563eb; }
+.cal-sel { background:#eef4ff; }
 .visit-q { margin:0 0 12px; }
 .terms { margin:8px 0 0; padding-left:18px; }
 .scroll { overflow:auto; -webkit-overflow-scrolling:touch; }
@@ -191,7 +196,8 @@ const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return n
 const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
 const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
-const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup'];
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup','calendar'];
+let calMonth = '', calDay = '';
 
 let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
@@ -336,6 +342,7 @@ function side() {
     <nav class="nav">
       ${item('dash','Dashboard')}
       ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
+      ${item('calendar','Calendar')}
       ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
       ${item('connections','Connections')}
       ${item('visit','Clinic visit')}
@@ -583,6 +590,26 @@ function social() {
     <form class="form" data-act="referral"><label>Person<select name="patientId">${(state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label><div style="align-self:end"><button class="btn" type="submit">Draft referral message</button></div></form>
     ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
 }
+function calendar() {
+  const now = dayKey(new Date().toISOString());
+  if (!calMonth) calMonth = now.slice(0,7);
+  const [y,m] = calMonth.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m-1, 1)); const lead = first.getUTCDay(); const n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const visits = (state.appointments||[]).filter((a) => a.status !== 'cancelled'); const posts = state.posts||[];
+  const on = (list, k) => list.filter((x) => dayKey(x.at) === k);
+  const cells = [...Array(lead)].map(() => '<div class="cal-cell cal-empty"></div>');
+  for (let d = 1; d <= n; d++) { const k = `${calMonth}-${String(d).padStart(2,'0')}`; const v = on(visits,k).length, ps = on(posts,k).length;
+    cells.push(`<button type="button" class="cal-cell${k===now?' cal-today':''}${k===calDay?' cal-sel':''}" data-act="cal-day" data-day="${k}"><b>${d}</b>${v?`<span class="small">${v} visit${v>1?'s':''}</span>`:''}${ps?`<span class="small">${ps} post${ps>1?'s':''}</span>`:''}</button>`); }
+  const label = first.toLocaleDateString('en-IN', { month:'long', year:'numeric', timeZone:'UTC' });
+  let detail = '<p class="small">Tap a day to see and add items.</p>';
+  if (calDay) { const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    detail = `<h2>${esc(calDay)}</h2>${on(visits,calDay).map((a) => `<div class="post">${pill(a.status)} <b>${esc(when(a.at))}</b> ${esc(pname(a.patientId))} · ${esc(a.service)}</div>`).join('')}${on(posts,calDay).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || ''}${on(visits,calDay).length+on(posts,calDay).length?'':'<p class="small">Nothing on this day.</p>'}
+    <h3>Add a visit</h3><form class="form" data-act="add-appt"><label>Person<select name="patientId">${opts}</select></label><label>When<input name="at" type="datetime-local" required value="${calDay}T10:00"></label><label>Service<input name="service" value="${esc((state.labels&&state.labels.service)||'Visit')}"></label><label>Fee<input name="fee" type="number" min="0" value="0"></label><div><button class="btn" type="submit">Add visit</button></div></form>
+    <h3>Draft a post for this day</h3><form class="form" data-act="social"><label class="wide">Topic<input name="topic" required></label><input type="hidden" name="when" value="${calDay}"><div><button class="btn" type="submit">Create draft</button></div></form><p class="small">Post drafts wait in Approvals. Nothing is published.</p>`; }
+  return `${banner()}<h1>Calendar</h1><p class="sub">Visits and scheduled posts by month.</p>
+    <p><button class="btn-ghost" type="button" data-act="cal-nav" data-step="-1">Previous</button> <b>${esc(label)}</b> <button class="btn-ghost" type="button" data-act="cal-nav" data-step="1">Next</button></p>
+    <div class="cal-grid">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d) => `<div class="cal-head small">${d}</div>`).join('')}${cells.join('')}</div>${detail}`;
+}
 function insights() {
   const a = state.agents.find((x) => x.key==='insights');
   return `${agentHead(a)}${kpis()}<h2>Weekly summary</h2><article class="draft"><p>${esc((state.summary&&state.summary.text) || 'No summary yet.')}</p>
@@ -754,7 +781,7 @@ function render() {
   else if (state.role && !advanced) body = `<div class="bot-on">${botSwitch()}${chiefPage()}</div>`;
   else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView, chat: chiefPage }[screen] || dash;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, calendar, settings, setup: setupView, chat: chiefPage }[screen] || dash;
     body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${drawerHtml()}<button class="chat-fab" type="button" data-act="open-chief">Chief</button>`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
@@ -871,6 +898,8 @@ async function act(name, el) {
     if (name === 'add-enq') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/enquiries', f); flash('Enquiry added.'); }
     else if (name === 'enq-status') await api('/api/clinic/enquiries/update', { id:Number(el.dataset.id), status:el.dataset.status });
     else if (name === 'enq-del') { if (!confirm('Delete this enquiry?')) return; await api('/api/clinic/enquiries/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'cal-day') { calDay = el.dataset.day; render(); return; }
+    else if (name === 'cal-nav') { const [y,m] = calMonth.split('-').map(Number); const d = new Date(Date.UTC(y, m-1+Number(el.dataset.step), 1)); calMonth = d.toISOString().slice(0,7); calDay = ''; render(); return; }
     else if (name === 'add-appt') { const f = Object.fromEntries(new FormData(el).entries()); if (f.at) f.at = new Date(f.at).toISOString(); f.patientId = Number(f.patientId); f.fee = Number(f.fee||0); await api('/api/clinic/appointments', f); flash('Appointment added.'); }
     else if (name === 'appt-status') await api('/api/clinic/appointments/update', { id:Number(el.dataset.id), status:el.dataset.status });
     else if (name === 'appt-del') { if (!confirm('Delete this appointment?')) return; await api('/api/clinic/appointments/delete', { id:Number(el.dataset.id) }); }
