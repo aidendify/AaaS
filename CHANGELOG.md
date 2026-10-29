@@ -5,6 +5,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added (multi-channel Chief spike, local only)
+- `lib/chief-inbound.js`: owner-only inbound router for Chief (WhatsApp QR, Telegram, Slack, webchat). Answers from the account's own records; "send X: text" only queues an approval. Tests in `test/chief-inbound.test.mjs`.
+- `docs/MULTI-CHANNEL-CHIEF-SPIKE.md` spike plan.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
