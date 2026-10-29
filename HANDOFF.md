@@ -1,5 +1,37 @@
 # AaaS handoff
 
+## Parallel individual track (read first)
+
+Status as of 2026-10-30. These notes cover the fork PRs from `srinivasaphanindra/AaaS`. They are separate from the P0 items in the PDF that were skipped on purpose.
+
+- **Scope.** This is an individual, parallel race. It is not the IntelligenzIT transfer. There is no rename of LICENSE to the company and no AWS work. The AWS kit below is docs only.
+- **Deploy later.** Use a **new** Vercel project or a demo on the box. Never reconfigure the live `aidentify` / `aidentify-demo` projects unless asked.
+- **BYOK only.** Owners bring their own AI key. Running a key the platform pays for is not a goal. `CLINIC_DEMO_PLATFORM_KEY` is only for sample/demo use.
+- **Channels.**
+  - QR WhatsApp (Baileys) needs a Node host that stays on. It does not run on Vercel serverless.
+  - Telegram and Slack are mocked or gated in tests.
+  - All outbound messages need approval first.
+  - Unofficial WhatsApp carries a **ban risk** for the number. Official Meta/Gupshup stays the production path.
+- **System email.** For local work, `MAIL_DEV=log|file|ethereal`. This is not SES, and there is no SES code.
+- **Open fork PRs** (from `gh pr list --repo aidendify/AaaS --state open`, 2026-10-30):
+  - #15 Chief chat no longer 500s on null history entries
+  - #16 Multi-channel Chief spike (QR WA + Telegram gate)
+  - #17 Wire chief-inbound into WhatsApp QR / Telegram / Slack owner inbound
+  - #18 BYOK clarity: owners bring their own AI key
+  - #19 Centralize product display name + draft privacy/terms stubs
+  - #20 Slack adapter: approval-gated outbound + tenant isolation tests
+  - #21 Clinic UI: separate AI from automation (P1-2)
+  - #22 Clinic staff logins: invites + role gates (P1-3)
+  - #23 Clinic monthly calendar view (P1-4)
+  - #24 Walk-in payments: one-tap cash/UPI/card → paid invoice (P1-5)
+  - #25 Default demo pack: salon/studio first, real estate next
+  - #26 Dev system email: MAIL_DEV=log|file|ethereal (no SES)
+  - #27 This summary (docs only)
+- **Blocked on Phanindra:**
+  - Final product name (#19 centralizes it)
+  - Meta tokens for social publish
+  - GSTIN + Razorpay subscriptions (subscription billing stays shelved)
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
