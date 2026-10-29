@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Walk-in payments.** Billing has a one-tap **Record walk-in payment** row: pick the person, the amount, then Cash, UPI or Card. `POST /api/clinic/payments/walkin` saves a paid invoice (`paidVia`, `walkIn: true`, `payMode: 'desk'`) and returns the new ₹ recovered figure. No payment provider is called. `POST /api/clinic/invoices/update` accepts an optional `method` (cash, upi, card) when marking paid.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
