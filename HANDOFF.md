@@ -1,5 +1,9 @@
 # AaaS handoff
 
+## BYOK clarity (30 Oct 2026, IST) — `parallel/byok-clarity`
+Copy only: owners bring their own AI key; the server key is a capped demo fallback, never the goal (brief P0-7). No platform-paid key path. Test: `test/byok-copy.test.mjs`.
+
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.

@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- **BYOK clarity.** AI key copy now says real AI needs the owner's own OpenRouter / Anthropic / OpenAI / xAI / Gemini key, paid to their provider. A server key is described only as a capped demo key; no pressure toward a platform-paid key. Clinic usage without a key reads "no AI key saved" instead of "platform key".
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
