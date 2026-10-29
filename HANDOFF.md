@@ -1,5 +1,10 @@
 # AaaS handoff
 
+## Product name + legal stubs (30 Oct 2026, IST), branch `parallel/legal-name-stubs`
+- The name is **not final**. `AIdentify` is a placeholder in `lib/brand.js` (`DISPLAY_NAME`, `LEGAL_NAME`, `final: false`). To rename, edit that file and the `<title>`s in index/clinic/settings.html. `test/brand.test.mjs` fails if they drift.
+- `privacy.html` and `terms.html` are **stubs only** and use `{{PRODUCT_NAME}}` tokens (filled in by server.js and scripts/vercel-build.mjs). A real policy needs legal review before launch.
+- Not renamed: README, mailer templates, landing/waitlist/white-label copy, invoice HTML.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
