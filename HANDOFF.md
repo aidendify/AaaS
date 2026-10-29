@@ -300,3 +300,4 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 - **Storage.** The box's own live server still runs on `data/kv.json` on purpose. The migration tool was tried on a copy of real data against a local Postgres, not against Neon. Rate limits are still kept per server instance.
 - **Tests.** The browser "pay" check is tested as a rule (which clicks wait for approval); approving a browser step is not tested because it would start a real browser. The Chief of Staff test covers handing work to an agent; turning a goal into board tasks is done by the group lead, and that is tested too.
 - **Automatic checks.** They use the account's GitHub Actions minutes now that the repo is private, so they run once per change, and only for code.
+- **AI flag on drafts.** Only `/api/clinic/social/draft` sets `ai: true`, and only when the model returned text. Every other draft is a template (tone edits are owner text, not model output).

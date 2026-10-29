@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Drafts carry `ai: true` only when a model wrote the text (social posts with an AI key). Reminders, follow-ups, reviews, referrals, payment and weekly drafts are fixed templates and stay unflagged.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
