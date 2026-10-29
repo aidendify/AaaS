@@ -5,6 +5,15 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Parallel individual track
+- Fork PRs #15–#26 (individual track, not the IntelligenzIT transfer, no AWS, no live Vercel changes):
+  - Chief fixes, plus a multi-channel inbound spike: QR WhatsApp via Baileys (needs a Node host that stays on), with Telegram and Slack mocked. Every outbound message needs approval.
+  - BYOK clarity and a centralized product name with draft legal stubs.
+  - Clinic P1 work: AI vs automation labels, staff logins, monthly calendar, walk-in payments.
+  - Salon/studio as the default demo pack.
+  - `MAIL_DEV` local system email (not SES).
+  - Details are in HANDOFF.md.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
