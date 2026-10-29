@@ -1,5 +1,8 @@
 # AaaS handoff
 
+## Chief inbound wire (30 Oct 2026, IST) — branch `parallel/chief-inbound-wire` (stacks on PR #16)
+- `runRouted` in `lib/freech.js` calls `routeChiefInbound` for owner messages (WA QR, Telegram, Slack). Send intents → pending approval only; nothing sends without approval. Mock-only tests in `test/v271-chief-wire.test.mjs`.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
