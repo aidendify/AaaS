@@ -38,7 +38,7 @@ const server = await startServer({ RATE_LIMIT: 'off', AI_PROVIDER: 'mock', AI_MO
 const browser = await chromium.launch({ headless: true });
 try {
   const demo = await server.api('/api/clinic/demo', {});
-  const ready = await server.api('/api/clinic/role', { role: 'dental' }, demo.d.token);
+  const ready = await server.api('/api/clinic/role', { role: 'studio' }, demo.d.token);
   if (ready.status !== 200) throw new Error('demo role failed ' + JSON.stringify(ready.d));
   const book = server.base + ready.d.formPath;
 
