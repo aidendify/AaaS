@@ -1,5 +1,8 @@
 # AaaS handoff
 
+## Chief inbound wire (30 Oct 2026, IST) — branch `parallel/chief-inbound-wire` (stacks on PR #16)
+- `runRouted` in `lib/freech.js` calls `routeChiefInbound` for owner messages (WA QR, Telegram, Slack). Send intents → pending approval only; nothing sends without approval. Mock-only tests in `test/v271-chief-wire.test.mjs`.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
@@ -300,3 +303,8 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 - **Storage.** The box's own live server still runs on `data/kv.json` on purpose. The migration tool was tried on a copy of real data against a local Postgres, not against Neon. Rate limits are still kept per server instance.
 - **Tests.** The browser "pay" check is tested as a rule (which clicks wait for approval); approving a browser step is not tested because it would start a real browser. The Chief of Staff test covers handing work to an agent; turning a goal into board tasks is done by the group lead, and that is tested too.
 - **Automatic checks.** They use the account's GitHub Actions minutes now that the repo is private, so they run once per change, and only for code.
+
+## Multi-channel Chief spike (PR3, local, not pushed)
+- Plan: `docs/MULTI-CHANNEL-CHIEF-SPIKE.md`. Router: `lib/chief-inbound.js` (owner-only, approval-first, no provider calls).
+- **Runtime:** Baileys / WhatsApp QR needs a long-lived Node process. It will NOT work on Vercel serverless (`assertWaqrAvailable` refuses). Run the channel runtime on the box, Docker, EC2 or similar always-on host. The web UI can still live on Vercel later.
+- WhatsApp QR is unofficial (Baileys); WhatsApp can ban the number. Owner self-chat only, no customer messages, no broadcasts. No paid BSP. AI is BYOK only.
