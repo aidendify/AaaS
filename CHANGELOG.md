@@ -5,6 +5,10 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Product name in one place.** `lib/brand.js` holds the customer-facing name (`AIdentify` for now, not final) and a legal-entity placeholder. The index, clinic and settings titles use it. Internal ids, env vars and package names stay AaaS.
+- **Privacy and terms stubs.** `/privacy` and `/terms` (also `.html`) are marked draft, not legal advice. They are linked from the sign-in screen.
+
 ## [2.7.0] - 2026-10-28
 
 ### Added
