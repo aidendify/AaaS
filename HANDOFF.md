@@ -1,5 +1,13 @@
 # AaaS handoff
 
+## Dev system email — branch `parallel/dev-system-email`
+
+- `MAIL_DEV=log` prints sign-in and reset mail to the server log. `MAIL_DEV=file` appends JSON lines to `MAIL_DEV_FILE` (default `.mail-dev/outbox.jsonl`, gitignored). Neither uses the network. `MAIL_DEV=ethereal` creates a nodemailer test account on ethereal.email and logs a preview URL. That needs network access and delivers nothing.
+- `MAIL_DEV` is ignored when `VERCEL` is set. Any value other than these three is ignored.
+- Real delivery still uses `GMAIL_USER` + `GMAIL_APP_PASSWORD`, an app password from https://myaccount.google.com/apppasswords, or another SMTP host via `SMTP_HOST`/`SMTP_PORT`.
+- **Not production SES.** No SES code or config was added. Production transactional mail is still an open decision.
+- Code: `lib/mailer.js` (`devMailMode`, `systemMailReady`, `sendSystemEmail`). Callers: `lib/pwreset.js` and `lib/authx.js` use `systemMailReady()`. Tests: `test/mail-dev.test.mjs`, where Ethereal is mocked.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
