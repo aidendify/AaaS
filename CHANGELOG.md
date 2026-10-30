@@ -5,6 +5,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed (Chief inbound wire)
+- Owner inbound on WhatsApp QR, Telegram and Slack (`lib/freech.js` runRouted) now goes through `lib/chief-inbound.js`: send intents only queue approvals via holdOutbound, STOP pauses, other questions still go to Chief. Test: `test/v271-chief-wire.test.mjs`.
+
 ### Added (multi-channel Chief spike, local only)
 - `lib/chief-inbound.js`: owner-only inbound router for Chief (WhatsApp QR, Telegram, Slack, webchat). Answers from the account's own records; "send X: text" only queues an approval. Tests in `test/chief-inbound.test.mjs`.
 - `docs/MULTI-CHANNEL-CHIEF-SPIKE.md` spike plan.
