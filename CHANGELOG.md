@@ -13,6 +13,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `docs/MULTI-CHANNEL-CHIEF-SPIKE.md` spike plan.
 - `test/v270-telegram-gate.test.mjs`: Telegram webhook secret gate (missing, wrong, other tenant's secret, unknown hook) and proof that customer replies stay pending approvals.
 - WhatsApp QR: "Unofficial · Beta" label and a required ban-risk checkbox; `POST /api/channels/whatsapp-qr/start` now needs `ack_ban_risk: true` (400 `ack_required` otherwise).
+### Changed
+- **BYOK clarity.** AI key copy now says real AI needs the owner's own OpenRouter / Anthropic / OpenAI / xAI / Gemini key, paid to their provider. A server key is described only as a capped demo key; no pressure toward a platform-paid key. Clinic usage without a key reads "no AI key saved" instead of "platform key".
 
 ## [2.7.0] - 2026-10-28
 

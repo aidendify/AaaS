@@ -1927,11 +1927,11 @@ function aiKeyFields(pfx){const ps=(aiKeyInfo&&aiKeyInfo.providers)||[{id:'openr
   return `<label>Provider<select name="${pfx}prov">${ps.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>
   <label>API key<input name="${pfx}key" type="password" autocomplete="off" spellcheck="false" maxlength="400" placeholder="sk-or-v1-…"></label>
   <small class="muted" style="display:block;margin:-4px 0 6px">Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> (you can set your own spend limit there). We check it once, store it encrypted, use it only for your account and never show it again.</small>`}
-function aiKeyStatus(){const i=aiKeyInfo;if(!i)return 'Agents use the shared demo key unless you add your own key.';
-  if(i.byok)return `Using your own ${esc(i.byok.name)} key (${esc(i.byok.hint)}). The shared demo credit isn’t touched.`;
-  if(!i.platform||!i.platform.on)return 'There is no shared AI key on this server. Add your own key to chat with your agents.';
-  if(i.platform.exhausted)return 'The shared demo AI credit is used up. Add your own key to keep testing.';
-  const t=i.platform.today;return 'Using the shared demo key'+(t&&t.callLimit?` (${t.calls} of ${t.callLimit} free AI calls used today)`:'')+'. Add your own key to test as much as you like on your own credit.'}
+function aiKeyStatus(){const i=aiKeyInfo;if(!i)return 'Real AI replies need your own key (OpenRouter, Anthropic, OpenAI, xAI or Gemini). You pay your provider directly.';
+  if(i.byok)return `Using your own ${esc(i.byok.name)} key (${esc(i.byok.hint)}). You pay your provider directly.`;
+  if(!i.platform||!i.platform.on)return 'Add your own AI key to chat with your agents. You pay your provider directly.';
+  if(i.platform.exhausted)return 'The demo credit on this server is used up. Add your own AI key for real AI replies.';
+  const t=i.platform.today;return 'This server has a limited demo key for trying things out'+(t&&t.callLimit?` (${t.calls} of ${t.callLimit} demo calls used today)`:'')+'. Real AI use needs your own key; you pay your provider directly.'}
 async function aiKeyFill(){const n=$('#aiKeyNote');if(!n)return;await aiKeyLoad();if(n.isConnected)n.innerHTML=aiKeyStatus()}
 async function aiKeySave(provider,key){return SYNC.api('/api/ai/key',{provider,key})}
 async function aiKeyModal(){await aiKeyLoad();

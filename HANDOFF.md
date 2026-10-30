@@ -2,6 +2,9 @@
 
 ## Chief inbound wire (30 Oct 2026, IST) — branch `parallel/chief-inbound-wire` (stacks on PR #16)
 - `runRouted` in `lib/freech.js` calls `routeChiefInbound` for owner messages (WA QR, Telegram, Slack). Send intents → pending approval only; nothing sends without approval. Mock-only tests in `test/v271-chief-wire.test.mjs`.
+## BYOK clarity (30 Oct 2026, IST) — `parallel/byok-clarity`
+Copy only: owners bring their own AI key; the server key is a capped demo fallback, never the goal (brief P0-7). No platform-paid key path. Test: `test/byok-copy.test.mjs`.
+
 
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
