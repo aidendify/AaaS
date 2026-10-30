@@ -15,6 +15,9 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - WhatsApp QR: "Unofficial · Beta" label and a required ban-risk checkbox; `POST /api/channels/whatsapp-qr/start` now needs `ack_ban_risk: true` (400 `ack_required` otherwise).
 ### Changed
 - **BYOK clarity.** AI key copy now says real AI needs the owner's own OpenRouter / Anthropic / OpenAI / xAI / Gemini key, paid to their provider. A server key is described only as a capped demo key; no pressure toward a platform-paid key. Clinic usage without a key reads "no AI key saved" instead of "platform key".
+### Added
+- **Product name in one place.** `lib/brand.js` holds the customer-facing name (`AIdentify` for now, not final) and a legal-entity placeholder. The index, clinic and settings titles use it. Internal ids, env vars and package names stay AaaS.
+- **Privacy and terms stubs.** `/privacy` and `/terms` (also `.html`) are marked draft, not legal advice. They are linked from the sign-in screen.
 
 ## [2.7.0] - 2026-10-28
 
