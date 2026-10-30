@@ -1,5 +1,18 @@
 # AaaS handoff
 
+## Native Meta publish for clinic social (branch `parallel/native-meta-publish`)
+
+No Buffer, no third-party scheduler, no paid BSP. Facebook Page and Instagram Business posting via Graph is free.
+
+**Platform (one time):** create a Meta app (type Business) at developers.facebook.com → add *Facebook Login for Business* + *Instagram Graph API*. Set server env:
+`META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI=https://<host>/api/clinic/social/meta/callback`. Add that exact URL to *Valid OAuth Redirect URIs* (plus a staging one). Permissions requested: `pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish, business_management` — these need **Meta App Review** before non-tester owners can use them; until then add owners as app testers.
+
+**Each owner:** Clinic → Social → *Connect Facebook / Instagram* → pick the Page (Instagram must be a Business/Creator account linked to that Page). UI shows Page name and @handle and only the last 4 of the token. *Disconnect* clears the sealed creds.
+
+**How it works:** OAuth `state` is random, single-use, 10-min, bound to the tenant that started it (`as_csocst:`). Code → short token → long-lived user token (~60 days) → `/me/accounts` Page token (non-expiring while the user token stays valid). Sealed with AES-256-GCM (`SESSION_SECRET`-derived, `:clinic-social`) under `as_csocial:<email>`; both prefixes are SERVER_ONLY in `/api/kv`. On approve (`/api/clinic/decide`): not connected / demo → status `approved` + note; else `POST /{page}/feed` (and IG `media` + `media_publish` only when the post has an https `imageUrl`) → `published` + `liveUrls`, or `failed` + `publishError`.
+
+**Gaps:** first Page only if the owner grants several; no automatic re-auth when the user token lapses (owner reconnects; error is shown); scheduled-time publishing not built (publish happens on approve); IG needs an image (UI has no image upload yet; API accepts `imageUrl`). X/LinkedIn: "Coming soon" stubs only. `lib/buffer.js` deprecated for clinic; still used by the generic chat agent.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
