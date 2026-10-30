@@ -361,7 +361,7 @@ function kpis() {
     [L.noshow || 'No-shows', s.noshows, 'This week'],
     [L.recall || 'Recalls due', s.recallsDue, 'No ' + (L.visit || 'visit') + ' in 6 months'],
     ['Reviews requested', s.reviews, 'Drafts on file'],
-    ['Posts scheduled', s.posts, 'On the calendar, not published'],
+    ['Posts scheduled', s.posts, 'Drafts and approved posts'],
     [L.revenue || 'Paid this month', inr(s.revenue), 'Invoices marked paid'],
     [(L.who || 'Patients') + ' last 2 months', s.patientsLast2Months, s.patientsTotal + ' on file'],
   ];
@@ -569,13 +569,19 @@ function reviews() {
     </tbody></table></div>
     <h2>Drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No review drafts yet.</p>'}${rulesBox(a)}`;
 }
+function metaCard() {
+  const m = state.socialMeta || {};
+  const who = m.connected ? `Connected: ${esc(m.pageName || 'Facebook Page')}${m.instagram ? ' · Instagram ' + (m.igUsername ? '@' + esc(m.igUsername) : 'linked') : ' · no Instagram linked'} <span class="small">(token ${esc(m.token || '')})</span>` : 'Not connected. Approved posts stay drafts until you connect.';
+  return `<div class="panel stack"><b>Facebook / Instagram</b><p class="small">${who}</p>${m.connected ? '<button class="btn-ghost" type="button" data-act="metadisconnect">Disconnect</button>' : (m.oauth ? '<button class="btn" type="button" data-act="metaconnect">Connect Facebook / Instagram</button>' : '<p class="small">Facebook Login is not set up on this server yet.</p>')}<p class="small">X and LinkedIn: coming soon.</p></div>`;
+}
 function social() {
   const a = state.agents.find((x) => x.key==='social');
   const start = state.stats.weekStart;
   const days = [...Array(7)].map((_, i) => { const [y,m,d] = start.split('-').map(Number); const dt = new Date(Date.UTC(y, m-1, d+i)); const key = dt.toISOString().slice(0,10); const label = dt.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }); return { key, label }; });
   return `${agentHead(a)}<h2>This week</h2>
-    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
+    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}${(p.liveUrls||[]).map((u) => ` <a href="${esc(u)}" target="_blank" rel="noopener">View live post</a>`).join('')}${p.publishNote && p.status !== 'published' ? `<div class="small">${esc(p.publishNote)}</div>` : ''}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
     <h2>Draft a post</h2>
+    ${metaCard()}
     <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="${esc((state.labels&&state.labels.example)||'What to say this week')}"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
     <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
     <h2>Forwardable referral</h2>
@@ -639,7 +645,7 @@ function usage() {
 }
 function privacy() {
   return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records of ${esc((state.labels&&state.labels.who)||'people')} stay on this account. Another customer cannot read them.</p>
-    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Neither one sends an email, a text, or a post.</p></article>
+    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Only an approved social post goes out, and only to a Facebook/Instagram Page you connected; nothing else is sent.</p></article>
     <article class="draft"><b>Export</b><p>Download the records in this account as JSON. The public form token is left out.</p><button class="btn" type="button" data-act="export">Download my data</button></article>
     <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes this team’s ${esc((state.labels&&state.labels.who)||'people')}, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
     <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample business password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
@@ -769,6 +775,8 @@ async function reload() {
 }
 async function act(name, el) {
   try {
+    if (name === 'metaconnect') { const r = await api('/api/clinic/social/meta/start', {}); location.href = r.url; return; }
+    if (name === 'metadisconnect') { await api('/api/clinic/social/meta', { disconnect: true }); state.socialMeta = { connected: false, oauth: true }; flash('Disconnected. Tokens cleared.'); render(); return; }
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
     if (name === 'advanced' || name === 'bot-mode') {
       advanced = !advanced;
