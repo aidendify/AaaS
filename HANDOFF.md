@@ -371,3 +371,4 @@ Slack already lives in `lib/freech.js` (connect via `POST /api/channels/slack`, 
 - `clinic.html`: `calendar()` screen (nav item Calendar), month grid from `state.appointments` (non-cancelled) and `state.posts`, keyed by `dayKey` (Asia/Kolkata). Day detail reuses `add-appt` and `social` form handlers.
 - Test: `test/monthly-calendar.test.mjs` (source strings).
 - Gaps: post drafts appear on the grid only after approval (when they enter `state.posts`); no drag/reschedule; no browser e2e.
+- **AI flag on drafts.** Only `/api/clinic/social/draft` sets `ai: true`, and only when the model returned text. Every other draft is a template (tone edits are owner text, not model output).

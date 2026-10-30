@@ -42,6 +42,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
   - Salon/studio as the default demo pack.
   - `MAIL_DEV` local system email (not SES).
   - Details are in HANDOFF.md.
+### Changed
+- Drafts carry `ai: true` only when a model wrote the text (social posts with an AI key). Reminders, follow-ups, reviews, referrals, payment and weekly drafts are fixed templates and stay unflagged.
 
 ## [2.7.0] - 2026-10-28
 
