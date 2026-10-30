@@ -34,6 +34,14 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Default demo pack.** The industry picker and the fallback copy now lead with *Salon, gym or studio*, then *Real estate*. Dental and all other packs stay available. No new stats were added.
 ### Added
 - **Local/dev system email (`MAIL_DEV`).** Sign-in codes and password-reset mail can go to `log`, `file` (`MAIL_DEV_FILE`, default `.mail-dev/outbox.jsonl`) or an `ethereal` test inbox. Nothing is delivered and nothing is spent. Ignored on Vercel. Gmail app password (`GMAIL_USER` + `GMAIL_APP_PASSWORD`) is still the real-delivery path. This is not production SES.
+### Parallel individual track
+- Fork PRs #15–#26 (individual track, not the IntelligenzIT transfer, no AWS, no live Vercel changes):
+  - Chief fixes, plus a multi-channel inbound spike: QR WhatsApp via Baileys (needs a Node host that stays on), with Telegram and Slack mocked. Every outbound message needs approval.
+  - BYOK clarity and a centralized product name with draft legal stubs.
+  - Clinic P1 work: AI vs automation labels, staff logins, monthly calendar, walk-in payments.
+  - Salon/studio as the default demo pack.
+  - `MAIL_DEV` local system email (not SES).
+  - Details are in HANDOFF.md.
 
 ## [2.7.0] - 2026-10-28
 
