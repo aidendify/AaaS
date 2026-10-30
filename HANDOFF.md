@@ -326,3 +326,7 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 ## Slack adapter (parallel/slack-adapter)
 
 Slack already lives in `lib/freech.js` (connect via `POST /api/channels/slack`, signed webhook `/api/channels/slack/webhook/<hook>`, owner → Chief, customers → front-desk draft held by `holdOutbound`). This branch adds tenant-isolation + approval-gate tests only. Mock tokens need `CHANNELS_MOCK=on`.
+## Monthly calendar (parallel/monthly-calendar)
+- `clinic.html`: `calendar()` screen (nav item Calendar), month grid from `state.appointments` (non-cancelled) and `state.posts`, keyed by `dayKey` (Asia/Kolkata). Day detail reuses `add-appt` and `social` form handlers.
+- Test: `test/monthly-calendar.test.mjs` (source strings).
+- Gaps: post drafts appear on the grid only after approval (when they enter `state.posts`); no drag/reschedule; no browser e2e.
