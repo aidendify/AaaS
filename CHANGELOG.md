@@ -28,6 +28,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - `as_cteam:` / `as_cmember:` are server-only (no raw KV forging) and cleaned on account delete.
 ### Added
 - **Monthly calendar.** A Calendar screen in the clinic shows a month grid with visit and scheduled-post counts per day. Tap a day to see its items and add a visit or draft a post for that day, using the existing appointment and social draft APIs. Post drafts still wait for approval.
+### Added
+- **Walk-in payments.** Billing has a one-tap **Record walk-in payment** row: pick the person, the amount, then Cash, UPI or Card. `POST /api/clinic/payments/walkin` saves a paid invoice (`paidVia`, `walkIn: true`, `payMode: 'desk'`) and returns the new ₹ recovered figure. No payment provider is called. `POST /api/clinic/invoices/update` accepts an optional `method` (cash, upi, card) when marking paid.
 
 ## [2.7.0] - 2026-10-28
 
