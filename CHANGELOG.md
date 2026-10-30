@@ -30,6 +30,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Monthly calendar.** A Calendar screen in the clinic shows a month grid with visit and scheduled-post counts per day. Tap a day to see its items and add a visit or draft a post for that day, using the existing appointment and social draft APIs. Post drafts still wait for approval.
 ### Added
 - **Walk-in payments.** Billing has a one-tap **Record walk-in payment** row: pick the person, the amount, then Cash, UPI or Card. `POST /api/clinic/payments/walkin` saves a paid invoice (`paidVia`, `walkIn: true`, `payMode: 'desk'`) and returns the new ₹ recovered figure. No payment provider is called. `POST /api/clinic/invoices/update` accepts an optional `method` (cash, upi, card) when marking paid.
+### Changed
+- **Default demo pack.** The industry picker and the fallback copy now lead with *Salon, gym or studio*, then *Real estate*. Dental and all other packs stay available. No new stats were added.
 
 ## [2.7.0] - 2026-10-28
 

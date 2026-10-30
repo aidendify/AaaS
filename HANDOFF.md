@@ -17,6 +17,8 @@ Copy only: owners bring their own AI key; the server key is a capped demo fallba
 - Code: `lib/clinic-team.js` (seat lookup, role gates, team routes); wired in `lib/backend.js` before `clinicRoutes`, which now runs on the owner's email for staff.
 - Tests: `test/clinic-staff.test.mjs` (invite/accept/single-use token, member approve OK, member 403 on billing/settings/team, KV forge blocked, cross-tenant isolation, admin limits).
 - Gaps: no invite email (link only; wire `lib/mailer.js` later), no clinic.html team UI yet, approvals don't record which staff member decided, one business per staff login, BYOK keys stay per-owner (members' own `/api/aikey` only touches their own account).
+## Default demo pack (30 Oct 2026, IST) — branch `parallel/demo-pack-default`
+- `DEFAULT_PACK = 'studio'` in `lib/clinic-packs.js`; `PACK_IDS` order is studio, realestate, then the rest. `copyFor` in `lib/clinic.js` falls back to it instead of dental. Mobile screenshot script seeds studio. Test: `test/demo-pack-default.test.mjs`.
 
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
