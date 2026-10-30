@@ -32,6 +32,8 @@ and the project uses [Semantic Versioning](https://semver.org/).
 - **Walk-in payments.** Billing has a one-tap **Record walk-in payment** row: pick the person, the amount, then Cash, UPI or Card. `POST /api/clinic/payments/walkin` saves a paid invoice (`paidVia`, `walkIn: true`, `payMode: 'desk'`) and returns the new ₹ recovered figure. No payment provider is called. `POST /api/clinic/invoices/update` accepts an optional `method` (cash, upi, card) when marking paid.
 ### Changed
 - **Default demo pack.** The industry picker and the fallback copy now lead with *Salon, gym or studio*, then *Real estate*. Dental and all other packs stay available. No new stats were added.
+### Added
+- **Local/dev system email (`MAIL_DEV`).** Sign-in codes and password-reset mail can go to `log`, `file` (`MAIL_DEV_FILE`, default `.mail-dev/outbox.jsonl`) or an `ethereal` test inbox. Nothing is delivered and nothing is spent. Ignored on Vercel. Gmail app password (`GMAIL_USER` + `GMAIL_APP_PASSWORD`) is still the real-delivery path. This is not production SES.
 
 ## [2.7.0] - 2026-10-28
 
