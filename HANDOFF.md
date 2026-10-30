@@ -9,6 +9,9 @@ Copy only: owners bring their own AI key; the server key is a capped demo fallba
 - The name is **not final**. `AIdentify` is a placeholder in `lib/brand.js` (`DISPLAY_NAME`, `LEGAL_NAME`, `final: false`). To rename, edit that file and the `<title>`s in index/clinic/settings.html. `test/brand.test.mjs` fails if they drift.
 - `privacy.html` and `terms.html` are **stubs only** and use `{{PRODUCT_NAME}}` tokens (filled in by server.js and scripts/vercel-build.mjs). A real policy needs legal review before launch.
 - Not renamed: README, mailer templates, landing/waitlist/white-label copy, invoice HTML.
+## AI vs automation labels — branch `parallel/ai-vs-automation-labels`
+
+`originTag(d)` in clinic.html labels every draft: `d.ai` truthy → "AI wrote this", else "Scheduled rule" (template + timer). Chief is the only AI surface and is tagged. No backend change; set `ai: true` on drafts if the model ever writes one.
 
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
