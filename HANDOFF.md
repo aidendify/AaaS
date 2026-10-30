@@ -315,3 +315,6 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 - Plan: `docs/MULTI-CHANNEL-CHIEF-SPIKE.md`. Router: `lib/chief-inbound.js` (owner-only, approval-first, no provider calls).
 - **Runtime:** Baileys / WhatsApp QR needs a long-lived Node process. It will NOT work on Vercel serverless (`assertWaqrAvailable` refuses). Run the channel runtime on the box, Docker, EC2 or similar always-on host. The web UI can still live on Vercel later.
 - WhatsApp QR is unofficial (Baileys); WhatsApp can ban the number. Owner self-chat only, no customer messages, no broadcasts. No paid BSP. AI is BYOK only.
+## Slack adapter (parallel/slack-adapter)
+
+Slack already lives in `lib/freech.js` (connect via `POST /api/channels/slack`, signed webhook `/api/channels/slack/webhook/<hook>`, owner → Chief, customers → front-desk draft held by `holdOutbound`). This branch adds tenant-isolation + approval-gate tests only. Mock tokens need `CHANNELS_MOCK=on`.
