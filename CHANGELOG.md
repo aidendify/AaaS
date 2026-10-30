@@ -44,6 +44,11 @@ and the project uses [Semantic Versioning](https://semver.org/).
   - Details are in HANDOFF.md.
 ### Changed
 - Drafts carry `ai: true` only when a model wrote the text (social posts with an AI key). Reminders, follow-ups, reviews, referrals, payment and weekly drafts are fixed templates and stay unflagged.
+### Added
+- **Native clinic social publish (Facebook + Instagram, no Buffer).** New `lib/clinic-social-meta.js`. Owner clicks "Connect Facebook / Instagram" (Facebook Login OAuth); the Page token and linked Instagram account are AES-256-GCM sealed under server-only `as_csocial:<email>`. Draft → approve → publish through Meta Graph. Success stores the live post URL; failure keeps a visible error. Not connected = "Approved, not published". `META_MOCK=on` (or `CHANNELS_MOCK=on`) for offline tests. X and LinkedIn shown as "Coming soon".
+
+### Deprecated
+- `lib/buffer.js` is not used by the clinic social path (still used by the generic chat agent `social_post` tool).
 
 ## [2.7.0] - 2026-10-28
 
