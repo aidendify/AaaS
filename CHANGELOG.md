@@ -5,6 +5,51 @@ and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed (Chief inbound wire)
+- Owner inbound on WhatsApp QR, Telegram and Slack (`lib/freech.js` runRouted) now goes through `lib/chief-inbound.js`: send intents only queue approvals via holdOutbound, STOP pauses, other questions still go to Chief. Test: `test/v271-chief-wire.test.mjs`.
+
+### Added (multi-channel Chief spike, local only)
+- `lib/chief-inbound.js`: owner-only inbound router for Chief (WhatsApp QR, Telegram, Slack, webchat). Answers from the account's own records; "send X: text" only queues an approval. Tests in `test/chief-inbound.test.mjs`.
+- `docs/MULTI-CHANNEL-CHIEF-SPIKE.md` spike plan.
+- `test/v270-telegram-gate.test.mjs`: Telegram webhook secret gate (missing, wrong, other tenant's secret, unknown hook) and proof that customer replies stay pending approvals.
+- WhatsApp QR: "Unofficial · Beta" label and a required ban-risk checkbox; `POST /api/channels/whatsapp-qr/start` now needs `ack_ban_risk: true` (400 `ack_required` otherwise).
+### Changed
+- **BYOK clarity.** AI key copy now says real AI needs the owner's own OpenRouter / Anthropic / OpenAI / xAI / Gemini key, paid to their provider. A server key is described only as a capped demo key; no pressure toward a platform-paid key. Clinic usage without a key reads "no AI key saved" instead of "platform key".
+### Added
+- **Product name in one place.** `lib/brand.js` holds the customer-facing name (`AIdentify` for now, not final) and a legal-entity placeholder. The index, clinic and settings titles use it. Internal ids, env vars and package names stay AaaS.
+- **Privacy and terms stubs.** `/privacy` and `/terms` (also `.html`) are marked draft, not legal advice. They are linked from the sign-in screen.
+### Added
+- Slack adapter coverage: `test/slack-adapter.test.mjs` proves owner DM → Chief, customer DM → approval draft only, send only after approve, and two-tenant isolation (hooks, secrets, approvals). Uses the existing `lib/freech.js` adapter; no runtime change.
+### Changed
+- Clinic UI separates AI from automation (PDF P1-2): Chief chat and its answers carry an "AI wrote this" tag; follow-up/reminder drafts and the Rules box carry a "Scheduled rule" tag (drafts flagged `ai` show "AI wrote this"). Test: `test/ai-vs-automation-labels.test.mjs`.
+### Added
+- Clinic staff logins (P1-3): the owner invites staff by email (`POST /api/clinic/team/invite`, roles `admin`/`member` from the agency role names), staff accept with their own login (`/api/clinic/team/accept`), owner lists/removes (`/api/clinic/team`, `/team/remove`). Members can work drafts and approve/reject but get 403 on plan, profile, industry, rules, setup, connectors, invoices, payments, export, data delete, usage and team admin. Admins can do settings but not plan, payments, data delete or team admin.
+- No email is sent yet: invite returns a one-time, 7-day, email-bound link (`sent: false`); only the token hash is stored.
+- `as_cteam:` / `as_cmember:` are server-only (no raw KV forging) and cleaned on account delete.
+### Added
+- **Monthly calendar.** A Calendar screen in the clinic shows a month grid with visit and scheduled-post counts per day. Tap a day to see its items and add a visit or draft a post for that day, using the existing appointment and social draft APIs. Post drafts still wait for approval.
+### Added
+- **Walk-in payments.** Billing has a one-tap **Record walk-in payment** row: pick the person, the amount, then Cash, UPI or Card. `POST /api/clinic/payments/walkin` saves a paid invoice (`paidVia`, `walkIn: true`, `payMode: 'desk'`) and returns the new ₹ recovered figure. No payment provider is called. `POST /api/clinic/invoices/update` accepts an optional `method` (cash, upi, card) when marking paid.
+### Changed
+- **Default demo pack.** The industry picker and the fallback copy now lead with *Salon, gym or studio*, then *Real estate*. Dental and all other packs stay available. No new stats were added.
+### Added
+- **Local/dev system email (`MAIL_DEV`).** Sign-in codes and password-reset mail can go to `log`, `file` (`MAIL_DEV_FILE`, default `.mail-dev/outbox.jsonl`) or an `ethereal` test inbox. Nothing is delivered and nothing is spent. Ignored on Vercel. Gmail app password (`GMAIL_USER` + `GMAIL_APP_PASSWORD`) is still the real-delivery path. This is not production SES.
+### Parallel individual track
+- Fork PRs #15–#26 (individual track, not the IntelligenzIT transfer, no AWS, no live Vercel changes):
+  - Chief fixes, plus a multi-channel inbound spike: QR WhatsApp via Baileys (needs a Node host that stays on), with Telegram and Slack mocked. Every outbound message needs approval.
+  - BYOK clarity and a centralized product name with draft legal stubs.
+  - Clinic P1 work: AI vs automation labels, staff logins, monthly calendar, walk-in payments.
+  - Salon/studio as the default demo pack.
+  - `MAIL_DEV` local system email (not SES).
+  - Details are in HANDOFF.md.
+### Changed
+- Drafts carry `ai: true` only when a model wrote the text (social posts with an AI key). Reminders, follow-ups, reviews, referrals, payment and weekly drafts are fixed templates and stay unflagged.
+### Added
+- **Native clinic social publish (Facebook + Instagram, no Buffer).** New `lib/clinic-social-meta.js`. Owner clicks "Connect Facebook / Instagram" (Facebook Login OAuth); the Page token and linked Instagram account are AES-256-GCM sealed under server-only `as_csocial:<email>`. Draft → approve → publish through Meta Graph. Success stores the live post URL; failure keeps a visible error. Not connected = "Approved, not published". `META_MOCK=on` (or `CHANNELS_MOCK=on`) for offline tests. X and LinkedIn shown as "Coming soon".
+
+### Deprecated
+- `lib/buffer.js` is not used by the clinic social path (still used by the generic chat agent `social_post` tool).
+
 ## [2.7.0] - 2026-10-28
 
 ### Added

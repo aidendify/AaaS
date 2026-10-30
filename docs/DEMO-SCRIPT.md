@@ -2,6 +2,8 @@
 
 Use two browser windows (or one normal and one private window) so you can switch between customer and admin quickly.
 
+> Clinic demo: pick **Salon, gym or studio** (listed first) or **Real estate**. Dental is still in the list.
+
 ## 1. The customer's view (2 min)
 1. Open the site → **Create one!** → make a customer account. A full-screen AaaS intro plays (click to skip).
 2. On the dashboard, type **"Create change slip for Jordan Lee: add a surge protector $250"** and press Enter. The ChangeSlip form opens already filled in. Create the slip, then **Open customer page** → **Accept** to show the receipt and timeline.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AaaS · Clinic team</title>
+<title>AIdentify · Clinic team</title>
 <link rel="stylesheet" href="/clinic-theme.css">
 <style>
 * { box-sizing:border-box; }
@@ -77,6 +77,9 @@ tr:last-child td { border-bottom:0; }
 .day b { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
 .post { font-size:12px; background:#f6f8fb; border-radius:8px; padding:6px; margin-top:6px; }
 .draft { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+.origin { display:inline-block; font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; vertical-align:middle; }
+.origin.ai { background:#eef0ff; color:#3a3fb5; }
+.origin.rule { background:#eef3ee; color:#2f6b3a; }
 .draft p { margin:6px 0; white-space:pre-wrap; }
 .rules { margin-top:16px; }
 .auth { min-height:100vh; display:grid; place-items:center; padding:24px; }
@@ -132,6 +135,11 @@ tr:last-child td { border-bottom:0; }
 .conn .actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:none; }
 .src { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
 .src li { background:#f6f8fb; border-radius:999px; padding:4px 10px; font-size:13px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin:8px 0 16px; }
+.cal-cell { min-height:64px; border:1px solid var(--line); border-radius:8px; background:#fff; padding:4px; text-align:left; display:flex; flex-direction:column; font:inherit; cursor:pointer; }
+.cal-empty { border:0; background:none; cursor:default; }
+.cal-today { border-color:#2563eb; }
+.cal-sel { background:#eef4ff; }
 .visit-q { margin:0 0 12px; }
 .terms { margin:8px 0 0; padding-left:18px; }
 .scroll { overflow:auto; -webkit-overflow-scrolling:touch; }
@@ -191,7 +199,8 @@ const dayKey = (iso) => { const t = Date.parse(iso); if (!t) return ''; return n
 const hello = () => { const h = Number(new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Kolkata', hour:'numeric', hourCycle:'h23' }).format(new Date())); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const PILL = { new:'New', booked:'Booked', closed:'Closed', completed:'Completed', noshow:'No-show', cancelled:'Cancelled', pending:'Waiting', approved:'Approved', rejected:'Skipped', scheduled:'On calendar', draft:'Draft', queued:'Queued', paid:'Paid', unpaid:'Unpaid', overdue:'Overdue' };
 const pill = (s) => `<span class="pill ${esc(s)}">${esc(PILL[s] || s || '')}</span>`;
-const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup'];
+const SCREENS = ['dash','front','recall','reviews','social','insights','billing','approvals','connections','pricing','usage','privacy','visit','settings','setup','calendar'];
+let calMonth = '', calDay = '';
 
 let token = sessionStorage.getItem('aaas_clinic_token') || '';
 let meta = { demoLogin:false };
@@ -336,6 +345,7 @@ function side() {
     <nav class="nav">
       ${item('dash','Dashboard')}
       ${(state.agents||[]).map((a) => item(a.key, a.name)).join('')}
+      ${item('calendar','Calendar')}
       ${item('approvals','Approvals', pending?`<span class="badge">${pending}</span>`:'')}
       ${item('connections','Connections')}
       ${item('visit','Clinic visit')}
@@ -361,7 +371,7 @@ function kpis() {
     [L.noshow || 'No-shows', s.noshows, 'This week'],
     [L.recall || 'Recalls due', s.recallsDue, 'No ' + (L.visit || 'visit') + ' in 6 months'],
     ['Reviews requested', s.reviews, 'Drafts on file'],
-    ['Posts scheduled', s.posts, 'On the calendar, not published'],
+    ['Posts scheduled', s.posts, 'Drafts and approved posts'],
     [L.revenue || 'Paid this month', inr(s.revenue), 'Invoices marked paid'],
     [(L.who || 'Patients') + ' last 2 months', s.patientsLast2Months, s.patientsTotal + ' on file'],
   ];
@@ -389,7 +399,7 @@ function todayAppts() {
   return (state.appointments || []).filter((a) => a.status === 'booked' && dayKey(a.at) === key);
 }
 function homeDraft(d) {
-  return `<article class="draft"><b>${esc(d.title)}</b> ${pill(d.status)}
+  return `<article class="draft"><b>${esc(d.title)}</b> ${originTag(d)} ${pill(d.status)}
     <p>${esc(String(d.body || '').slice(0, 180))}</p>
     <div class="row-actions">
       <button class="btn" type="button" data-act="decide" data-id="${esc(d.approvalId)}" data-decision="approve">Approve</button>
@@ -451,8 +461,8 @@ function drawerHtml() {
 function chiefPage() {
   const opener = (state.chief && state.chief.opener) || 'I’m Chief. Ask me about this business. Nothing is sent until you approve a draft.';
   if (!chatLog.length) chatLog = [{ r: 'a', t: opener }];
-  return `<section class="chief" aria-label="Chief"><header><b>Chief</b><span>${esc(state.biz || '')}. Answers come from this account’s records. Drafts still need approval.</span></header>
-    <div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r === 'a' ? chatMd(m.t) : esc(m.t)}</div>`).join('')}${chatBusy ? '<div class="small">Checking the records…</div>' : ''}</div>
+  return `<section class="chief" aria-label="Chief"><header><b>Chief</b> <span class="origin ai" title="Chief is the AI surface">AI wrote this</span><span>${esc(state.biz || '')}. Answers come from this account’s records. Drafts still need approval.</span></header>
+    <div class="log">${chatLog.map((m) => `<div class="bubble ${m.r}">${m.r === 'a' ? '<span class="origin ai">AI wrote this</span> ' + chatMd(m.t) : esc(m.t)}</div>`).join('')}${chatBusy ? '<div class="small">Checking the records…</div>' : ''}</div>
     <form data-act="chat"><input id="chatIn" name="message" value="${esc(chatDraft)}" placeholder="Ask about leads, approvals or payments" autocomplete="off"><button class="btn" type="submit">Send</button></form></section>`;
 }
 function softwareCard() {
@@ -480,7 +490,7 @@ function forecastCard() {
 }
 function rulesBox(agent) {
   const r = state.rules || {};
-  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules</div>
+  return `<form class="card rules" data-act="rules" style="padding:12px"><div class="small">Rules <span class="origin rule">Scheduled rule</span> · these run on a timer from your templates, not AI</div>
     <div style="margin:6px 0 8px">Send only between <input name="from" value="${esc(r.from)}" style="width:90px"> and <input name="to" value="${esc(r.to)}" style="width:90px"> · Ask before anything new · Tone: <input name="tone" value="${esc(r.tone)}" style="width:min(360px,100%)"></div>
     <button class="btn-ghost" type="submit">Save rules</button>
     <button class="btn-ghost" type="button" data-act="go" data-screen="settings">Reminder settings</button>
@@ -494,6 +504,10 @@ function agentHead(agent) {
       <div class="tile"><div class="k">Waiting for approval</div><div class="v">${agent.waiting}</div></div>
       <div class="tile"><div class="k">Scheduled</div><div class="v">${agent.scheduled}</div></div>
     </div>`;
+}
+// P1-2: every item says who made it. Drafts come from scheduled rules + saved templates unless flagged ai.
+function originTag(d) {
+  return d && d.ai ? '<span class="origin ai" title="Written by the AI model">AI wrote this</span>' : '<span class="origin rule" title="Made by a scheduled rule from a saved template. No AI.">Scheduled rule</span>';
 }
 function draftCard(d) {
   const link = String(d.waLink || '').startsWith('https://wa.me/') ? d.waLink : '';
@@ -569,19 +583,45 @@ function reviews() {
     </tbody></table></div>
     <h2>Drafts</h2>${drafts.map(draftCard).join('') || '<p class="small">No review drafts yet.</p>'}${rulesBox(a)}`;
 }
+function metaCard() {
+  const m = state.socialMeta || {};
+  const who = m.connected ? `Connected: ${esc(m.pageName || 'Facebook Page')}${m.instagram ? ' · Instagram ' + (m.igUsername ? '@' + esc(m.igUsername) : 'linked') : ' · no Instagram linked'} <span class="small">(token ${esc(m.token || '')})</span>` : 'Not connected. Approved posts stay drafts until you connect.';
+  return `<div class="panel stack"><b>Facebook / Instagram</b><p class="small">${who}</p>${m.connected ? '<button class="btn-ghost" type="button" data-act="metadisconnect">Disconnect</button>' : (m.oauth ? '<button class="btn" type="button" data-act="metaconnect">Connect Facebook / Instagram</button>' : '<p class="small">Facebook Login is not set up on this server yet.</p>')}<p class="small">X and LinkedIn: coming soon.</p></div>`;
+}
 function social() {
   const a = state.agents.find((x) => x.key==='social');
   const start = state.stats.weekStart;
   const days = [...Array(7)].map((_, i) => { const [y,m,d] = start.split('-').map(Number); const dt = new Date(Date.UTC(y, m-1, d+i)); const key = dt.toISOString().slice(0,10); const label = dt.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' }); return { key, label }; });
   return `${agentHead(a)}<h2>This week</h2>
-    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
+    <div class="days">${days.map((d) => `<div class="day"><b>${esc(d.label)}</b>${(state.posts||[]).filter((p) => dayKey(p.at)===d.key).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}${(p.liveUrls||[]).map((u) => ` <a href="${esc(u)}" target="_blank" rel="noopener">View live post</a>`).join('')}${p.publishNote && p.status !== 'published' ? `<div class="small">${esc(p.publishNote)}</div>` : ''}</div>`).join('') || '<div class="small">Empty</div>'}</div>`).join('')}</div>
     <h2>Draft a post</h2>
+    ${metaCard()}
     <form class="form" data-act="social"><label class="wide">Topic<input name="topic" required placeholder="${esc((state.labels&&state.labels.example)||'What to say this week')}"></label><label>Put it on<input name="when" type="date"></label><div style="align-self:end"><button class="btn" type="submit">Create draft</button></div></form>
     <p class="small">The draft is written by the same AI path as the rest of AaaS. Approving it only puts it on this calendar. Nothing is published.</p>
     <h2>Forwardable referral</h2>
     <p class="sub">A short message this person can forward on WhatsApp, with their own booking link. It waits in Approvals. Nothing is sent.</p>
     <form class="form" data-act="referral"><label>Person<select name="patientId">${(state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label><div style="align-self:end"><button class="btn" type="submit">Draft referral message</button></div></form>
     ${(state.drafts||[]).filter((d) => d.agent==='social').map(draftCard).join('')}${rulesBox(a)}`;
+}
+function calendar() {
+  const now = dayKey(new Date().toISOString());
+  if (!calMonth) calMonth = now.slice(0,7);
+  const [y,m] = calMonth.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m-1, 1)); const lead = first.getUTCDay(); const n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const visits = (state.appointments||[]).filter((a) => a.status !== 'cancelled'); const posts = state.posts||[];
+  const on = (list, k) => list.filter((x) => dayKey(x.at) === k);
+  const cells = [...Array(lead)].map(() => '<div class="cal-cell cal-empty"></div>');
+  for (let d = 1; d <= n; d++) { const k = `${calMonth}-${String(d).padStart(2,'0')}`; const v = on(visits,k).length, ps = on(posts,k).length;
+    cells.push(`<button type="button" class="cal-cell${k===now?' cal-today':''}${k===calDay?' cal-sel':''}" data-act="cal-day" data-day="${k}"><b>${d}</b>${v?`<span class="small">${v} visit${v>1?'s':''}</span>`:''}${ps?`<span class="small">${ps} post${ps>1?'s':''}</span>`:''}</button>`); }
+  const label = first.toLocaleDateString('en-IN', { month:'long', year:'numeric', timeZone:'UTC' });
+  let detail = '<p class="small">Tap a day to see and add items.</p>';
+  if (calDay) { const opts = (state.patients||[]).map((p) => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    detail = `<h2>${esc(calDay)}</h2>${on(visits,calDay).map((a) => `<div class="post">${pill(a.status)} <b>${esc(when(a.at))}</b> ${esc(pname(a.patientId))} · ${esc(a.service)}</div>`).join('')}${on(posts,calDay).map((p) => `<div class="post">${pill(p.status)} ${esc(p.text)}</div>`).join('') || ''}${on(visits,calDay).length+on(posts,calDay).length?'':'<p class="small">Nothing on this day.</p>'}
+    <h3>Add a visit</h3><form class="form" data-act="add-appt"><label>Person<select name="patientId">${opts}</select></label><label>When<input name="at" type="datetime-local" required value="${calDay}T10:00"></label><label>Service<input name="service" value="${esc((state.labels&&state.labels.service)||'Visit')}"></label><label>Fee<input name="fee" type="number" min="0" value="0"></label><div><button class="btn" type="submit">Add visit</button></div></form>
+    <h3>Draft a post for this day</h3><form class="form" data-act="social"><label class="wide">Topic<input name="topic" required></label><input type="hidden" name="when" value="${calDay}"><div><button class="btn" type="submit">Create draft</button></div></form><p class="small">Post drafts wait in Approvals. Nothing is published.</p>`; }
+  return `${banner()}<h1>Calendar</h1><p class="sub">Visits and scheduled posts by month.</p>
+    <p><button class="btn-ghost" type="button" data-act="cal-nav" data-step="-1">Previous</button> <b>${esc(label)}</b> <button class="btn-ghost" type="button" data-act="cal-nav" data-step="1">Next</button></p>
+    <div class="cal-grid">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d) => `<div class="cal-head small">${d}</div>`).join('')}${cells.join('')}</div>${detail}`;
 }
 function insights() {
   const a = state.agents.find((x) => x.key==='insights');
@@ -599,6 +639,10 @@ function billing() {
     <button class="btn-ghost" type="button" data-act="pdf" data-id="${inv.id}" data-number="${esc(inv.number)}">PDF</button>
   </td></tr>`).join('');
   return `${agentHead(a)}<p class="sub">Manual invoices. GST stays blank unless you type a percent. There is no GSTIN. Each invoice and its reminder draft includes a payment link: a Razorpay test link when those keys are set, otherwise a UPI link. The sample business can simulate the paid webhook. Nothing is sent, and AaaS does not take the payment itself.</p>
+    <h2>Record walk-in payment</h2>
+    <form class="form" data-act="walkin"><label>Person<select name="patientId">${opts}</select></label><label>Amount ₹<input name="amount" type="number" min="1" step="0.01" required value="1500"></label><label>For<input name="desc" placeholder="Walk-in payment"></label>
+      <div style="align-self:end" class="row-actions"><button class="btn" type="submit" name="method" value="cash">Cash</button><button class="btn" type="submit" name="method" value="upi">UPI</button><button class="btn" type="submit" name="method" value="card">Card</button></div></form>
+    <p class="small">One tap records money already taken at the desk as a paid invoice. It counts in ₹ recovered. Nothing is charged.</p>
     <form class="form" data-act="add-inv">
       <label>Person<select name="patientId">${opts}</select></label>
       <label>Description<input name="desc" required placeholder="${esc((state.labels&&state.labels.service)||'What this invoice is for')}"></label>
@@ -639,7 +683,7 @@ function usage() {
 }
 function privacy() {
   return `${banner()}<h1>Your data</h1><p class="sub">This workspace is for the owner of ${esc(state.biz || 'this business')}. Records of ${esc((state.labels&&state.labels.who)||'people')} stay on this account. Another customer cannot read them.</p>
-    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Neither one sends an email, a text, or a post.</p></article>
+    <article class="draft"><b>Human approval</b><p>Enquiries, reminders, review requests, posts and payment reminders are drafts. Approve records your OK. Reject skips it. Only an approved social post goes out, and only to a Facebook/Instagram Page you connected; nothing else is sent.</p></article>
     <article class="draft"><b>Export</b><p>Download the records in this account as JSON. The public form token is left out.</p><button class="btn" type="button" data-act="export">Download my data</button></article>
     <form class="draft stack" data-act="wipe"><b>Delete the records</b><p class="small">Removes this team’s ${esc((state.labels&&state.labels.who)||'people')}, invoices, drafts and form from this account. Your sign-in stays. Type “delete my data”.</p><input name="confirm" placeholder="delete my data"><button class="btn-danger" type="submit">Delete my data</button></form>
     <form class="draft stack" data-act="wipe-account"><b>Delete the account</b><p class="small">Uses your password. The sample business password is not shown, so use “Delete my data” there. Staff accounts cannot be deleted here.</p><input name="password" type="password" autocomplete="current-password" placeholder="Password"><button class="btn-danger" type="submit">Delete this account</button></form>`;
@@ -754,7 +798,7 @@ function render() {
   else if (state.role && !advanced) body = `<div class="bot-on">${botSwitch()}${chiefPage()}</div>`;
   else if (!state.role) body = screen === 'setup' ? setupView() : screen === 'role' ? roleView() : profileView();
   else {
-    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, settings, setup: setupView, chat: chiefPage }[screen] || dash;
+    const page = { dash, front, recall, reviews, social, insights, billing, approvals, connections, pricing, usage, privacy, visit, calendar, settings, setup: setupView, chat: chiefPage }[screen] || dash;
     body = `<div class="app">${side()}<main class="main" data-screen="${esc(screen)}">${page()}</main></div>${botSwitch()}${drawerHtml()}<button class="chat-fab" type="button" data-act="open-chief">Chief</button>`;
   }
   if (toast) body += `<div class="toast" role="status">${esc(toast)}</div>`;
@@ -769,6 +813,8 @@ async function reload() {
 }
 async function act(name, el) {
   try {
+    if (name === 'metaconnect') { const r = await api('/api/clinic/social/meta/start', {}); location.href = r.url; return; }
+    if (name === 'metadisconnect') { await api('/api/clinic/social/meta', { disconnect: true }); state.socialMeta = { connected: false, oauth: true }; flash('Disconnected. Tokens cleared.'); render(); return; }
     if (name === 'mode') { mode = el.dataset.mode; err = ''; render(); return; }
     if (name === 'advanced' || name === 'bot-mode') {
       advanced = !advanced;
@@ -871,6 +917,8 @@ async function act(name, el) {
     if (name === 'add-enq') { const f = Object.fromEntries(new FormData(el).entries()); await api('/api/clinic/enquiries', f); flash('Enquiry added.'); }
     else if (name === 'enq-status') await api('/api/clinic/enquiries/update', { id:Number(el.dataset.id), status:el.dataset.status });
     else if (name === 'enq-del') { if (!confirm('Delete this enquiry?')) return; await api('/api/clinic/enquiries/delete', { id:Number(el.dataset.id) }); }
+    else if (name === 'cal-day') { calDay = el.dataset.day; render(); return; }
+    else if (name === 'cal-nav') { const [y,m] = calMonth.split('-').map(Number); const d = new Date(Date.UTC(y, m-1+Number(el.dataset.step), 1)); calMonth = d.toISOString().slice(0,7); calDay = ''; render(); return; }
     else if (name === 'add-appt') { const f = Object.fromEntries(new FormData(el).entries()); if (f.at) f.at = new Date(f.at).toISOString(); f.patientId = Number(f.patientId); f.fee = Number(f.fee||0); await api('/api/clinic/appointments', f); flash('Appointment added.'); }
     else if (name === 'appt-status') await api('/api/clinic/appointments/update', { id:Number(el.dataset.id), status:el.dataset.status });
     else if (name === 'appt-del') { if (!confirm('Delete this appointment?')) return; await api('/api/clinic/appointments/delete', { id:Number(el.dataset.id) }); }
@@ -907,6 +955,12 @@ async function act(name, el) {
       for (const q of ((state.visit && state.visit.questions) || [])) answers[q.id] = f[q.id] || '';
       await api('/api/clinic/visit', { who: f.who || '', notes: f.notes || '', accept: f.accept === 'yes', answers });
       flash('Visit notes saved in this account.');
+    }
+    else if (name === 'walkin') {
+      const f = Object.fromEntries(new FormData(el).entries());
+      const via = el.dataset.via || 'cash';
+      const r = await api('/api/clinic/payments/walkin', { patientId: Number(f.patientId), amount: Number(f.amount), desc: f.desc, method: via });
+      flash('Recorded ' + inr(r.invoice.total) + ' by ' + via.toUpperCase() + ' as paid. ₹ recovered this month: ' + inr(r.recovered.total) + '.');
     }
     else if (name === 'add-inv') {
       const f = Object.fromEntries(new FormData(el).entries());
@@ -964,7 +1018,7 @@ async function act(name, el) {
 }
 root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b || b.closest('form[data-act]') && b.type === 'submit') return; if (b.dataset.act === 'mode' || b.type === 'button' || b.classList.contains('tile') || b.classList.contains('chat-fab') || b.classList.contains('out') || b.classList.contains('drawer-back')) { e.preventDefault(); act(b.dataset.act, b); } });
 root.addEventListener('change', (e) => { if (e.target && e.target.dataset && e.target.dataset.act === 'pick') act('pick', e.target); });
-root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); act(f.dataset.act, f); });
+root.addEventListener('submit', (e) => { const f = e.target.closest('form[data-act]'); if (!f) return; e.preventDefault(); f.dataset.via = (e.submitter && e.submitter.value) || ''; act(f.dataset.act, f); });
 root.addEventListener('input', (e) => { if (e.target.id === 'chatIn') chatDraft = e.target.value; });
 (async () => {
   const hash = new URLSearchParams(location.hash.replace(/^#/, ''));

@@ -1,5 +1,75 @@
 # AaaS handoff
 
+## Chief inbound wire (30 Oct 2026, IST) — branch `parallel/chief-inbound-wire` (stacks on PR #16)
+- `runRouted` in `lib/freech.js` calls `routeChiefInbound` for owner messages (WA QR, Telegram, Slack). Send intents → pending approval only; nothing sends without approval. Mock-only tests in `test/v271-chief-wire.test.mjs`.
+## BYOK clarity (30 Oct 2026, IST) — `parallel/byok-clarity`
+Copy only: owners bring their own AI key; the server key is a capped demo fallback, never the goal (brief P0-7). No platform-paid key path. Test: `test/byok-copy.test.mjs`.
+
+## Product name + legal stubs (30 Oct 2026, IST), branch `parallel/legal-name-stubs`
+- The name is **not final**. `AIdentify` is a placeholder in `lib/brand.js` (`DISPLAY_NAME`, `LEGAL_NAME`, `final: false`). To rename, edit that file and the `<title>`s in index/clinic/settings.html. `test/brand.test.mjs` fails if they drift.
+- `privacy.html` and `terms.html` are **stubs only** and use `{{PRODUCT_NAME}}` tokens (filled in by server.js and scripts/vercel-build.mjs). A real policy needs legal review before launch.
+- Not renamed: README, mailer templates, landing/waitlist/white-label copy, invoice HTML.
+## AI vs automation labels — branch `parallel/ai-vs-automation-labels`
+
+`originTag(d)` in clinic.html labels every draft: `d.ai` truthy → "AI wrote this", else "Scheduled rule" (template + timer). Chief is the only AI surface and is tagged. No backend change; set `ai: true` on drafts if the model ever writes one.
+## Clinic staff logins (P1-3) — branch `parallel/staff-logins`
+
+- Code: `lib/clinic-team.js` (seat lookup, role gates, team routes); wired in `lib/backend.js` before `clinicRoutes`, which now runs on the owner's email for staff.
+- Tests: `test/clinic-staff.test.mjs` (invite/accept/single-use token, member approve OK, member 403 on billing/settings/team, KV forge blocked, cross-tenant isolation, admin limits).
+- Gaps: no invite email (link only; wire `lib/mailer.js` later), no clinic.html team UI yet, approvals don't record which staff member decided, one business per staff login, BYOK keys stay per-owner (members' own `/api/aikey` only touches their own account).
+## Default demo pack (30 Oct 2026, IST) — branch `parallel/demo-pack-default`
+- `DEFAULT_PACK = 'studio'` in `lib/clinic-packs.js`; `PACK_IDS` order is studio, realestate, then the rest. `copyFor` in `lib/clinic.js` falls back to it instead of dental. Mobile screenshot script seeds studio. Test: `test/demo-pack-default.test.mjs`.
+## Dev system email — branch `parallel/dev-system-email`
+
+- `MAIL_DEV=log` prints sign-in and reset mail to the server log. `MAIL_DEV=file` appends JSON lines to `MAIL_DEV_FILE` (default `.mail-dev/outbox.jsonl`, gitignored). Neither uses the network. `MAIL_DEV=ethereal` creates a nodemailer test account on ethereal.email and logs a preview URL. That needs network access and delivers nothing.
+- `MAIL_DEV` is ignored when `VERCEL` is set. Any value other than these three is ignored.
+- Real delivery still uses `GMAIL_USER` + `GMAIL_APP_PASSWORD`, an app password from https://myaccount.google.com/apppasswords, or another SMTP host via `SMTP_HOST`/`SMTP_PORT`.
+- **Not production SES.** No SES code or config was added. Production transactional mail is still an open decision.
+- Code: `lib/mailer.js` (`devMailMode`, `systemMailReady`, `sendSystemEmail`). Callers: `lib/pwreset.js` and `lib/authx.js` use `systemMailReady()`. Tests: `test/mail-dev.test.mjs`, where Ethereal is mocked.
+## Parallel individual track (read first)
+
+Status as of 2026-10-30. These notes cover the fork PRs from `srinivasaphanindra/AaaS`. They are separate from the P0 items in the PDF that were skipped on purpose.
+
+- **Scope.** This is an individual, parallel race. It is not the IntelligenzIT transfer. There is no rename of LICENSE to the company and no AWS work. The AWS kit below is docs only.
+- **Deploy later.** Use a **new** Vercel project or a demo on the box. Never reconfigure the live `aidentify` / `aidentify-demo` projects unless asked.
+- **BYOK only.** Owners bring their own AI key. Running a key the platform pays for is not a goal. `CLINIC_DEMO_PLATFORM_KEY` is only for sample/demo use.
+- **Channels.**
+  - QR WhatsApp (Baileys) needs a Node host that stays on. It does not run on Vercel serverless.
+  - Telegram and Slack are mocked or gated in tests.
+  - All outbound messages need approval first.
+  - Unofficial WhatsApp carries a **ban risk** for the number. Official Meta/Gupshup stays the production path.
+- **System email.** For local work, `MAIL_DEV=log|file|ethereal`. This is not SES, and there is no SES code.
+- **Open fork PRs** (from `gh pr list --repo aidendify/AaaS --state open`, 2026-10-30):
+  - #15 Chief chat no longer 500s on null history entries
+  - #16 Multi-channel Chief spike (QR WA + Telegram gate)
+  - #17 Wire chief-inbound into WhatsApp QR / Telegram / Slack owner inbound
+  - #18 BYOK clarity: owners bring their own AI key
+  - #19 Centralize product display name + draft privacy/terms stubs
+  - #20 Slack adapter: approval-gated outbound + tenant isolation tests
+  - #21 Clinic UI: separate AI from automation (P1-2)
+  - #22 Clinic staff logins: invites + role gates (P1-3)
+  - #23 Clinic monthly calendar view (P1-4)
+  - #24 Walk-in payments: one-tap cash/UPI/card → paid invoice (P1-5)
+  - #25 Default demo pack: salon/studio first, real estate next
+  - #26 Dev system email: MAIL_DEV=log|file|ethereal (no SES)
+  - #27 This summary (docs only)
+- **Blocked on Phanindra:**
+  - Final product name (#19 centralizes it)
+  - Meta tokens for social publish
+  - GSTIN + Razorpay subscriptions (subscription billing stays shelved)
+## Native Meta publish for clinic social (branch `parallel/native-meta-publish`)
+
+No Buffer, no third-party scheduler, no paid BSP. Facebook Page and Instagram Business posting via Graph is free.
+
+**Platform (one time):** create a Meta app (type Business) at developers.facebook.com → add *Facebook Login for Business* + *Instagram Graph API*. Set server env:
+`META_APP_ID`, `META_APP_SECRET`, `META_REDIRECT_URI=https://<host>/api/clinic/social/meta/callback`. Add that exact URL to *Valid OAuth Redirect URIs* (plus a staging one). Permissions requested: `pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish, business_management` — these need **Meta App Review** before non-tester owners can use them; until then add owners as app testers.
+
+**Each owner:** Clinic → Social → *Connect Facebook / Instagram* → pick the Page (Instagram must be a Business/Creator account linked to that Page). UI shows Page name and @handle and only the last 4 of the token. *Disconnect* clears the sealed creds.
+
+**How it works:** OAuth `state` is random, single-use, 10-min, bound to the tenant that started it (`as_csocst:`). Code → short token → long-lived user token (~60 days) → `/me/accounts` Page token (non-expiring while the user token stays valid). Sealed with AES-256-GCM (`SESSION_SECRET`-derived, `:clinic-social`) under `as_csocial:<email>`; both prefixes are SERVER_ONLY in `/api/kv`. On approve (`/api/clinic/decide`): not connected / demo → status `approved` + note; else `POST /{page}/feed` (and IG `media` + `media_publish` only when the post has an https `imageUrl`) → `published` + `liveUrls`, or `failed` + `publishError`.
+
+**Gaps:** first Page only if the owner grants several; no automatic re-auth when the user token lapses (owner reconnects; error is shown); scheduled-time publishing not built (publish happens on approve); IG needs an image (UI has no image upload yet; API accepts `imageUrl`). X/LinkedIn: "Coming soon" stubs only. `lib/buffer.js` deprecated for clinic; still used by the generic chat agent.
+
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
 Local demo: `npm start`, then http://localhost:3000/clinic. Sample button is on for a local server. `CLINIC_DEMO=1` forces it on, `=0` forces it off. The sample password is never printed.
@@ -15,6 +85,7 @@ What this branch adds on top of `main`, still in PR #13:
 - **Eka.care** (`lib/clinic-connectors.js`). Login `POST /connect-auth/v1/account/login`, directory `GET /profiles/v1/patient/minified/`, visits `GET /dr/v1/appointment` (7-day window). Docs: https://developer.eka.care. Env only: `EKA_CLIENT_ID`, `EKA_CLIENT_SECRET`, optional `EKA_BASE_URL`, `EKA_CLINIC_ID`. Tokens are not stored. The sample clinic is **Connected (demo)** and sync does not call the network. A new account with no credentials shows **Available, connect with credentials** (status `needs_credentials`). Other software: CSV, or `POST /api/clinic/connectors/webhook/<form token>` with `X-AaaS-Connector-Secret` when `CLINIC_CONNECTOR_WEBHOOK_SECRET` is set. The webhook stays 404 without that secret.
 - **Official WhatsApp.** `lib/clinic-whatsapp.js` is the adapter. `CLINIC_WA_PROVIDER` is `meta` or `gupshup`. Meta needs `CLINIC_WA_META_TOKEN` and `CLINIC_WA_META_PHONE_ID`. Gupshup needs `CLINIC_WA_GUPSHUP_API_KEY`, `CLINIC_WA_GUPSHUP_SOURCE` and `CLINIC_WA_GUPSHUP_APP_NAME`. Approved clinic drafts send one template (`CLINIC_WA_TEMPLATE`, default `aaas_note`). The sample business never calls the provider. No opt-in, or an opt-out, means the approval is kept and nothing is sent. `POST /api/clinic/whatsapp/opt` records the owner’s opt-in or opt-out and does not send. `GET`/`POST /api/clinic/whatsapp/webhook` is Meta’s verify plus delivery status, and Gupshup’s events. Meta signs with `CLINIC_WA_META_APP_SECRET`. Gupshup uses `CLINIC_WA_WEBHOOK_SECRET`. Unset secrets keep the URL closed. Keys are env only.
 - **Invoice payment links.** A new invoice and its billing reminder include a payment link. With `RAZORPAY_KEY_ID` (`rzp_test_…` only) and `RAZORPAY_KEY_SECRET`, AaaS creates a Razorpay Payment Link and does not ask Razorpay to text or email. A live key is ignored and the invoice gets a UPI deep link instead. No keys: the same UPI link. `POST /api/clinic/payments/razorpay` checks `X-Razorpay-Signature` with `RAZORPAY_WEBHOOK_SECRET` (404 when that secret is unset) and marks the invoice paid. The sample business does not call Razorpay; **Simulate payment** runs that same paid step. Keys are env only. This is not the shelved subscription billing in `lib/billing.js`.
+- **Walk-in payments.** Billing → Record walk-in payment: Cash / UPI / Card buttons call `POST /api/clinic/payments/walkin` `{ patientId, amount, method, desc? }`. It creates a paid invoice (`walkIn: true`, `paidVia`) that counts in ₹ recovered under Paid invoices (or Reactivated). Desk entry only, nothing is charged, Razorpay is not called. `invoices/update` takes optional `method` with `status: 'paid'`. Tests: `test/clinic-walkin.test.mjs`.
 - Dashboard hero **₹ recovered this month**. Bookings are this month’s visit fees apart from referral visits. Referrals are fees on visits booked from a forwarded link. Reactivated is paid invoices this month for people a follow-up brought back. Paid invoices are the rest, so a rupee is counted once. `POST /api/clinic/summary/weekly` queues one pending weekly WhatsApp summary (agent `insights`, approval kind `draft`). The sample already has that draft. Approving it does not send it. The link is `https://wa.me/`.
 - Dashboard: people whose source is Eka.care or Clinic software, and paid invoices this month for the ones marked brought back (a return invoice on the sample, or an approved recall draft for a connector patient).
 - **Clinic visit** at `/clinic#visit` and `docs/clinic-visit-kit.md`. Ten questions, free-pilot terms, answers saved on `as_clinic:<email>`.
@@ -300,3 +371,16 @@ The launch-readiness list. Step 1 (security basics) shipped in v1.4.0 and step 4
 - **Storage.** The box's own live server still runs on `data/kv.json` on purpose. The migration tool was tried on a copy of real data against a local Postgres, not against Neon. Rate limits are still kept per server instance.
 - **Tests.** The browser "pay" check is tested as a rule (which clicks wait for approval); approving a browser step is not tested because it would start a real browser. The Chief of Staff test covers handing work to an agent; turning a goal into board tasks is done by the group lead, and that is tested too.
 - **Automatic checks.** They use the account's GitHub Actions minutes now that the repo is private, so they run once per change, and only for code.
+
+## Multi-channel Chief spike (PR3, local, not pushed)
+- Plan: `docs/MULTI-CHANNEL-CHIEF-SPIKE.md`. Router: `lib/chief-inbound.js` (owner-only, approval-first, no provider calls).
+- **Runtime:** Baileys / WhatsApp QR needs a long-lived Node process. It will NOT work on Vercel serverless (`assertWaqrAvailable` refuses). Run the channel runtime on the box, Docker, EC2 or similar always-on host. The web UI can still live on Vercel later.
+- WhatsApp QR is unofficial (Baileys); WhatsApp can ban the number. Owner self-chat only, no customer messages, no broadcasts. No paid BSP. AI is BYOK only.
+## Slack adapter (parallel/slack-adapter)
+
+Slack already lives in `lib/freech.js` (connect via `POST /api/channels/slack`, signed webhook `/api/channels/slack/webhook/<hook>`, owner → Chief, customers → front-desk draft held by `holdOutbound`). This branch adds tenant-isolation + approval-gate tests only. Mock tokens need `CHANNELS_MOCK=on`.
+## Monthly calendar (parallel/monthly-calendar)
+- `clinic.html`: `calendar()` screen (nav item Calendar), month grid from `state.appointments` (non-cancelled) and `state.posts`, keyed by `dayKey` (Asia/Kolkata). Day detail reuses `add-appt` and `social` form handlers.
+- Test: `test/monthly-calendar.test.mjs` (source strings).
+- Gaps: post drafts appear on the grid only after approval (when they enter `state.posts`); no drag/reschedule; no browser e2e.
+- **AI flag on drafts.** Only `/api/clinic/social/draft` sets `ai: true`, and only when the model returned text. Every other draft is a template (tone edits are owner text, not model output).

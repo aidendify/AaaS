@@ -4,6 +4,7 @@ import './lib/logbuf.js'; // keep recent log lines for Settings → Logs
 import { obsScope, obs, obsDone } from './lib/obs.js';
 import { mockOn } from './lib/llm.js';
 import { applyPriceTokens } from './lib/pricing.js';
+import { applyBrandTokens } from './lib/brand.js';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -54,6 +55,9 @@ async function serve(req, res) {
     }
     { const to = { '/login': '/', '/signin': '/', '/signup': '/#signup', '/register': '/#signup', '/forgot-password': '/#forgot', '/reset-password': '/#forgot' }[url.pathname]; // one sign-in screen
       if (req.method === 'GET' && to) { res.writeHead(302, { Location: to }); return res.end(); } }
+    if (req.method === 'GET' && ['/privacy', '/privacy.html', '/terms', '/terms.html'].includes(url.pathname)) { // draft legal stubs, name from lib/brand.js
+      return send(res, 200, applyBrandTokens(await fs.readFile(path.join(dir, url.pathname.replace(/^\/|\.html$/g, '') + '.html'), 'utf8')), 'text/html; charset=utf-8');
+    }
     if (req.method === 'GET' && (url.pathname === '/setup' || url.pathname === '/setup.html')) { // first-run admin setup
       return send(res, 200, await fs.readFile(path.join(dir, 'setup.html')), 'text/html; charset=utf-8');
     }

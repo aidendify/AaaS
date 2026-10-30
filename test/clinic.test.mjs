@@ -321,7 +321,7 @@ test('every industry pack creates the same six screens with its own labels', asy
     assert.deepEqual(meta.plans.map((p) => p.priceInr), [2999, 4999]);
     assert.match(meta.pricing.annualNote, /9,999/);
     const ids = meta.packs.map((p) => p.id);
-    assert.deepEqual(ids, ['dental', 'aesthetic', 'coach', 'realestate', 'studio', 'home', 'institute']);
+    assert.deepEqual(ids, ['studio', 'realestate', 'dental', 'aesthetic', 'coach', 'home', 'institute']);
     for (const pack of meta.packs) {
       const email = pack.id + '-owner@example.com';
       const signed = await s.api('/api/auth/signup', { email, name: pack.title, password: PW });

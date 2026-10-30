@@ -3,13 +3,15 @@
 // The serverless function (api/index.js) still bundles lib/ on its own.
 import fs from 'node:fs';
 import { applyPriceTokens } from '../lib/pricing.js';
+import { applyBrandTokens } from '../lib/brand.js';
 const OUT = 'public';
-const PAGES = ['index.html', 'setup.html', 'settings.html', 'board.html', 'waitlist.html', 'landing-v2.html', 'white-label.html', 'clinic.html'];
+const PAGES = ['index.html', 'setup.html', 'settings.html', 'board.html', 'waitlist.html', 'landing-v2.html', 'white-label.html', 'clinic.html', 'privacy.html', 'terms.html'];
+const LEGAL = ['privacy.html', 'terms.html'];
 const ASSETS = ['landing-v2.css', 'landing-v2.js', 'clinic-theme.css'];
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 for (const p of PAGES) {
-  const body = p === 'landing-v2.html' ? applyPriceTokens(fs.readFileSync(p, 'utf8')) : fs.readFileSync(p);
+  const body = p === 'landing-v2.html' ? applyPriceTokens(fs.readFileSync(p, 'utf8')) : LEGAL.includes(p) ? applyBrandTokens(fs.readFileSync(p, 'utf8')) : fs.readFileSync(p);
   fs.writeFileSync(`${OUT}/${p}`, body);
 }
 for (const p of ASSETS) fs.copyFileSync(p, `${OUT}/${p}`);
