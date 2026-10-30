@@ -12,6 +12,11 @@ Copy only: owners bring their own AI key; the server key is a capped demo fallba
 ## AI vs automation labels — branch `parallel/ai-vs-automation-labels`
 
 `originTag(d)` in clinic.html labels every draft: `d.ai` truthy → "AI wrote this", else "Scheduled rule" (template + timer). Chief is the only AI surface and is tagged. No backend change; set `ai: true` on drafts if the model ever writes one.
+## Clinic staff logins (P1-3) — branch `parallel/staff-logins`
+
+- Code: `lib/clinic-team.js` (seat lookup, role gates, team routes); wired in `lib/backend.js` before `clinicRoutes`, which now runs on the owner's email for staff.
+- Tests: `test/clinic-staff.test.mjs` (invite/accept/single-use token, member approve OK, member 403 on billing/settings/team, KV forge blocked, cross-tenant isolation, admin limits).
+- Gaps: no invite email (link only; wire `lib/mailer.js` later), no clinic.html team UI yet, approvals don't record which staff member decided, one business per staff login, BYOK keys stay per-owner (members' own `/api/aikey` only touches their own account).
 
 ## Clinic team (AaaS v2) — branch `cursor/aaas-v2-dental-dashboard-2181`
 
